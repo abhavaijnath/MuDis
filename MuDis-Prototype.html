@@ -42,7 +42,7 @@ html:not([data-view="home"]) .ptype{display:block}
 .mstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;margin:40px 0 34px;padding-top:28px;border-top:1px solid var(--line)}
 .mstats b{display:block;font-weight:400;font-size:clamp(40px,5vw,64px);letter-spacing:-.04em;line-height:1}
 .mstats span{display:block;margin-top:8px;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.75}
-.mview{position:relative;height:min(62vh,560px);min-height:360px;overflow:hidden;border:1px solid var(--line);border-radius:14px;cursor:grab;touch-action:none;user-select:none;background-image:radial-gradient(color-mix(in srgb,var(--fg) 28%,transparent) 1px,transparent 1.6px);background-size:24px 24px}
+.mview{position:relative;height:min(62vh,560px);min-height:360px;overflow:hidden;border:1px solid var(--line);border-radius:14px;cursor:grab;touch-action:none;user-select:none}
 .mview.drag{cursor:grabbing}
 .mworld{position:absolute;left:0;top:0;transform-origin:0 0}
 .mworld svg{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
@@ -480,20 +480,16 @@ function animateRoute(){
 /* Trail, level and routing */
 /* trail = the path from Home to the current page (sets the level).
    T = every path ever walked, as a tree keyed by the page ids along it, so old branches stay on the map. */
-var trail=[],cur=null,T={},tOrder=0,seen={},sideways=0;
+var trail=[],tkeys=[],cur=null,T={},tOrder=0,seen={},sideways=0,pendingSide=false;
 var nt=document.getElementById("nt"),pb=document.getElementById("pmBtn"),nb=document.getElementById("ntBtn");
 var lab=document.getElementById("lvl"),pmTxt=document.getElementById("pmTxt"),nts=document.getElementById("notes"),mp=document.getElementById("map");
 function closeAll(){nt.classList.remove("open");nb.setAttribute("aria-expanded","false")}
 nb.onclick=function(){var was=nt.classList.contains("open");closeAll();if(!was){nt.classList.add("open");nb.setAttribute("aria-expanded","true")}};
 pb.onclick=function(){mapOpen?closeMap():openMap()};
-function record(){
-  var key="";
-  trail.forEach(function(p,i){
-    var pk=key;key+=(i?">":"")+p.id;
-    if(!T[key])T[key]={key:key,parent:i?pk:null,page:p,d:i,o:tOrder++};
-  });
-  if(cur.view!=="home")seen[cur.id]=1;
-}
+/* Tree nodes. side:true means the page was reached by a sideways turn: same level as the page before it, drawn beside it. */
+function addNode(k,parent,side,p){if(!T[k])T[k]={key:k,parent:parent,side:side,page:p,d:trail.length-1,o:tOrder++}}
+function stepDeeper(p){var pk=tkeys.length?tkeys[tkeys.length-1]:null,k=pk===null?p.id:pk+">"+p.id;trail.push(p);tkeys.push(k);addNode(k,pk,false,p)}
+function stepSideways(p){var pk=tkeys[tkeys.length-1],k=pk+"~"+p.id;trail[trail.length-1]=p;tkeys[tkeys.length-1]=k;addNode(k,pk,true,p);sideways++}
 var VIEWN={home:"Home",genre:"Genre",album:"Album",song:"Song",artist:"Artist"};
 function nodeSub(p){
   if(p.view==="home")return "Start";
@@ -505,7 +501,7 @@ function nodeSub(p){
 
 /* Path Map page */
 var mapOpen=false,mapY=0,MV={s:1,x:0,y:0};
-function pathKey(){return trail.map(function(p){return p.id}).join(">")}
+function pathKey(){return tkeys[tkeys.length-1]}
 function headline(){
   var lvl=trail.length-1;
   if(!lvl)return 'You’re at <em>Home</em>. Pick a genre to start a trail.';
@@ -516,19 +512,27 @@ function headline(){
 }
 function two(n){return (n<10?"0":"")+n}
 function mapHTML(){
-  var keys=Object.keys(T),kids={},W=250,H=124,P=50,slot=0,maxD=0,ck=pathKey();
+  var keys=Object.keys(T),kids={},W=250,H=130,P=50,slot=0,maxD=0,ck=pathKey(),onp={};
+  for(var a=ck;a!==null;a=T[a].parent)onp[a]=1;
   keys.forEach(function(k){var p=T[k].parent;if(p!==null)(kids[p]=kids[p]||[]).push(T[k])});
   Object.keys(kids).forEach(function(k){kids[k].sort(function(a,b){return a.o-b.o})});
+  /* Deeper pages sit in the row below their parent; sideways pages sit to the right on the same row. */
   (function lay(n){
-    var c=kids[n.key]||[];maxD=Math.max(maxD,n.d);
-    if(!c.length)n.x=P+(slot++)*W;else{c.forEach(lay);n.x=(c[0].x+c[c.length-1].x)/2}
+    var c=kids[n.key]||[],dp=c.filter(function(k){return !k.side}),sd=c.filter(function(k){return k.side});maxD=Math.max(maxD,n.d);
+    if(!dp.length)n.x=P+(slot++)*W;else{dp.forEach(lay);n.x=(dp[0].x+dp[dp.length-1].x)/2}
     n.y=P+n.d*H;
+    sd.forEach(lay);
   })(T.home);
   var ww=P*2+Math.max(slot-1,0)*W+210,wh=P*2+maxD*H+70,lines="",nodes="";
   keys.forEach(function(k){
-    var n=T[k],on=ck===k||ck.indexOf(k+">")===0;
-    if(n.parent!==null){var p=T[n.parent];lines+='<path class="'+(on?"on":"off")+'" d="M'+p.x+' '+p.y+' C'+p.x+' '+(p.y+H*.6)+' '+n.x+' '+(n.y-H*.6)+' '+n.x+' '+n.y+'"/>'}
-    nodes+='<button type="button" class="mn '+(on?"on":"off")+(k===ck?" cur":"")+'" data-key="'+esc(k)+'" style="left:'+(n.x-6)+'px;top:'+(n.y-7)+'px"'+(k===ck?' aria-current="page"':'')+'><i></i><small>'+(n.d?pad(n.d)+' · '+VIEWN[n.page.view]:'Start')+'</small><b>'+esc(n.page.name)+'</b><span>'+esc(nodeSub(n.page))+'</span></button>';
+    var n=T[k],on=!!onp[k];
+    if(n.parent!==null){
+      var p=T[n.parent],yy=p.y+62;
+      /* Sideways: drop below the labels, run across, rise into the next page. Deeper: curve down to the next row. */
+      var d=n.side?'M'+p.x+' '+p.y+' Q'+p.x+' '+yy+' '+(p.x+34)+' '+yy+' L'+(n.x-34)+' '+yy+' Q'+n.x+' '+yy+' '+n.x+' '+n.y:'M'+p.x+' '+p.y+' C'+p.x+' '+(p.y+H*.6)+' '+n.x+' '+(n.y-H*.6)+' '+n.x+' '+n.y;
+      lines+='<path class="'+(on?"on":"off")+'" d="'+d+'"/>';
+    }
+    nodes+='<button type="button" class="mn '+(on?"on":"off")+(k===ck?" cur":"")+'" data-key="'+esc(k)+'" style="left:'+(n.x-6)+'px;top:'+(n.y-7)+'px"'+(k===ck?' aria-current="page"':'')+'><i></i><small>'+(n.d?pad(n.d)+' · '+VIEWN[n.page.view]+(n.side?' · Sideways':''):'Start')+'</small><b>'+esc(n.page.name)+'</b><span>'+esc(nodeSub(n.page))+'</span></button>';
   });
   var lvl=trail.length-1;
   return '<p class="mkick">Path map · so far</p><h1 class="mhead">'+headline()+'</h1>'
@@ -539,7 +543,14 @@ function mapHTML(){
   +'<div class="mfoot"><span>Your trail</span><span>'+trail.map(function(p){return esc(p.name)}).join(" → ")+'</span></div>'
   +'<div class="macts"><button type="button" class="main" id="mShare">Share map</button><button type="button" id="mDig">Keep digging</button><button type="button" id="mReset">Start over</button></div>';
 }
-function mapSet(){var w=document.getElementById("mworld");if(!w)return;w.style.transform="translate("+MV.x+"px,"+MV.y+"px) scale("+MV.s+")";document.getElementById("mzv").textContent=Math.round(MV.s*100)+"%"}
+function mapSet(){
+  var w=document.getElementById("mworld");if(!w)return;
+  /* Panning stays inside the trail's own edges: a small trail stays fully in view, a big one always fills the frame. */
+  var v=document.getElementById("mview");
+  function lim(p,size,view){var a=view-size,b=0;return a<b?Math.min(b,Math.max(a,p)):Math.min(a,Math.max(b,p))}
+  MV.x=lim(MV.x,w.offsetWidth*MV.s,v.clientWidth);
+  MV.y=lim(MV.y,w.offsetHeight*MV.s+50,v.clientHeight);
+  w.style.transform="translate("+MV.x+"px,"+MV.y+"px) scale("+MV.s+")";document.getElementById("mzv").textContent=Math.round(MV.s*100)+"%"}
 function mapZoom(f,px,py){var v=document.getElementById("mview"),ns=Math.max(.35,Math.min(2,MV.s*f));if(px==null){px=v.clientWidth/2;py=v.clientHeight/2}MV.x=px-(px-MV.x)*ns/MV.s;MV.y=py-(py-MV.y)*ns/MV.s;MV.s=ns;mapSet()}
 function mapFit(){var v=document.getElementById("mview"),w=document.getElementById("mworld"),ww=w.offsetWidth,wh=w.offsetHeight;MV.s=Math.max(.35,Math.min(1,(v.clientWidth-40)/ww,(v.clientHeight-70)/wh));MV.x=(v.clientWidth-ww*MV.s)/2;MV.y=Math.max(20,(v.clientHeight-50-wh*MV.s)/2);mapSet()}
 function mapYou(){var v=document.getElementById("mview"),n=T[pathKey()];if(MV.s<.8)MV.s=1;MV.x=v.clientWidth/2-(n.x+90)*MV.s;MV.y=v.clientHeight/2-n.y*MV.s;mapSet()}
@@ -577,11 +588,10 @@ function openMap(){
 }
 function closeMap(){var y=mapY;route();window.scrollTo(0,y)}
 function openNode(key){
-  var chain=[],k=key;
-  while(k!==null){chain.unshift(T[k].page);k=T[k].parent}
-  trail=chain.slice(0,-1);
-  var p=chain[chain.length-1];
-  trail.push(p);go(p.id);
+  /* Rebuild the trail along that branch. A sideways page replaced the one before it, so that one is skipped. */
+  var chain=[],keys=[],k=key,skip=false;
+  while(k!==null){if(!skip){chain.unshift(T[k].page);keys.unshift(k)}skip=T[k].side;k=T[k].parent}
+  trail=chain;tkeys=keys;go(chain[chain.length-1].id);
 }
 function shareMap(){
   var lvl=trail.length-1,n=Object.keys(seen).length;
@@ -589,19 +599,21 @@ function shareMap(){
   function fallback(){var a=document.createElement("textarea");a.value=t;a.style.position="fixed";a.style.opacity="0";document.body.appendChild(a);a.select();try{document.execCommand("copy");say("Trail copied. Paste it anywhere to share.")}catch(e){say(t)}a.remove()}
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(function(){say("Trail copied. Paste it anywhere to share.")},fallback);else fallback();
 }
-function startOver(){T={};tOrder=0;seen={};sideways=0;trail=[];say("Trail cleared. Pick a genre to start again.");go("home")}
+function startOver(){T={};tOrder=0;seen={};sideways=0;trail=[];tkeys=[];say("Trail cleared. Pick a genre to start again.");go("home")}
 function noteKey(){return "mudis-notes:"+cur.id}
 function route(){
   var s=decodeURIComponent(location.hash.slice(1)),g=names.filter(function(n){return slug(n)===s})[0];
   var m=s.match(/^(.+)\/(\d+)$/),sx=m&&X[m[1]],tn=m?+m[2]:0;
   var page=g?{id:slug(g),view:"genre",name:g}:sx&&tn>=1&&tn<=sx.tracks.length?{id:s,view:"song",name:sx.tracks[tn-1][0],alb:m[1],n:tn}:ALB[s]?{id:s,view:"album",name:ALB[s].title}:AR[s]?{id:s,view:"artist",name:AR[s].name}:{id:"home",view:"home",name:"Home"};
-  if(!trail.length&&page.view!=="home")trail.push({id:"home",view:"home",name:"Home"});
-  if(trail.length===1&&page.view==="song")trail.push({id:page.alb,view:"album",name:ALB[page.alb].title});
+  var side=pendingSide;pendingSide=false;
+  if(!trail.length)stepDeeper({id:"home",view:"home",name:"Home"});
+  if(trail.length===1&&page.view==="song")stepDeeper({id:page.alb,view:"album",name:ALB[page.alb].title});
   var i=trail.map(function(p){return p.id}).indexOf(page.id);
-  /* Previous/next track swaps the song in place, so a song stays one level below its album */
-  if(i<0&&page.view==="song"&&cur&&cur.view==="song"&&cur.alb===page.alb)trail.pop();
-  if(i>=0)trail.length=i+1;else trail.push(page);
-  cur=page;var lvl=trail.length-1;record();
+  /* Already on the trail: go back up to it. Sideways door (or previous/next track): same level, beside the last page. Anything else: one level deeper. */
+  if(i>=0){trail.length=i+1;tkeys.length=i+1}
+  else if(trail.length>1&&(side||(page.view==="song"&&cur&&cur.view==="song"&&cur.alb===page.alb)))stepSideways(page);
+  else stepDeeper(page);
+  cur=page;var lvl=trail.length-1;if(cur.view!=="home")seen[cur.id]=1;
   mapOpen=false;mp.hidden=true;mp.innerHTML="";pmTxt.textContent="Path Map";pb.setAttribute("aria-expanded","false");
   root.dataset.level=Math.min(lvl,5);root.dataset.view=page.view;
   lab.textContent=pad(lvl);
@@ -625,7 +637,7 @@ window.addEventListener("hashchange",route);
 var toast=document.getElementById("toast"),tt;
 function say(m){toast.textContent=m;toast.classList.add("on");clearTimeout(tt);tt=setTimeout(function(){toast.classList.remove("on")},2600)}
 document.addEventListener("click",function(e){
-  var a=e.target.closest("[data-go]");if(a){if(a.closest(".side"))sideways++;go(a.dataset.go);return}
+  var a=e.target.closest("[data-go]");if(a){pendingSide=!!a.closest(".side");go(a.dataset.go);return}
   var m=e.target.closest("[data-msg]");if(m)say(m.dataset.msg);
 });
 var q=document.getElementById("q");
