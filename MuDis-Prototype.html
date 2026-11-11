@@ -23,6 +23,12 @@ html:not([data-view="home"]) .top{max-width:1180px;margin:0 auto}
 .search input::placeholder{color:var(--fg);opacity:.6}
 .search:focus-within{outline:2px solid var(--fg);outline-offset:3px}
 .right{justify-self:end;display:grid;gap:8px;width:136px}
+/* Top-left: search on the landing page only; everywhere else a back arrow and a home button take its place */
+.left{min-width:0}
+.navb{display:flex;gap:8px}
+.ib{display:grid;place-items:center;width:30px;height:30px;padding:0;border:1px solid var(--fg);border-radius:50%;background:none;transition:background .2s,color .2s}
+.ib:hover{background:var(--fg);color:var(--bg)}
+html[data-view="home"] .navb,html:not([data-view="home"]) .search{display:none}
 .brand{text-align:center;min-width:0}
 .brand a{display:block;text-decoration:none;font-weight:500;line-height:.9}
 html[data-view="home"] .brand a{font-size:clamp(56px,8.5vw,124px);letter-spacing:-.05em}
@@ -200,7 +206,13 @@ html.intro .rail{overflow:visible}
 </style>
 
 <header class="top">
-  <label class="pill search"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.7"/><path d="M10 10l4.5 4.5"/></svg><input id="q" type="search" placeholder="Search genre, artist, album" aria-label="Search genre, artist or album"></label>
+  <div class="left">
+    <label class="pill search"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.7"/><path d="M10 10l4.5 4.5"/></svg><input id="q" type="search" placeholder="Search genre, artist, album" aria-label="Search genre, artist or album"></label>
+    <nav class="navb" aria-label="Page navigation">
+      <button class="ib" id="backBtn" type="button" aria-label="Back to the previous page" title="Back"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 8H2.5M7 3.5L2.5 8 7 12.5"/></svg></button>
+      <button class="ib" id="homeBtn" type="button" aria-label="Home, all genres" title="Home"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 7.5L8 2.5l5.5 5M4 6.5v7h8v-7"/></svg></button>
+    </nav>
+  </div>
   <div class="brand"><div class="bwrap"><span class="welcome" aria-hidden="true">Welcome to</span><a href="#home" id="brandLink">MuDis</a></div><span class="ptype" id="ptype"></span><p>Pick a genre. Follow the trail down.</p></div>
   <div class="right">
     <button class="pill" id="pmBtn" type="button" aria-expanded="false" aria-controls="map"><span id="pmTxt">Path Map</span><span id="lvl">L 00</span></button>
@@ -486,6 +498,21 @@ var lab=document.getElementById("lvl"),pmTxt=document.getElementById("pmTxt"),nt
 function closeAll(){nt.classList.remove("open");nb.setAttribute("aria-expanded","false")}
 nb.onclick=function(){var was=nt.classList.contains("open");closeAll();if(!was){nt.classList.add("open");nb.setAttribute("aria-expanded","true")}};
 pb.onclick=function(){mapOpen?closeMap():openMap()};
+/* Back arrow: the last page visited, with the trail exactly as it was there. Home button: the genre columns. */
+var hist=[],backNav=false;
+function remember(){
+  if(backNav){backNav=false;return}
+  var last=hist[hist.length-1];
+  if(last&&last.key===tkeys[tkeys.length-1])return;
+  hist.push({key:tkeys[tkeys.length-1],id:cur.id,trail:trail.slice(),tkeys:tkeys.slice()});
+}
+document.getElementById("backBtn").onclick=function(){
+  if(mapOpen){closeMap();return}
+  hist.pop();var p=hist[hist.length-1];
+  if(!p){go("home");return}
+  trail=p.trail.slice();tkeys=p.tkeys.slice();backNav=true;go(p.id);
+};
+document.getElementById("homeBtn").onclick=function(){go("home")};
 /* Tree nodes. side:true means the page was reached by a sideways turn: same level as the page before it, drawn beside it. */
 function addNode(k,parent,side,p){if(!T[k])T[k]={key:k,parent:parent,side:side,page:p,d:trail.length-1,o:tOrder++}}
 function stepDeeper(p){var pk=tkeys.length?tkeys[tkeys.length-1]:null,k=pk===null?p.id:pk+">"+p.id;trail.push(p);tkeys.push(k);addNode(k,pk,false,p)}
@@ -599,7 +626,7 @@ function shareMap(){
   function fallback(){var a=document.createElement("textarea");a.value=t;a.style.position="fixed";a.style.opacity="0";document.body.appendChild(a);a.select();try{document.execCommand("copy");say("Trail copied. Paste it anywhere to share.")}catch(e){say(t)}a.remove()}
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(function(){say("Trail copied. Paste it anywhere to share.")},fallback);else fallback();
 }
-function startOver(){T={};tOrder=0;seen={};sideways=0;trail=[];tkeys=[];say("Trail cleared. Pick a genre to start again.");go("home")}
+function startOver(){T={};tOrder=0;seen={};sideways=0;trail=[];tkeys=[];hist=[];say("Trail cleared. Pick a genre to start again.");go("home")}
 function noteKey(){return "mudis-notes:"+cur.id}
 function route(){
   var s=decodeURIComponent(location.hash.slice(1)),g=names.filter(function(n){return slug(n)===s})[0];
@@ -613,7 +640,7 @@ function route(){
   if(i>=0){trail.length=i+1;tkeys.length=i+1}
   else if(trail.length>1&&(side||(page.view==="song"&&cur&&cur.view==="song"&&cur.alb===page.alb)))stepSideways(page);
   else stepDeeper(page);
-  cur=page;var lvl=trail.length-1;if(cur.view!=="home")seen[cur.id]=1;
+  cur=page;var lvl=trail.length-1;if(cur.view!=="home")seen[cur.id]=1;remember();
   mapOpen=false;mp.hidden=true;mp.innerHTML="";pmTxt.textContent="Path Map";pb.setAttribute("aria-expanded","false");
   root.dataset.level=Math.min(lvl,5);root.dataset.view=page.view;
   lab.textContent=pad(lvl);
@@ -653,7 +680,7 @@ q.addEventListener("keydown",function(e){
 });
 document.addEventListener("keydown",function(e){
   var t=document.activeElement.tagName;
-  if(e.key==="/"&&t!=="INPUT"&&t!=="TEXTAREA"){e.preventDefault();q.focus()}
+  if(e.key==="/"&&t!=="INPUT"&&t!=="TEXTAREA"&&cur.view==="home"&&!mapOpen){e.preventDefault();q.focus()}
   if(e.key==="Escape"){if(mapOpen)closeMap();else closeAll()}
 });
 route();
