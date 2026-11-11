@@ -35,13 +35,42 @@ html:not([data-view="home"]) .ptype{display:block}
 .panel.open{display:block}
 .panel h2{margin:0 0 6px;font-size:15px;font-weight:600}
 .panel p{margin:0 0 12px}
-.lv{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:2px}
-.lv button{display:flex;align-items:center;gap:10px;width:100%;padding:6px;border:0;background:none;text-align:left}
-.lv button:hover,.lv button[aria-current="true"]{background:color-mix(in srgb,var(--fg) 14%,transparent)}
-.lv i{width:16px;height:16px;border:1px solid var(--fg);flex:none}
-.lv b{font-weight:600;width:34px;flex:none}
-.lv em{font-style:normal;opacity:.7;margin-left:auto;font-size:12px}
-.mini{border:1px solid var(--fg);border-radius:99px;background:none;padding:3px 12px;font-size:12.5px}
+/* Path Map page: headline, stats, pannable/zoomable trail tree, actions. Background stays the colour of the level you opened it from. */
+.mkick{margin:34px 0 14px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;opacity:.75}
+.mhead{margin:0 0 0 -3px;max-width:15em;font-weight:500;font-size:clamp(36px,6vw,84px);letter-spacing:-.045em;line-height:1}
+.mhead em{font-style:italic;font-weight:400}
+.mstats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;margin:40px 0 34px;padding-top:28px;border-top:1px solid var(--line)}
+.mstats b{display:block;font-weight:400;font-size:clamp(40px,5vw,64px);letter-spacing:-.04em;line-height:1}
+.mstats span{display:block;margin-top:8px;font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;opacity:.75}
+.mview{position:relative;height:min(62vh,560px);min-height:360px;overflow:hidden;border:1px solid var(--line);border-radius:14px;cursor:grab;touch-action:none;user-select:none;background-image:radial-gradient(color-mix(in srgb,var(--fg) 28%,transparent) 1px,transparent 1.6px);background-size:24px 24px}
+.mview.drag{cursor:grabbing}
+.mworld{position:absolute;left:0;top:0;transform-origin:0 0}
+.mworld svg{position:absolute;left:0;top:0;overflow:visible;pointer-events:none}
+.mworld path{fill:none;stroke:var(--fg)}
+.mworld path.on{stroke-width:2.2}
+.mworld path.off{stroke-width:1.2;stroke-dasharray:3 5;opacity:.5}
+.mn{position:absolute;display:grid;grid-template-columns:12px minmax(0,1fr);column-gap:10px;width:210px;padding:0;border:0;background:none;text-align:left;line-height:1.2;cursor:pointer}
+.mn i{grid-row:1/4;width:12px;height:12px;margin-top:1px;border:1.5px solid var(--fg);border-radius:50%;background:var(--bg)}
+.mn.on i{background:var(--fg)}
+.mn.cur i{box-shadow:0 0 0 5px color-mix(in srgb,var(--fg) 22%,transparent)}
+.mn.off{opacity:.55}
+.mn small{font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.75}
+.mn b{margin-top:4px;font-size:17px;font-weight:500;letter-spacing:-.02em}
+.mn span{margin-top:3px;font-size:12.5px;opacity:.8}
+.mn:hover b,.mn:focus-visible b{text-decoration:underline;text-underline-offset:3px}
+.mhint{position:absolute;left:18px;bottom:16px;font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;opacity:.7;pointer-events:none;max-width:calc(100% - 300px)}
+.mzoom{position:absolute;right:14px;bottom:12px;display:flex;align-items:center;gap:2px;padding:4px;border:1px solid var(--fg);border-radius:99px;background:var(--bg)}
+.mzoom button{min-width:34px;height:30px;padding:0 10px;border:0;border-radius:99px;background:none;font-size:13px}
+.mzoom button:hover{background:color-mix(in srgb,var(--fg) 14%,transparent)}
+.mzoom output{min-width:46px;text-align:center;font-size:12.5px;opacity:.8}
+.mzoom hr{width:1px;height:20px;margin:0 4px;border:0;background:var(--fg);opacity:.4}
+.mfoot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px;margin-top:26px;padding-top:18px;border-top:1px solid var(--line);font-size:12.5px;letter-spacing:.12em;text-transform:uppercase}
+.mfoot span:first-child{opacity:.75}
+.macts{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin:44px 0 70px}
+.macts button{height:46px;padding:0 26px;border:1px solid var(--fg);border-radius:99px;background:none;font-size:14px;letter-spacing:.08em;text-transform:uppercase}
+.macts button:hover{background:color-mix(in srgb,var(--fg) 12%,transparent)}
+.macts button.main{background:var(--fg);color:var(--bg)}
+@media (max-width:700px){.mstats{gap:12px}.mhint{display:none}}
 textarea{width:100%;height:130px;resize:vertical;padding:8px;border:1px solid var(--fg);background:transparent;font-size:14px}
 .rail{flex:1;display:flex;gap:22px;align-items:flex-start;padding:30px max(var(--gut),env(safe-area-inset-right,0px)) 24px max(var(--gut),env(safe-area-inset-left,0px));overflow:auto;scrollbar-width:none;scroll-snap-type:x proximity}
 .rail::-webkit-scrollbar{display:none}
@@ -174,14 +203,8 @@ html.intro .rail{overflow:visible}
   <label class="pill search"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.7"/><path d="M10 10l4.5 4.5"/></svg><input id="q" type="search" placeholder="Search genre, artist, album" aria-label="Search genre, artist or album"></label>
   <div class="brand"><div class="bwrap"><span class="welcome" aria-hidden="true">Welcome to</span><a href="#home" id="brandLink">MuDis</a></div><span class="ptype" id="ptype"></span><p>Pick a genre. Follow the trail down.</p></div>
   <div class="right">
-    <button class="pill" id="pmBtn" type="button" aria-expanded="false" aria-controls="pm"><span>Path Map</span><span id="lvl">L 00</span></button>
+    <button class="pill" id="pmBtn" type="button" aria-expanded="false" aria-controls="map"><span id="pmTxt">Path Map</span><span id="lvl">L 00</span></button>
     <button class="pill" id="ntBtn" type="button" aria-expanded="false" aria-controls="nt"><span>Note it</span></button>
-  </div>
-  <div class="panel" id="pm">
-    <h2>Path map</h2>
-    <p>Every page you open is added to your trail. The deeper you go, the darker the page gets. Pick a page to jump back to it.</p>
-    <ul class="lv" id="lvList"></ul>
-    <button class="mini" id="reset" type="button">Start over</button>
   </div>
   <div class="panel" id="nt">
     <h2>Notes</h2>
@@ -203,6 +226,7 @@ html.intro .rail{overflow:visible}
 
 <div class="wrap" id="genre" hidden></div>
 <div class="wrap" id="album" hidden></div>
+<div class="wrap" id="map" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -454,22 +478,118 @@ function animateRoute(){
 }
 
 /* Trail, level and routing */
-var trail=[],cur=null;
-var pm=document.getElementById("pm"),nt=document.getElementById("nt"),pb=document.getElementById("pmBtn"),nb=document.getElementById("ntBtn");
-var list=document.getElementById("lvList"),lab=document.getElementById("lvl"),nts=document.getElementById("notes");
-function closeAll(){[pm,nt].forEach(function(x){x.classList.remove("open")});pb.setAttribute("aria-expanded","false");nb.setAttribute("aria-expanded","false")}
-function toggle(p,b){var was=p.classList.contains("open");closeAll();if(!was){p.classList.add("open");b.setAttribute("aria-expanded","true")}}
-pb.onclick=function(){toggle(pm,pb)};nb.onclick=function(){toggle(nt,nb)};
-document.getElementById("reset").onclick=function(){go("home")};
-function drawTrail(){
-  list.innerHTML="";
+/* trail = the path from Home to the current page (sets the level).
+   T = every path ever walked, as a tree keyed by the page ids along it, so old branches stay on the map. */
+var trail=[],cur=null,T={},tOrder=0,seen={},sideways=0;
+var nt=document.getElementById("nt"),pb=document.getElementById("pmBtn"),nb=document.getElementById("ntBtn");
+var lab=document.getElementById("lvl"),pmTxt=document.getElementById("pmTxt"),nts=document.getElementById("notes"),mp=document.getElementById("map");
+function closeAll(){nt.classList.remove("open");nb.setAttribute("aria-expanded","false")}
+nb.onclick=function(){var was=nt.classList.contains("open");closeAll();if(!was){nt.classList.add("open");nb.setAttribute("aria-expanded","true")}};
+pb.onclick=function(){mapOpen?closeMap():openMap()};
+function record(){
+  var key="";
   trail.forEach(function(p,i){
-    var li=document.createElement("li");
-    li.innerHTML='<button type="button" aria-current="'+(p.id===cur.id)+'"><i style="background:'+LVC[Math.min(i,5)]+'"></i><b>'+pad(i)+'</b><span>'+esc(p.name)+'</span><em>'+({home:"Home",genre:"Genre",album:"Album",song:"Song",artist:"Artist"})[p.view]+'</em></button>';
-    li.firstChild.onclick=function(){go(p.id)};
-    list.appendChild(li);
+    var pk=key;key+=(i?">":"")+p.id;
+    if(!T[key])T[key]={key:key,parent:i?pk:null,page:p,d:i,o:tOrder++};
   });
+  if(cur.view!=="home")seen[cur.id]=1;
 }
+var VIEWN={home:"Home",genre:"Genre",album:"Album",song:"Song",artist:"Artist"};
+function nodeSub(p){
+  if(p.view==="home")return "Start";
+  if(p.view==="genre")return "Genre page";
+  if(p.view==="album")return ALB[p.id].artist;
+  if(p.view==="song")return ALB[p.alb].title;
+  return "Artist page";
+}
+
+/* Path Map page */
+var mapOpen=false,mapY=0,MV={s:1,x:0,y:0};
+function pathKey(){return trail.map(function(p){return p.id}).join(">")}
+function headline(){
+  var lvl=trail.length-1;
+  if(!lvl)return 'You’re at <em>Home</em>. Pick a genre to start a trail.';
+  var f=trail[1],X=f.view==="genre"?f.name:f.view==="album"?ALB[f.id].genre:f.view==="artist"?AR[f.id].genres.n:f.name;
+  var n=lvl-(f.view==="genre"?1:0);
+  if(!n)return 'You’re at the top of <em>'+esc(X)+'</em>. Every page you open from here goes on your map.';
+  return 'You’re '+n+' level'+(n>1?'s':'')+' below <em>'+esc(X)+'</em>, somewhere around <em>'+esc(cur.name)+'</em>.';
+}
+function two(n){return (n<10?"0":"")+n}
+function mapHTML(){
+  var keys=Object.keys(T),kids={},W=250,H=124,P=50,slot=0,maxD=0,ck=pathKey();
+  keys.forEach(function(k){var p=T[k].parent;if(p!==null)(kids[p]=kids[p]||[]).push(T[k])});
+  Object.keys(kids).forEach(function(k){kids[k].sort(function(a,b){return a.o-b.o})});
+  (function lay(n){
+    var c=kids[n.key]||[];maxD=Math.max(maxD,n.d);
+    if(!c.length)n.x=P+(slot++)*W;else{c.forEach(lay);n.x=(c[0].x+c[c.length-1].x)/2}
+    n.y=P+n.d*H;
+  })(T.home);
+  var ww=P*2+Math.max(slot-1,0)*W+210,wh=P*2+maxD*H+70,lines="",nodes="";
+  keys.forEach(function(k){
+    var n=T[k],on=ck===k||ck.indexOf(k+">")===0;
+    if(n.parent!==null){var p=T[n.parent];lines+='<path class="'+(on?"on":"off")+'" d="M'+p.x+' '+p.y+' C'+p.x+' '+(p.y+H*.6)+' '+n.x+' '+(n.y-H*.6)+' '+n.x+' '+n.y+'"/>'}
+    nodes+='<button type="button" class="mn '+(on?"on":"off")+(k===ck?" cur":"")+'" data-key="'+esc(k)+'" style="left:'+(n.x-6)+'px;top:'+(n.y-7)+'px"'+(k===ck?' aria-current="page"':'')+'><i></i><small>'+(n.d?pad(n.d)+' · '+VIEWN[n.page.view]:'Start')+'</small><b>'+esc(n.page.name)+'</b><span>'+esc(nodeSub(n.page))+'</span></button>';
+  });
+  var lvl=trail.length-1;
+  return '<p class="mkick">Path map · so far</p><h1 class="mhead">'+headline()+'</h1>'
+  +'<div class="mstats"><div><b>'+two(lvl)+'</b><span>Levels down</span></div><div><b>'+two(Object.keys(seen).length)+'</b><span>Pages read</span></div><div><b>'+two(sideways)+'</b><span>Sideways turns</span></div></div>'
+  +'<div class="mview" id="mview" aria-label="Map of every page you have opened. Drag to move around."><div class="mworld" id="mworld" style="width:'+ww+'px;height:'+wh+'px"><svg width="'+ww+'" height="'+wh+'" aria-hidden="true">'+lines+'</svg>'+nodes+'</div>'
+  +'<p class="mhint">Drag to pan · Ctrl or ⌘ + scroll to zoom · Click a page to open it</p>'
+  +'<div class="mzoom"><button type="button" data-z="out" aria-label="Zoom out">−</button><output id="mzv">100%</output><button type="button" data-z="in" aria-label="Zoom in">+</button><hr><button type="button" data-z="fit">Fit</button><button type="button" data-z="you">You</button></div></div>'
+  +'<div class="mfoot"><span>Your trail</span><span>'+trail.map(function(p){return esc(p.name)}).join(" → ")+'</span></div>'
+  +'<div class="macts"><button type="button" class="main" id="mShare">Share map</button><button type="button" id="mDig">Keep digging</button><button type="button" id="mReset">Start over</button></div>';
+}
+function mapSet(){var w=document.getElementById("mworld");if(!w)return;w.style.transform="translate("+MV.x+"px,"+MV.y+"px) scale("+MV.s+")";document.getElementById("mzv").textContent=Math.round(MV.s*100)+"%"}
+function mapZoom(f,px,py){var v=document.getElementById("mview"),ns=Math.max(.35,Math.min(2,MV.s*f));if(px==null){px=v.clientWidth/2;py=v.clientHeight/2}MV.x=px-(px-MV.x)*ns/MV.s;MV.y=py-(py-MV.y)*ns/MV.s;MV.s=ns;mapSet()}
+function mapFit(){var v=document.getElementById("mview"),w=document.getElementById("mworld"),ww=w.offsetWidth,wh=w.offsetHeight;MV.s=Math.max(.35,Math.min(1,(v.clientWidth-40)/ww,(v.clientHeight-70)/wh));MV.x=(v.clientWidth-ww*MV.s)/2;MV.y=Math.max(20,(v.clientHeight-50-wh*MV.s)/2);mapSet()}
+function mapYou(){var v=document.getElementById("mview"),n=T[pathKey()];if(MV.s<.8)MV.s=1;MV.x=v.clientWidth/2-(n.x+90)*MV.s;MV.y=v.clientHeight/2-n.y*MV.s;mapSet()}
+function mapWire(){
+  var v=document.getElementById("mview"),st=null,moved=false;
+  v.addEventListener("pointerdown",function(e){if(e.target.closest(".mzoom"))return;st={x:e.clientX,y:e.clientY,ox:MV.x,oy:MV.y,id:e.pointerId};moved=false});
+  v.addEventListener("pointermove",function(e){
+    if(!st)return;var dx=e.clientX-st.x,dy=e.clientY-st.y;
+    if(!moved&&Math.abs(dx)+Math.abs(dy)>5){moved=true;v.classList.add("drag");try{v.setPointerCapture(st.id)}catch(_){}}
+    if(moved){MV.x=st.ox+dx;MV.y=st.oy+dy;mapSet()}
+  });
+  function end(){st=null;v.classList.remove("drag")}
+  v.addEventListener("pointerup",end);v.addEventListener("pointercancel",end);
+  v.addEventListener("click",function(e){
+    if(moved){moved=false;return}
+    var z=e.target.closest("[data-z]");
+    if(z){({out:function(){mapZoom(1/1.25)},in:function(){mapZoom(1.25)},fit:mapFit,you:mapYou})[z.dataset.z]();return}
+    var n=e.target.closest(".mn");if(n)openNode(n.dataset.key);
+  });
+  v.addEventListener("wheel",function(e){
+    if(!e.ctrlKey&&!e.metaKey)return;e.preventDefault();
+    var r=v.getBoundingClientRect();mapZoom(Math.exp(-e.deltaY*.0025),e.clientX-r.left,e.clientY-r.top);
+  },{passive:false});
+  document.getElementById("mShare").onclick=shareMap;
+  document.getElementById("mDig").onclick=closeMap;
+  document.getElementById("mReset").onclick=startOver;
+}
+function openMap(){
+  mapOpen=true;mapY=scrollY;closeAll();stopFloat();
+  rail.hidden=true;document.getElementById("homeBar").hidden=true;gp.hidden=true;ap.hidden=true;mp.hidden=false;
+  root.dataset.view="map";pmTxt.textContent="Close map";lab.textContent="✕";pb.setAttribute("aria-expanded","true");
+  document.getElementById("ptype").textContent="Path map";document.title="Path map · MuDis";
+  mp.innerHTML=mapHTML();window.scrollTo(0,0);mapWire();
+  mapFit();if(MV.s<.6){MV.s=.8;mapYou()}
+}
+function closeMap(){var y=mapY;route();window.scrollTo(0,y)}
+function openNode(key){
+  var chain=[],k=key;
+  while(k!==null){chain.unshift(T[k].page);k=T[k].parent}
+  trail=chain.slice(0,-1);
+  var p=chain[chain.length-1];
+  trail.push(p);go(p.id);
+}
+function shareMap(){
+  var lvl=trail.length-1,n=Object.keys(seen).length;
+  var t="My MuDis trail: "+trail.map(function(p){return p.name}).join(" → ")+". "+lvl+" level"+(lvl===1?"":"s")+" down, "+n+" page"+(n===1?"":"s")+" read, "+sideways+" sideways turn"+(sideways===1?"":"s")+".";
+  function fallback(){var a=document.createElement("textarea");a.value=t;a.style.position="fixed";a.style.opacity="0";document.body.appendChild(a);a.select();try{document.execCommand("copy");say("Trail copied. Paste it anywhere to share.")}catch(e){say(t)}a.remove()}
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(function(){say("Trail copied. Paste it anywhere to share.")},fallback);else fallback();
+}
+function startOver(){T={};tOrder=0;seen={};sideways=0;trail=[];say("Trail cleared. Pick a genre to start again.");go("home")}
 function noteKey(){return "mudis-notes:"+cur.id}
 function route(){
   var s=decodeURIComponent(location.hash.slice(1)),g=names.filter(function(n){return slug(n)===s})[0];
@@ -481,10 +601,11 @@ function route(){
   /* Previous/next track swaps the song in place, so a song stays one level below its album */
   if(i<0&&page.view==="song"&&cur&&cur.view==="song"&&cur.alb===page.alb)trail.pop();
   if(i>=0)trail.length=i+1;else trail.push(page);
-  cur=page;var lvl=trail.length-1;
+  cur=page;var lvl=trail.length-1;record();
+  mapOpen=false;mp.hidden=true;mp.innerHTML="";pmTxt.textContent="Path Map";pb.setAttribute("aria-expanded","false");
   root.dataset.level=Math.min(lvl,5);root.dataset.view=page.view;
   lab.textContent=pad(lvl);
-  document.getElementById("ptype").textContent=({home:"",genre:"Genre",album:"Album",song:"Song",artist:"Artist"})[page.view];
+  document.getElementById("ptype").textContent=page.view==="home"?"":VIEWN[page.view];
   rail.hidden=page.view!=="home";document.getElementById("homeBar").hidden=page.view!=="home";gp.hidden=page.view!=="genre";ap.hidden=page.view==="home"||page.view==="genre";
   stopFloat();
   if(page.view==="genre"){gp.innerHTML=genreHTML(page.name);animateRoute()}
@@ -494,7 +615,7 @@ function route(){
   document.title=(page.view!=="home"?page.name+" · ":"")+"MuDis";
   document.getElementById("ntWhere").textContent="Notes attach to the page you’re on ("+page.name+"), so they’re waiting when you come back.";
   nts.value="";try{nts.value=localStorage.getItem(noteKey())||""}catch(e){}
-  drawTrail();closeAll();window.scrollTo(0,0);if(page.view==="home")prog();
+  closeAll();window.scrollTo(0,0);if(page.view==="home")prog();
 }
 function go(id){var h=id==="home"?"home":id.indexOf("/")>0?id:slug(id);if(location.hash.slice(1)===h)route();else location.hash=h}
 nts.addEventListener("input",function(){try{localStorage.setItem(noteKey(),nts.value)}catch(e){}});
@@ -504,7 +625,7 @@ window.addEventListener("hashchange",route);
 var toast=document.getElementById("toast"),tt;
 function say(m){toast.textContent=m;toast.classList.add("on");clearTimeout(tt);tt=setTimeout(function(){toast.classList.remove("on")},2600)}
 document.addEventListener("click",function(e){
-  var a=e.target.closest("[data-go]");if(a){go(a.dataset.go);return}
+  var a=e.target.closest("[data-go]");if(a){if(a.closest(".side"))sideways++;go(a.dataset.go);return}
   var m=e.target.closest("[data-msg]");if(m)say(m.dataset.msg);
 });
 var q=document.getElementById("q");
@@ -521,7 +642,7 @@ q.addEventListener("keydown",function(e){
 document.addEventListener("keydown",function(e){
   var t=document.activeElement.tagName;
   if(e.key==="/"&&t!=="INPUT"&&t!=="TEXTAREA"){e.preventDefault();q.focus()}
-  if(e.key==="Escape")closeAll();
+  if(e.key==="Escape"){if(mapOpen)closeMap();else closeAll()}
 });
 route();
 
