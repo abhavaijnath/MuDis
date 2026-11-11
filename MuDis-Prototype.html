@@ -1,0 +1,552 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>MuDis Prototype</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: one shell (search, MuDis, Path Map, Note it) that swaps between the genre-column home (L00) and a genre page (L01). Colour darkens with trail depth, as in the original two files. Single look by choice: greys only. */
+:root{--bg:#f3f3f1;--fg:#111;--gut:36px;--line:rgba(17,17,17,.3);color-scheme:light}
+:root[data-level="1"]{--bg:#dcdcda;--line:rgba(17,17,17,.3)}
+:root[data-level="2"]{--bg:#a8a8a6}
+:root[data-level="3"]{--bg:#6a6a69;--fg:#f3f3f1;--line:rgba(243,243,241,.3)}
+:root[data-level="4"]{--bg:#2c2c2b;--fg:#f3f3f1;--line:rgba(243,243,241,.3)}
+:root[data-level="5"]{--bg:#0b0b0b;--fg:#f3f3f1;--line:rgba(243,243,241,.3)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;min-height:calc(100vh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;background:var(--bg);color:var(--fg);font-family:"Nimbus Sans","Nimbus Sans L",Helvetica,"Helvetica Neue",Arial,sans-serif;line-height:1.5;transition:background .9s ease,color .9s ease}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--fg);outline-offset:3px}
+.top{display:grid;grid-template-columns:1fr auto 1fr;align-items:start;gap:16px;padding:22px max(var(--gut),env(safe-area-inset-right,0px)) 0 max(var(--gut),env(safe-area-inset-left,0px));position:relative;width:100%}
+html:not([data-view="home"]) .top{max-width:1180px;margin:0 auto}
+.pill{display:flex;align-items:center;justify-content:space-between;gap:10px;height:30px;padding:0 16px;border:1px solid var(--fg);border-radius:99px;background:transparent;font-size:13px}
+.search{width:min(260px,100%);justify-content:flex-start;padding:0 12px}
+.search input{flex:1;min-width:0;border:0;background:transparent;outline:0;font-size:13px}
+.search input::placeholder{color:var(--fg);opacity:.6}
+.search:focus-within{outline:2px solid var(--fg);outline-offset:3px}
+.right{justify-self:end;display:grid;gap:8px;width:136px}
+.brand{text-align:center;min-width:0}
+.brand a{display:block;text-decoration:none;font-weight:500;line-height:.9}
+html[data-view="home"] .brand a{font-size:clamp(56px,8.5vw,124px);letter-spacing:-.05em}
+html:not([data-view="home"]) .brand a{font-size:20px;letter-spacing:-.04em;padding-top:2px}
+.brand p{margin:10px 0 0;font-size:13px;opacity:.7}
+html:not([data-view="home"]) .brand p{display:none}
+.ptype{display:none;margin-top:3px;font-size:14px;font-weight:600;line-height:1.2}
+html:not([data-view="home"]) .ptype{display:block}
+.panel{position:absolute;right:max(var(--gut),env(safe-area-inset-right,0px));top:104px;width:min(310px,calc(100% - 2 * var(--gut)));padding:16px;background:var(--bg);border:1px solid var(--fg);z-index:80;display:none;font-size:13.5px;line-height:1.4}
+.panel.open{display:block}
+.panel h2{margin:0 0 6px;font-size:15px;font-weight:600}
+.panel p{margin:0 0 12px}
+.lv{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:2px}
+.lv button{display:flex;align-items:center;gap:10px;width:100%;padding:6px;border:0;background:none;text-align:left}
+.lv button:hover,.lv button[aria-current="true"]{background:color-mix(in srgb,var(--fg) 14%,transparent)}
+.lv i{width:16px;height:16px;border:1px solid var(--fg);flex:none}
+.lv b{font-weight:600;width:34px;flex:none}
+.lv em{font-style:normal;opacity:.7;margin-left:auto;font-size:12px}
+.mini{border:1px solid var(--fg);border-radius:99px;background:none;padding:3px 12px;font-size:12.5px}
+textarea{width:100%;height:130px;resize:vertical;padding:8px;border:1px solid var(--fg);background:transparent;font-size:14px}
+.rail{flex:1;display:flex;gap:22px;align-items:flex-start;padding:30px max(var(--gut),env(safe-area-inset-right,0px)) 24px max(var(--gut),env(safe-area-inset-left,0px));overflow:auto;scrollbar-width:none;scroll-snap-type:x proximity}
+.rail::-webkit-scrollbar{display:none}
+.col{--w:clamp(190px,17vw,250px);flex:none;width:var(--w);scroll-snap-align:start}
+.col:last-child{margin-right:12vw}
+.gname{margin:0 0 10px;padding:0;border:0;background:none;font-size:15px}
+.gname:hover{text-decoration:underline;text-underline-offset:4px}
+.stack{--strip:38px;position:relative;height:calc(var(--strip)*(var(--n) - 1) + var(--w))}
+.card{position:absolute;left:0;top:calc(var(--i)*var(--strip));z-index:calc(var(--i) + 1);width:100%;max-width:100%;aspect-ratio:1;padding:0;border:0;display:flex;flex-direction:column;justify-content:space-between;text-align:left;box-shadow:0 -1px 0 rgba(0,0,0,.14);transition:transform .25s ease,box-shadow .25s ease,opacity .3s}
+.card:hover,.card:focus-visible,.card.pick{transform:translateY(-14px) scale(1.05);z-index:60;box-shadow:0 18px 40px rgba(0,0,0,.4)}
+.card.dim{opacity:.16}
+.ct{display:flex;justify-content:space-between;gap:10px;padding:12px 12px 0;font-size:13px;font-weight:500;line-height:1.1}
+.ct span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cb{display:flex;flex-direction:column;gap:3px;padding:0 12px 12px;font-size:12px}
+.cb strong{font-size:20px;font-weight:500;letter-spacing:-.02em;line-height:1.05}
+.bar{display:flex;align-items:center;gap:22px;padding:12px max(var(--gut),env(safe-area-inset-right,0px)) 24px max(var(--gut),env(safe-area-inset-left,0px));font-size:12.5px}
+.scroll{display:flex;align-items:center;gap:16px;flex:1;min-width:0}
+.track{position:relative;flex:none;width:min(320px,28vw);height:1px;background:var(--line)}
+.fill{position:absolute;left:0;top:-1px;height:3px;width:0;background:var(--fg)}
+.track::after{content:"";position:absolute;right:-7px;top:-4.5px;border-left:10px solid var(--fg);border-top:4.5px solid transparent;border-bottom:4.5px solid transparent}
+.arrows{display:flex;gap:6px}
+.arrows button{width:28px;height:28px;border:1px solid var(--fg);border-radius:50%;background:none;line-height:1}
+.credit{opacity:.75;text-align:right}
+.wrap{max-width:1180px;width:100%;margin:0 auto;padding:0 max(var(--gut),env(safe-area-inset-right,0px)) 0 max(var(--gut),env(safe-area-inset-left,0px));flex:1}
+h1{margin:34px 0 8px -6px;font-weight:500;font-size:clamp(52px,13vw,176px);letter-spacing:-.055em;line-height:.9;overflow-wrap:anywhere}
+.lede{max-width:46em;margin:0;font-size:17px;line-height:1.45}
+.lede.muted{opacity:.75}
+h2.sec{margin:72px 0 22px;font-weight:500;font-size:clamp(28px,3.4vw,40px);letter-spacing:-.035em;line-height:1}
+.chips{display:flex;flex-wrap:wrap;gap:18px}
+.chip{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:172px;max-width:100%;height:76px;border:1px solid var(--fg);border-radius:40px;background:rgba(255,255,255,.35);transition:background .2s,color .2s}
+.chip.side{border-style:dashed}
+.chip:hover{background:var(--fg);color:var(--bg)}
+.chip b{font-weight:500;font-size:16px}
+.chip i{font-size:11.5px;text-decoration:underline;text-underline-offset:2px}
+.sub{margin:-8px 0 18px;font-size:14.5px;opacity:.75}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.cover{display:flex;flex-direction:column;justify-content:space-between;aspect-ratio:1;max-width:100%;min-width:0;padding:12px;border:0;text-align:left;transition:transform .25s ease,box-shadow .25s ease}
+.cover:hover,.cover:focus-visible{transform:translateY(-6px);box-shadow:0 14px 30px rgba(0,0,0,.3)}
+.cover span{font-size:12.5px;opacity:.85}
+.cover strong{display:block;font-size:19px;font-weight:500;letter-spacing:-.02em;line-height:1.1}
+.cover small{display:block;font-size:13px;margin-top:3px}
+.artists{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.artist{display:flex;flex-direction:column;align-items:center;gap:10px;padding:14px 8px;border:0;background:none;text-align:center;min-width:0}
+.artist:hover b{text-decoration:underline;text-underline-offset:4px}
+.av{width:130px;height:156px;fill:#c3c3c1;stroke:var(--fg);stroke-width:1}
+.artist b{font-size:18px;font-weight:500;letter-spacing:-.02em}
+.artist span{font-size:14px;max-width:22em;line-height:1.35}
+.histbox{overflow-x:auto}
+.hist{width:100%;height:auto;display:block;overflow:visible}
+.hist path{fill:none;stroke:var(--fg);stroke-width:3;stroke-linecap:round}
+.hist line{stroke:var(--fg);stroke-width:3}
+.hist text{fill:var(--fg);font-family:inherit}
+.hist .y{font-size:26px;font-weight:500;letter-spacing:-.03em}
+.hist .t{font-size:16px;font-weight:600}
+.hist .d{font-size:14.5px}
+.foot{margin-top:80px;padding:20px 0 40px;border-top:1px solid var(--line);font-size:13px;opacity:.8}
+.ahead{display:flex;gap:32px;align-items:flex-end;flex-wrap:wrap;margin-top:34px}
+.acover{width:min(280px,100%);aspect-ratio:1;flex:none;display:flex;align-items:flex-end;padding:12px;font-size:12.5px}
+.ameta{flex:1;min-width:min(100%,260px)}
+.kicker{margin:0 0 8px;font-size:14px;opacity:.8}
+.atitle{margin:0 0 10px -3px;font-weight:500;font-size:clamp(36px,6.5vw,92px);letter-spacing:-.05em;line-height:.95;overflow-wrap:anywhere}
+.aby{margin:0 0 16px;font-size:18px}
+.lnk{border:0;background:none;padding:0;text-decoration:underline;text-underline-offset:3px;font-size:inherit}
+.tags{display:flex;flex-wrap:wrap;gap:10px}
+.tag{height:30px;padding:0 14px;border:1px solid var(--fg);border-radius:99px;background:none;font-size:13px}
+.tag:hover{background:var(--fg);color:var(--bg)}
+.acols{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:48px}
+.acols h2.sec,.abot h2.sec{margin:56px 0 18px}
+/* Album page, Track-list layout: title + artist, then cover left and numbered track list right */
+.ahd{margin-top:34px}
+.aspread{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(24px,4vw,56px);align-items:start;margin-top:22px}
+.aspread .acover{width:100%;position:relative;overflow:hidden}
+.acover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.trk h2{margin:0 0 14px;font-weight:400;font-size:clamp(30px,3.6vw,44px);letter-spacing:-.035em;line-height:1}
+.tl2{list-style:none;margin:0;padding:0}
+.tl2 button{display:flex;gap:.4em;width:100%;padding:1px 0;border:0;background:none;text-align:left;font-size:clamp(17px,1.7vw,22px);line-height:1.35}
+.tl2 .n{min-width:1.6em;text-align:right;flex:none}
+.tl2 button:hover .tt,.tl2 button:focus-visible .tt{font-style:italic}
+.adetail{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;margin-top:30px}
+.adetail .kicker{margin:0}
+@media (max-width:700px){.aspread{grid-template-columns:minmax(0,1fr)}}
+/* Landing intro: "Welcome to" flies up, MuDis shrinks to the top, cards fly in, controls fade in */
+.bwrap{position:relative;display:inline-block;will-change:transform}
+.welcome{display:none;position:absolute;left:50%;bottom:calc(100% - 2px);transform:translateX(-50%);font-size:clamp(18px,2.4vw,34px);font-weight:400;letter-spacing:-.03em;line-height:1;white-space:nowrap}
+html.intro .welcome{display:block}
+.welcome.gone{transform:translate(-50%,-75vh);opacity:0;transition:transform .9s cubic-bezier(.5,0,.75,0),opacity .9s ease}
+html:not(.intro) :is(.search,.right,.brand p,.gname,.bar){transition:opacity .9s ease}
+html.intro .search,html.intro .right,html.intro .brand p,html.intro .gname,html.intro .bar{opacity:0;pointer-events:none}
+html.intro body{overflow:hidden}
+html.intro .rail{overflow:visible}
+/* Genre hierarchy tree: Genre > Subgenre > Sub-subgenre, joined by elbow lines */
+.gtree,.gtree ul{list-style:none;margin:0;padding:0}
+.gtree ul{margin-left:16px}
+.gtree li{position:relative;padding:10px 0 0 22px}
+.gtree>li{padding:0}
+.gtree ul>li::before{content:"";position:absolute;left:0;top:0;width:16px;height:25px;border-left:1px solid var(--fg);border-bottom:1px solid var(--fg)}
+.gtree ul>li:not(:last-child)::after{content:"";position:absolute;left:0;top:0;bottom:0;border-left:1px solid var(--fg)}
+.gn{display:inline-flex;flex-wrap:wrap;align-items:center;gap:4px 10px}
+.gn .tag,.gn small{white-space:nowrap}
+.gn small{font-size:12.5px;opacity:.7}
+/* Artist page */
+.apic{position:relative;overflow:hidden;width:100%;aspect-ratio:1;display:flex;align-items:flex-end;justify-content:center;background:#c3c3c1}
+.apic .av{width:70%;height:auto}
+.apic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.facts{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 22px;margin:0;font-size:17px;line-height:1.35}
+.facts dt{opacity:.7}
+.facts dd{margin:0}
+.trivia{max-width:40em;margin:0;padding-left:1.2em;font-size:16.5px;line-height:1.5}
+.trivia li{margin-bottom:10px}
+/* Song page: circular cover that drifts through the empty space */
+.floater{position:absolute;left:0;top:0;width:200px;height:200px;padding:0;border:1px solid var(--fg);border-radius:50%;overflow:hidden;z-index:5;box-shadow:0 10px 30px rgba(0,0,0,.25);will-change:transform}
+.floater img{width:100%;height:100%;object-fit:cover;display:block}
+.prose p{max-width:40em;margin:0 0 14px;font-size:16.5px;line-height:1.5}
+.dl{display:flex;flex-direction:column;gap:10px;max-width:420px}
+.dl button{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:52px;padding:8px 20px;border:1px solid var(--fg);border-radius:30px;background:rgba(255,255,255,.35);text-align:left;transition:background .2s,color .2s}
+.dl button.side{border-style:dashed}
+.dl button:hover{background:var(--fg);color:var(--bg)}
+.dl b{font-weight:500;font-size:16px;display:block}
+.dl small{display:block;font-size:12.5px;opacity:.8}
+.dl i{font-size:11.5px;text-decoration:underline;text-underline-offset:2px;flex:none}
+.note{font-size:14px;opacity:.75;margin:10px 0 0}
+@media (max-width:900px){.acols{grid-template-columns:minmax(0,1fr);gap:0}}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:min(440px,calc(100% - 32px));padding:10px 18px;border:1px solid var(--fg);border-radius:99px;background:var(--bg);font-size:13.5px;z-index:90;opacity:0;pointer-events:none;transition:opacity .25s}
+.toast.on{opacity:1}
+@media (max-width:900px){:root{--gut:18px}.top{grid-template-columns:1fr 1fr}.brand{grid-column:1/-1;grid-row:2}.bar{flex-wrap:wrap}.grid,.artists{grid-template-columns:repeat(2,1fr)}.hist{min-width:900px}.track{display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<header class="top">
+  <label class="pill search"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.7"/><path d="M10 10l4.5 4.5"/></svg><input id="q" type="search" placeholder="Search genre, artist, album" aria-label="Search genre, artist or album"></label>
+  <div class="brand"><div class="bwrap"><span class="welcome" aria-hidden="true">Welcome to</span><a href="#home" id="brandLink">MuDis</a></div><span class="ptype" id="ptype"></span><p>Pick a genre. Follow the trail down.</p></div>
+  <div class="right">
+    <button class="pill" id="pmBtn" type="button" aria-expanded="false" aria-controls="pm"><span>Path Map</span><span id="lvl">L 00</span></button>
+    <button class="pill" id="ntBtn" type="button" aria-expanded="false" aria-controls="nt"><span>Note it</span></button>
+  </div>
+  <div class="panel" id="pm">
+    <h2>Path map</h2>
+    <p>Every page you open is added to your trail. The deeper you go, the darker the page gets. Pick a page to jump back to it.</p>
+    <ul class="lv" id="lvList"></ul>
+    <button class="mini" id="reset" type="button">Start over</button>
+  </div>
+  <div class="panel" id="nt">
+    <h2>Notes</h2>
+    <p id="ntWhere">Notes attach to the page you’re on, so they’re waiting when you come back.</p>
+    <textarea id="notes" aria-label="Your notes" placeholder="Write something you want to remember"></textarea>
+  </div>
+</header>
+
+<main class="rail" id="rail" tabindex="0" aria-label="Genres, scroll sideways"></main>
+<footer class="bar" id="homeBar">
+  <div class="scroll">
+    <div class="track" aria-hidden="true"><div class="fill" id="fill"></div></div>
+    <span id="count">Scroll sideways to see more genres</span>
+    <div class="arrows"><button type="button" id="prev" aria-label="Previous genres">‹</button><button type="button" id="next" aria-label="Next genres">›</button></div>
+    <button class="pill" type="button" id="surprise">Surprise me</button>
+  </div>
+  <span class="credit">Cover art from Spotify. Text from Wikipedia, CC BY-SA 4.0.</span>
+</footer>
+
+<div class="wrap" id="genre" hidden></div>
+<div class="wrap" id="album" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+var G={
+"Metal":["Paranoid|Black Sabbath|1970","Master of Puppets|Metallica|1986","Reign in Blood|Slayer|1986","The Number of the Beast|Iron Maiden|1982","Painkiller|Judas Priest|1990","Rust in Peace|Megadeth|1990","Vulgar Display of Power|Pantera|1992"],
+"Electronic":["Trans-Europe Express|Kraftwerk|1977","Selected Ambient Works 85–92|Aphex Twin|1992","Endtroducing…|DJ Shadow|1996","Homework|Daft Punk|1997","Music Has the Right to Children|Boards of Canada|1998","Untrue|Burial|2007","Random Access Memories|Daft Punk|2013"],
+"Jazz":["Blue Train|John Coltrane|1958","Kind of Blue|Miles Davis|1959","Time Out|Dave Brubeck Quartet|1959","Mingus Ah Um|Charles Mingus|1959","A Love Supreme|John Coltrane|1965","Bitches Brew|Miles Davis|1970","Head Hunters|Herbie Hancock|1973"],
+"Reggae":["The Harder They Come|Jimmy Cliff|1972","Catch a Fire|The Wailers|1973","Funky Kingston|Toots and the Maytals|1973","Marcus Garvey|Burning Spear|1975","Exodus|Bob Marley and the Wailers|1977","Heart of the Congos|The Congos|1977","Red|Black Uhuru|1981"],
+"Pop":["Thriller|Michael Jackson|1982","Purple Rain|Prince|1984","Like a Prayer|Madonna|1989","Back to Black|Amy Winehouse|2006","Teenage Dream|Katy Perry|2010","1989|Taylor Swift|2014","Future Nostalgia|Dua Lipa|2020"],
+"Rock":["Highway 61 Revisited|Bob Dylan|1965","Sgt. Pepper’s Lonely Hearts Club Band|The Beatles|1967","Led Zeppelin IV|Led Zeppelin|1971","The Dark Side of the Moon|Pink Floyd|1973","Never Mind the Bollocks|Sex Pistols|1977","Nevermind|Nirvana|1991","Is This It|The Strokes|2001"],
+"Hip-hop":["It Takes a Nation of Millions to Hold Us Back|Public Enemy|1988","3 Feet High and Rising|De La Soul|1989","The Low End Theory|A Tribe Called Quest|1991","The Chronic|Dr. Dre|1992","Enter the Wu-Tang (36 Chambers)|Wu-Tang Clan|1993","Illmatic|Nas|1994","To Pimp a Butterfly|Kendrick Lamar|2015"],
+"Blues":["King of the Delta Blues Singers|Robert Johnson|1961","Live at the Regal|B.B. King|1965","Hoodoo Man Blues|Junior Wells|1965","Blues Breakers with Eric Clapton|John Mayall|1966","Born Under a Bad Sign|Albert King|1967","Electric Mud|Muddy Waters|1968","Texas Flood|Stevie Ray Vaughan|1983"]
+};
+/* Only Electronic has written page content. Other genres show their albums and hide every block that has no content yet. */
+var E={
+lede:"Music made with electronic instruments, synthesizers, computers, and digital audio workstations. It spans everything from 1970s experimental art-pop and ambient soundscapes to high-energy dance music such as EDM, techno, and intelligent dance music (IDM).",
+subs:["Techno","Ambient","Synth-Pop","IDM"],
+albums:["Album|1968|Switched-On Bach|Wendy Carlos","Album|1977|Trans-Europe Express|Kraftwerk","Single|1977|I Feel Love|Donna Summer","Album|1978|Music for Airports|Brian Eno","Single|1983|Blue Monday|New Order","Album|1992|Selected Ambient Works 85–92|Aphex Twin","Album|1997|Homework|Daft Punk","Album|2007|Untrue|Burial"],
+artists:["Kraftwerk|German group who built pop music from machines, starting in the 1970s.","Giorgio Moroder|Italian producer who put the synthesizer at the centre of disco.","Aphex Twin|British producer whose ambient and IDM records shaped the 1990s.","Daft Punk|French duo who took house music to the world’s biggest stages."],
+related:["Industrial","Krautrock","Hip-Hop","Dub"],
+hist:'<svg class="hist" viewBox="0 0 1100 700" role="img" aria-label="Timeline of electronic music from the 1950s to today"><path id="route" d="M40 90 L980 90 C1090 90 1090 330 980 330 L120 330 C10 330 10 570 120 570 L1050 570"/><line x1="140" y1="76" x2="140" y2="104"/><line x1="580" y1="76" x2="580" y2="104"/><line x1="820" y1="316" x2="820" y2="344"/><line x1="330" y1="316" x2="330" y2="344"/><line x1="300" y1="556" x2="300" y2="584"/><line x1="760" y1="556" x2="760" y2="584"/><g><text class="y" x="140" y="146">1950s–60s</text><text class="t" x="140" y="170">Tape and early synths</text><text class="d" x="140" y="192">Musique concrète in Paris;</text><text class="d" x="140" y="212">Carlos plays Bach on a Moog, 1968.</text></g><g><text class="y" x="580" y="146">1970s</text><text class="t" x="580" y="170">Machines make pop</text><text class="d" x="580" y="192">Kraftwerk go fully electronic;</text><text class="d" x="580" y="212">Moroder’s ‘I Feel Love’ in 1977.</text></g><g><text class="y" x="820" y="386">1980s</text><text class="t" x="820" y="410">Synth-pop and drum machines</text><text class="d" x="820" y="432">The Roland TR-808 arrives in 1980</text><text class="d" x="820" y="452">and synths take over the charts.</text></g><g><text class="y" x="330" y="386">Mid-1980s</text><text class="t" x="330" y="410">Techno and house</text><text class="d" x="330" y="432">Detroit and Chicago clubs create</text><text class="d" x="330" y="452">new dance music from machines.</text></g><g><text class="y" x="300" y="626">1990s</text><text class="t" x="300" y="650">Rave, IDM and ambient</text><text class="d" x="300" y="672">Rave goes global; Aphex Twin and</text><text class="d" x="300" y="692">Warp Records define IDM.</text></g><g><text class="y" x="760" y="626">2000s to now</text><text class="t" x="760" y="650">Laptops and EDM</text><text class="d" x="760" y="672">Anyone can produce on a laptop;</text><text class="d" x="760" y="692">EDM festivals fill stadiums.</text></g></svg>',
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Electronic_music">Wikipedia: Electronic music</a>, available under CC BY-SA 4.0. Cover art from Spotify.'
+};
+var LVC=["#f3f3f1","#dcdcda","#a8a8a6","#6a6a69","#2c2c2b","#0b0b0b"];
+var names=Object.keys(G),root=document.documentElement;
+function slug(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
+function gray(i,n){var l=84-(i/Math.max(n-1,1))*56;return "background:hsl(0 0% "+l+"%);color:"+(l>52?"#111":"#f3f3f1")}
+function pad(n){return "L 0"+Math.min(n,9)}
+
+/* Home: genre columns */
+var rail=document.getElementById("rail"),cards=[];
+names.forEach(function(g){
+  var col=document.createElement("section");col.className="col";
+  col.innerHTML='<h2 style="margin:0"><button class="gname" type="button" data-go="'+esc(g)+'" aria-label="Open '+esc(g)+' genre page">'+esc(g)+'</button></h2><div class="stack" style="--n:'+G[g].length+'"></div>';
+  var st=col.lastChild;
+  G[g].forEach(function(s,i){
+    var p=s.split("|"),b=document.createElement("button");
+    b.className="card";b.type="button";b.style.cssText="--i:"+i+";"+gray(i,G[g].length);
+    b.dataset.q=(p[0]+" "+p[1]+" "+g).toLowerCase();
+    b.dataset.go=p[0];
+    b.setAttribute("aria-label",p[0]+" by "+p[1]+", "+p[2]+". Open album page");
+    b.innerHTML='<span class="ct"><span>'+esc(p[0])+'</span><span>'+esc(p[2])+'</span></span><span class="cb"><strong>'+esc(p[1])+'</strong><span>Open album</span></span>';
+    st.appendChild(b);cards.push(b);
+  });
+  rail.appendChild(col);
+});
+var fill=document.getElementById("fill"),count=document.getElementById("count");
+function prog(){
+  var m=rail.scrollWidth-rail.clientWidth,p=m>0?rail.scrollLeft/m:0;
+  fill.style.width=(p*100)+"%";
+  count.textContent="Genre "+(Math.round(p*(names.length-1))+1)+" of "+names.length+". Scroll sideways for more.";
+}
+rail.addEventListener("scroll",prog,{passive:true});
+rail.addEventListener("wheel",function(e){
+  if(rail.scrollHeight>rail.clientHeight+2||Math.abs(e.deltaY)<Math.abs(e.deltaX))return;
+  rail.scrollLeft+=e.deltaY;e.preventDefault();
+},{passive:false});
+document.getElementById("prev").onclick=function(){rail.scrollBy({left:-rail.clientWidth*.6,behavior:"smooth"})};
+document.getElementById("next").onclick=function(){rail.scrollBy({left:rail.clientWidth*.6,behavior:"smooth"})};
+var rm=matchMedia("(prefers-reduced-motion:reduce)").matches;
+document.getElementById("surprise").onclick=function(){
+  var c=cards[Math.floor(Math.random()*cards.length)];
+  document.querySelectorAll(".pick").forEach(function(x){x.classList.remove("pick")});
+  c.closest(".col").scrollIntoView({behavior:rm?"auto":"smooth",inline:"center",block:"nearest"});
+  c.classList.add("pick");setTimeout(function(){c.classList.remove("pick")},3000);
+};
+
+/* Genre page */
+var gp=document.getElementById("genre");
+function coverBtn(kind,year,title,artist,i,n){
+  return '<button class="cover" type="button" data-go="'+esc(title)+'" style="'+gray(i,n)+'"><span>'+esc(kind)+' · '+esc(year)+'</span><div><strong>'+esc(title)+'</strong><small>'+esc(artist)+'</small></div></button>';
+}
+function chipRow(list,side){
+  return '<div class="chips">'+list.map(function(n){
+    var hit=names.filter(function(g){return g.toLowerCase()===n.toLowerCase()})[0];
+    return '<button class="chip'+(side?' side':'')+'" type="button" '+(hit?'data-go="'+esc(hit)+'"':'data-msg="'+esc(n)+' has no page in this prototype yet."')+'><b>'+esc(n)+'</b><i>'+(side?'Sideways':'Deeper')+'</i></button>';
+  }).join("")+'</div>';
+}
+function genreHTML(g){
+  var h='<h1>'+esc(g)+'</h1>';
+  if(g==="Electronic"){
+    h+='<p class="lede">'+esc(E.lede)+'</p>';
+    h+='<h2 class="sec">Sub Genres</h2>'+chipRow(E.subs,false);
+    h+='<h2 class="sec">Top Albums / Singles</h2><p class="sub">Pick one to open its page. Cover art is placeholder grey until Spotify art is connected.</p><div class="grid">'+E.albums.map(function(a,i){var p=a.split("|");return coverBtn(p[0],p[1],p[2],p[3],i,E.albums.length)}).join("")+'</div>';
+    h+='<h2 class="sec">Essential Artists</h2><div class="artists">'+E.artists.map(function(a){var p=a.split("|");return '<button class="artist" type="button" '+(AR[slug(p[0])]?'data-go="'+esc(p[0])+'"':'data-msg="The artist page for '+esc(p[0])+' is not built yet."')+'>'+AV+'<b>'+esc(p[0])+'</b><span>'+esc(p[1])+'</span></button>'}).join("")+'</div>';
+    h+='<h2 class="sec">Related Genres</h2>'+chipRow(E.related,true);
+    h+='<h2 class="sec">Genre History</h2><p class="sub">Follow the line from the first tape experiments to today.</p><div class="histbox">'+E.hist+'</div>';
+    h+='<footer class="foot">'+E.src+'</footer>';
+  }else{
+    h+='<p class="lede muted">The written intro, subgenres, artists and history for '+esc(g)+' are not drafted yet. Blocks with no content stay hidden, so this page shows only the albums from the home column.</p>';
+    h+='<h2 class="sec">Top Albums / Singles</h2><div class="grid">'+G[g].map(function(s,i){var p=s.split("|");return coverBtn("Album",p[2],p[0],p[1],i,G[g].length)}).join("")+'</div>';
+    h+='<footer class="foot">Cover art from Spotify. Text from Wikipedia, CC BY-SA 4.0.</footer>';
+  }
+  return h;
+}
+/* Albums: every cover opens an album page. Only Trans-Europe Express has written content (checked against Wikipedia); the rest show their header and hide empty blocks. */
+var ap=document.getElementById("album"),ALB={};
+E.albums.forEach(function(a){var p=a.split("|");ALB[slug(p[2])]={title:p[2],artist:p[3],year:p[1],kind:p[0],genre:"Electronic"}});
+names.forEach(function(g){G[g].forEach(function(s){var p=s.split("|"),k=slug(p[0]);if(!ALB[k])ALB[k]={title:p[0],artist:p[1],year:p[2],kind:"Album",genre:g}})});
+var X={"trans-europe-express":{
+release:"March 1977",label:"Kling Klang",
+genres:{n:"Electronic",c:[{n:"Synth-pop",c:[{n:"Electropop"}]}]},
+rec:"Recorded in mid-1976 at Kling Klang Studio in Düsseldorf, with parts mixed at Record Plant Studio in Los Angeles.",
+tracks:[["Europe Endless","9:40"],["The Hall of Mirrors","7:56"],["Showroom Dummies","6:15"],["Trans-Europe Express","6:52"],["Metal on Metal","2:11"],["Abzug","4:53"],["Franz Schubert","4:26"],["Endless Endless","0:55"]],
+trackNote:"On some later releases, “Abzug” is merged into “Metal on Metal”.",
+making:["The album began under the title Europe Endless. The idea of writing about the Trans-Europ Express came from Paul Alessandrini.","Kraftwerk recorded train sounds at railway bridges, then adjusted them so they were less danceable. A customised 32-step analog sequencer, the Synthanorma, let them write more elaborate sequenced lines. The album came out in separate English and German versions."],
+reception:"Early reviews were positive. Robert Christgau gave it an A−, and it placed 30th in the 1977 Village Voice Pazz & Jop poll. In 2014 the LA Times called it “the most important pop album of the last 40 years”.",
+collabs:[["Emil Schult","Inside-sleeve collage"],["Paul Alessandrini","Suggested the train theme"],["Karl Bartos","Sequenced percussion"],["Wolfgang Flür","Sequenced percussion"]],
+echo:[["Planet Rock","Afrika Bambaataa"],["Big Booty Express","Jay Dee"]],
+songs:["The opening track: a long, dreamy tribute to travelling across Europe, sung over a gently repeating synth pattern.","A slower, darker song about a young man who becomes a star and loses himself in his own reflection.","Released as a single in 1977. The band picture themselves as shop-window mannequins that come to life.","The title track and the album’s best-known song. Its rhythm imitates a train on the rails, and the lyrics mention meeting Iggy Pop and David Bowie.","Runs straight on from the title track, with clanging metallic percussion standing in for the train.","A short coda whose title is German for “departure”. On some later releases it is merged into “Metal on Metal”.","A calm instrumental named after the Austrian composer.","A brief closing reprise of “Europe Endless” that ends the album."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Trans-Europe_Express_(album)">Wikipedia: Trans-Europe Express (album)</a>, available under CC BY-SA 4.0. Cover art from Spotify.'
+},
+"selected-ambient-works-85-92":{
+release:"November 1992",label:"Apollo",
+genres:{n:"Electronic",c:[{n:"Techno",c:[{n:"Ambient techno"}]},{n:"IDM"}]},cover:"assets/covers/selected-ambient-works-85-92.jpg",
+rec:"Richard D. James recorded the tracks himself at home in Cornwall, England, between about 1985 and 1992, some of them straight to cassette.",
+tracks:[["Xtal","4:51"],["Tha","9:01"],["Pulsewidth","3:47"],["Ageispolis","5:21"],["i","1:13"],["Green Calx","6:02"],["Heliosphan","4:51"],["We Are the Music Makers","7:42"],["Schottkey 7th Path","5:07"],["Ptolemy","7:12"],["Hedphelym","6:02"],["Delphium","5:36"],["Actium","7:35"]],
+trackNote:"",
+making:["Aphex Twin is the best-known alias of Richard D. James. Selected Ambient Works 85–92 was his debut album, released on Apollo, an offshoot of the Belgian label R&S Records.","The music pairs soft, hazy synth pads with steady techno drum patterns, an early example of what came to be called ambient techno."],
+reception:"It drew little attention at first but grew into one of the most praised electronic records of the 1990s, and it is often named as a landmark of ambient techno.",
+collabs:[],echo:[],
+songs:["The opening track sets the album’s tone: a muffled, steady drum loop under drifting pads and a wordless vocal.","At just over nine minutes, the longest piece on the album: a slow, hazy groove that barely changes.","One of the album’s brightest, most upbeat tracks, built on a bouncing synth line.","","The shortest track, at 1:13: a brief interlude of soft tones.","","","Its title and spoken sample come from Gene Wilder’s line in the 1971 film Willy Wonka & the Chocolate Factory, itself borrowed from Arthur O’Shaughnessy’s poem “Ode”.","","","","","The closing track ends the album on one of its busiest, most rhythmic grooves."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Selected_Ambient_Works_85%E2%80%9392">Wikipedia: Selected Ambient Works 85–92</a>, available under CC BY-SA 4.0. Cover art from Spotify.'
+}};
+function doors(list,side,msg,tag){return '<div class="dl">'+list.map(function(d){return '<button type="button" class="'+(side?'side':'')+'" data-msg="'+esc(msg)+'"><span><b>'+esc(d[0])+'</b><small>'+esc(d[1])+'</small></span><i>'+tag+'</i></button>'}).join("")+'</div>'}
+/* Artists with a written page. Facts checked against Wikipedia: Aphex Twin. */
+var AR={"aphex-twin":{
+name:"Aphex Twin",real:"Richard David James",pic:"assets/artists/aphex-twin.jpg",
+facts:[["Born","18 August 1971, Limerick, Ireland"],["Raised","Cornwall, England"],["Active","1988–present"],["Labels","Warp, Rephlex, Apollo, R&S"],["Also known as","AFX, Caustic Window, Polygon Window, The Tuss, Bradley Strider and more"]],
+genres:{n:"Electronic",c:[{n:"Techno",c:[{n:"Ambient techno"}]},{n:"Ambient"},{n:"IDM"},{n:"Jungle",c:[{n:"Drill ’n’ bass"}]}]},
+bio:["Aphex Twin is the best-known alias of Richard David James, an electronic musician born in Limerick, Ireland, in 1971 to Welsh parents and raised in Cornwall, England. He bought his first synthesizer at 12 and started making music at 14.","He studied engineering at Cornwall College from 1988 to 1990. In 1991 he co-founded Rephlex Records with Grant Wilson-Claridge, and his debut album, Selected Ambient Works 85–92, came out on Apollo in 1992.","On Warp Records he went on to release Selected Ambient Works Volume II (1994), …I Care Because You Do (1995), Richard D. James Album (1996) and Drukqs (2001), and became one of the most influential names in ambient techno and IDM. After a long break, Syro (2014) won the Grammy Award for Best Dance/Electronica Album."],
+trivia:["The Aphex Twin logo was designed by Paul Nicholson in 1991.","He reportedly won £50 at age 11 in a competition for making sounds on a Sinclair ZX81, though Fact magazine questioned the story in 2017.","In the 1990s he bought a 1950s Ferret armoured car.","In a 2001 interview he claimed to own the steel structure in the middle of Elephant and Castle, London. It is really the Michael Faraday Memorial, which houses an Underground electricity substation.","Chris Cunningham directed his videos for “Come to Daddy” and “Windowlicker”, which paste James’s face onto other people’s bodies.","Chapel Porth, a beach in Cornwall, is on the cover of Surfing on Sine Waves (1993), released under the name Polygon Window.","He won the Prix Ars Electronica award for digital music in 1999."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Aphex_Twin">Wikipedia: Aphex Twin</a>, available under CC BY-SA 4.0.'
+}};
+var AV='<svg class="av" viewBox="0 0 100 120" aria-hidden="true"><circle cx="50" cy="26" r="20"/><path d="M8 118c0-42 14-58 42-58s42 16 42 58z"/></svg>';
+function artistLink(n){return '<button class="lnk" type="button" '+(AR[slug(n)]?'data-go="'+esc(n)+'"':'data-msg="The artist page for '+esc(n)+' is not built yet."')+'>'+esc(n)+'</button>'}
+function artistDoor(n,sub){return AR[slug(n)]?'<div class="dl">'+goDoor({t:n,s:sub,go:n})+'</div>':doors([[n,sub]],false,"The artist page for "+n+" is not built yet.","Deeper")}
+/* Genre tree: top node is the genre (has a page), lower nodes are subgenres */
+var GLV=["Genre","Subgenre","Sub-subgenre"];
+function treeNode(t,d){
+  var hit=names.filter(function(g){return g.toLowerCase()===t.n.toLowerCase()})[0];
+  return '<li><span class="gn"><button class="tag" type="button" '+(hit?'data-go="'+esc(hit)+'"':'data-msg="'+esc(t.n)+' has no page in this prototype yet."')+'>'+esc(t.n)+'</button><small>'+GLV[Math.min(d,2)]+'</small></span>'+(t.c?'<ul>'+t.c.map(function(c){return treeNode(c,d+1)}).join("")+'</ul>':'')+'</li>';
+}
+function genreTree(t){return '<h2 class="sec">Genres</h2><ul class="gtree" aria-label="Genre hierarchy">'+treeNode(t,0)+'</ul>'}
+function coverDiv(a,x){return '<div class="acover" role="img" aria-label="Cover art for '+esc(a.title)+'" style="'+gray(2,8)+'"><span>Cover art from Spotify</span>'+(x&&x.cover?'<img src="'+esc(x.cover)+'" alt="" onerror="this.remove()">':'')+'</div>'}
+function goDoor(d){return '<button type="button" class="'+(d.side?'side':'')+'" data-go="'+esc(d.go)+'"><span><b>'+esc(d.t)+'</b><small>'+esc(d.s)+'</small></span><i>'+(d.side?'Sideways':'Deeper')+'</i></button>'}
+function albumHTML(a){
+  var k=slug(a.title),x=X[k],h;
+  if(x){
+    h='<div class="ahd"><h1 class="atitle">'+esc(a.title)+'</h1><p class="aby">'+artistLink(a.artist)+'</p></div>';
+    h+='<div class="aspread">'+coverDiv(a,x)+'<div class="trk"><h2>Track-list</h2><ol class="tl2">'+x.tracks.map(function(t,i){return '<li><button type="button" data-go="'+k+'/'+(i+1)+'" aria-label="Open song '+(i+1)+', '+esc(t[0])+', '+esc(t[1])+'"><span class="n">'+(i+1)+'.</span><span><span class="tt">'+esc(t[0])+'.</span> '+esc(t[1])+'</span></button></li>'}).join("")+'</ol>'+(x.trackNote?'<p class="note">'+esc(x.trackNote)+'</p>':'')+'</div></div>';
+    h+='<div class="adetail"><p class="kicker">'+esc(a.kind)+' · '+esc(x.release)+' · '+esc(x.label)+'</p></div>';
+    h+='<div class="acols"><div>';
+    h+='<h2 class="sec">About this album</h2><div class="prose">'+x.making.map(function(p){return '<p>'+esc(p)+'</p>'}).join("")+'<p>'+esc(x.rec)+'</p><p>'+esc(x.reception)+'</p></div>'+doors([[x.label,"Label"]],false,"Label pages are not built yet.","Deeper");
+    h+='</div><aside>';
+    h+=genreTree(x.genres);
+    h+='<h2 class="sec">Artist</h2>'+artistDoor(a.artist,"Behind the album");
+    if(x.collabs.length)h+='<h2 class="sec">Collaborations</h2>'+doors(x.collabs,false,"Artist pages are not built yet.","Deeper");
+    if(x.echo.length)h+='<h2 class="sec">Echoes in later music</h2>'+doors(x.echo,true,"Pages for songs on other albums are not built yet.","Sideways");
+    h+='</aside></div>';
+  }else{
+    h='<div class="ahead">'+coverDiv(a,null)+'<div class="ameta"><p class="kicker">'+esc(a.kind)+' · '+esc(a.year)+'</p><h1 class="atitle">'+esc(a.title)+'</h1><p class="aby">by '+artistLink(a.artist)+'</p><div class="tags"><button class="tag" type="button" data-go="'+esc(a.genre)+'">'+esc(a.genre)+'</button></div></div></div>';
+    h+='<p class="lede muted" style="margin-top:40px">The tracklist, story and credits for this '+esc(a.kind.toLowerCase())+' are not written yet. Blocks with no content stay hidden. Selected Ambient Works 85–92 and Trans-Europe Express are the filled-in examples.</p>';
+  }
+  h+='<div class="abot"><h2 class="sec">More in '+esc(a.genre)+'</h2>'+(a.genre==="Electronic"?'<p class="lede" style="margin-bottom:18px">'+esc(E.lede.split(". ")[0])+'.</p>':'')+'<div class="dl"><button type="button" data-go="'+esc(a.genre)+'"><span><b>'+esc(a.genre)+'</b><small>Genre page</small></span><i>Sideways</i></button></div></div>';
+  h+='<footer class="foot">'+(x?x.src:'Cover art from Spotify. Text from Wikipedia, CC BY-SA 4.0.')+'</footer>';
+  return h;
+}
+/* Song page: one step below its album, so L 02 from a home-column album and L 03 via a genre page. */
+function songHTML(p){
+  var a=ALB[p.alb],x=X[p.alb],t=x.tracks[p.n-1],w=x.songs&&x.songs[p.n-1],N=x.tracks.length;
+  var h='<div class="ahd"><p class="kicker">Track '+p.n+' of '+N+' · '+esc(t[1])+'</p><h1 class="atitle">'+esc(t[0])+'</h1><p class="aby">from <button class="lnk" type="button" data-go="'+p.alb+'">'+esc(a.title)+'</button> by '+artistLink(a.artist)+'</p></div>';
+  if(w)h+='<div class="prose" style="margin-top:28px"><p>'+esc(w)+'</p></div>';
+  var d=[{t:a.title,s:"Back to the album",go:p.alb,side:true}];
+  if(p.n>1)d.push({t:x.tracks[p.n-2][0],s:"Previous track · "+(p.n-1)+" of "+N,go:p.alb+"/"+(p.n-1),side:true});
+  if(p.n<N)d.push({t:x.tracks[p.n][0],s:"Next track · "+(p.n+1)+" of "+N,go:p.alb+"/"+(p.n+1),side:true});
+  h+='<h2 class="sec">From the album</h2><div class="dl">'+d.map(goDoor).join("")+'</div>';
+  h+=genreTree(x.genres);
+  h+='<h2 class="sec">Artist</h2>'+artistDoor(a.artist,"Behind the song");
+  h+='<footer class="foot">'+x.src+'</footer>';
+  return h;
+}
+function artistHTML(id){
+  var r=AR[id],h='<div class="ahd"><h1 class="atitle">'+esc(r.name)+'</h1><p class="aby">'+esc(r.real)+'</p></div>';
+  h+='<div class="aspread"><div class="apic" role="img" aria-label="Photo of '+esc(r.name)+'">'+AV+(r.pic?'<img src="'+esc(r.pic)+'" alt="" onerror="this.remove()">':'')+'</div><dl class="facts">'+r.facts.map(function(f){return '<dt>'+esc(f[0])+'</dt><dd>'+esc(f[1])+'</dd>'}).join("")+'</dl></div>';
+  h+='<div class="acols"><div>';
+  h+='<h2 class="sec">Biography</h2><div class="prose">'+r.bio.map(function(p){return '<p>'+esc(p)+'</p>'}).join("")+'</div>';
+  h+='<h2 class="sec">Trivia</h2><ul class="trivia">'+r.trivia.map(function(t){return '<li>'+esc(t)+'</li>'}).join("")+'</ul>';
+  h+='</div><aside>'+genreTree(r.genres);
+  var al=Object.keys(ALB).filter(function(k){return slug(ALB[k].artist)===id});
+  h+='<h2 class="sec">Albums in MuDis</h2><div class="dl">'+al.map(function(k){return goDoor({t:ALB[k].title,s:ALB[k].kind+" · "+ALB[k].year,go:k})}).join("")+'</div>';
+  h+='</aside></div><footer class="foot">'+r.src+'</footer>';
+  return h;
+}
+/* Floating cover: a 200px disc that drifts slowly through empty space on the song page and bounces off every piece of text, button and the page edges. */
+var fl=null;
+function stopFloat(){if(fl){cancelAnimationFrame(fl.raf);removeEventListener("resize",fl.re);fl.el.remove();fl=null}}
+function floatCover(src,alb,title){
+  stopFloat();
+  var el=document.createElement("button"),R=100,pad=18,obs=[],B,x,y,vx,vy,last=0,raf=0;
+  el.type="button";el.className="floater";el.dataset.go=alb;el.setAttribute("aria-label","Cover of "+title+". Open the album");el.style.cssText=gray(2,8);
+  if(src)el.innerHTML='<img src="'+esc(src)+'" alt="">';
+  document.body.appendChild(el);
+  function measure(){
+    var sx=scrollX,sy=scrollY,ar=ap.getBoundingClientRect(),g=parseFloat(getComputedStyle(root).getPropertyValue("--gut"))||36;obs=[];
+    ap.querySelectorAll(".ahd>*,.prose p,h2.sec,.dl>button,.gn,.foot").forEach(function(e){
+      var r;if(e.matches(".dl>button,.gn,.foot"))r=e.getBoundingClientRect();else{var rg=document.createRange();rg.selectNodeContents(e);r=rg.getBoundingClientRect()}
+      if(r.width&&r.height)obs.push({l:r.left+sx-pad,t:r.top+sy-pad,r:r.right+sx+pad,b:r.bottom+sy+pad});
+    });
+    B={l:g,t:ar.top+sy,r:document.documentElement.clientWidth-g,b:ar.bottom+sy};
+  }
+  function hit(cx,cy){
+    if(cx-R<B.l||cx+R>B.r||cy-R<B.t||cy+R>B.b)return true;
+    for(var i=0;i<obs.length;i++){var o=obs[i],nx=Math.max(o.l,Math.min(cx,o.r)),ny=Math.max(o.t,Math.min(cy,o.b));if((cx-nx)*(cx-nx)+(cy-ny)*(cy-ny)<R*R)return true}
+    return false;
+  }
+  function place(){
+    for(var i=0;i<600;i++){var cx=B.l+R+Math.random()*(B.r-B.l-2*R),cy=B.t+R+Math.random()*(B.b-B.t-2*R);if(!hit(cx,cy)){x=cx;y=cy;el.hidden=false;draw();return true}}
+    el.hidden=true;return false;
+  }
+  function draw(){el.style.transform="translate("+(x-R)+"px,"+(y-R)+"px)"}
+  function step(t){
+    var dt=last?Math.min((t-last)/1000,.05):0;last=t;
+    if(!el.hidden){
+      var a=(Math.random()-.5)*.03,c=Math.cos(a),s=Math.sin(a),v=vx*c-vy*s;vy=vx*s+vy*c;vx=v;
+      var nx=x+vx*dt,ny=y+vy*dt;
+      if(hit(nx,y))vx=-vx;else x=nx;
+      if(hit(x,ny))vy=-vy;else y=ny;
+      draw();
+    }
+    raf=requestAnimationFrame(step);fl.raf=raf;
+  }
+  var ang=Math.random()*Math.PI*2,sp=24;vx=Math.cos(ang)*sp;vy=Math.sin(ang)*sp;
+  fl={el:el,raf:0,re:function(){measure();if(el.hidden||hit(x,y))place()}};
+  measure();place();
+  addEventListener("resize",fl.re);
+  setTimeout(function(){if(fl&&fl.el===el)fl.re()},400);
+  if(!rm)fl.raf=requestAnimationFrame(step);
+}
+function animateRoute(){
+  var r=document.getElementById("route");
+  if(!r||rm||!("IntersectionObserver" in window))return;
+  var L=r.getTotalLength();
+  r.style.strokeDasharray=L;r.style.strokeDashoffset=L;
+  new IntersectionObserver(function(e,o){
+    if(e[0].isIntersecting){r.style.transition="stroke-dashoffset 3s ease-in-out";r.style.strokeDashoffset=0;o.disconnect()}
+  },{threshold:.25}).observe(r);
+}
+
+/* Trail, level and routing */
+var trail=[],cur=null;
+var pm=document.getElementById("pm"),nt=document.getElementById("nt"),pb=document.getElementById("pmBtn"),nb=document.getElementById("ntBtn");
+var list=document.getElementById("lvList"),lab=document.getElementById("lvl"),nts=document.getElementById("notes");
+function closeAll(){[pm,nt].forEach(function(x){x.classList.remove("open")});pb.setAttribute("aria-expanded","false");nb.setAttribute("aria-expanded","false")}
+function toggle(p,b){var was=p.classList.contains("open");closeAll();if(!was){p.classList.add("open");b.setAttribute("aria-expanded","true")}}
+pb.onclick=function(){toggle(pm,pb)};nb.onclick=function(){toggle(nt,nb)};
+document.getElementById("reset").onclick=function(){go("home")};
+function drawTrail(){
+  list.innerHTML="";
+  trail.forEach(function(p,i){
+    var li=document.createElement("li");
+    li.innerHTML='<button type="button" aria-current="'+(p.id===cur.id)+'"><i style="background:'+LVC[Math.min(i,5)]+'"></i><b>'+pad(i)+'</b><span>'+esc(p.name)+'</span><em>'+({home:"Home",genre:"Genre",album:"Album",song:"Song",artist:"Artist"})[p.view]+'</em></button>';
+    li.firstChild.onclick=function(){go(p.id)};
+    list.appendChild(li);
+  });
+}
+function noteKey(){return "mudis-notes:"+cur.id}
+function route(){
+  var s=decodeURIComponent(location.hash.slice(1)),g=names.filter(function(n){return slug(n)===s})[0];
+  var m=s.match(/^(.+)\/(\d+)$/),sx=m&&X[m[1]],tn=m?+m[2]:0;
+  var page=g?{id:slug(g),view:"genre",name:g}:sx&&tn>=1&&tn<=sx.tracks.length?{id:s,view:"song",name:sx.tracks[tn-1][0],alb:m[1],n:tn}:ALB[s]?{id:s,view:"album",name:ALB[s].title}:AR[s]?{id:s,view:"artist",name:AR[s].name}:{id:"home",view:"home",name:"Home"};
+  if(!trail.length&&page.view!=="home")trail.push({id:"home",view:"home",name:"Home"});
+  if(trail.length===1&&page.view==="song")trail.push({id:page.alb,view:"album",name:ALB[page.alb].title});
+  var i=trail.map(function(p){return p.id}).indexOf(page.id);
+  /* Previous/next track swaps the song in place, so a song stays one level below its album */
+  if(i<0&&page.view==="song"&&cur&&cur.view==="song"&&cur.alb===page.alb)trail.pop();
+  if(i>=0)trail.length=i+1;else trail.push(page);
+  cur=page;var lvl=trail.length-1;
+  root.dataset.level=Math.min(lvl,5);root.dataset.view=page.view;
+  lab.textContent=pad(lvl);
+  document.getElementById("ptype").textContent=({home:"",genre:"Genre",album:"Album",song:"Song",artist:"Artist"})[page.view];
+  rail.hidden=page.view!=="home";document.getElementById("homeBar").hidden=page.view!=="home";gp.hidden=page.view!=="genre";ap.hidden=page.view==="home"||page.view==="genre";
+  stopFloat();
+  if(page.view==="genre"){gp.innerHTML=genreHTML(page.name);animateRoute()}
+  if(page.view==="album")ap.innerHTML=albumHTML(ALB[page.id]);
+  if(page.view==="artist")ap.innerHTML=artistHTML(page.id);
+  if(page.view==="song"){ap.innerHTML=songHTML(page);window.scrollTo(0,0);floatCover(X[page.alb].cover,page.alb,ALB[page.alb].title)}
+  document.title=(page.view!=="home"?page.name+" · ":"")+"MuDis";
+  document.getElementById("ntWhere").textContent="Notes attach to the page you’re on ("+page.name+"), so they’re waiting when you come back.";
+  nts.value="";try{nts.value=localStorage.getItem(noteKey())||""}catch(e){}
+  drawTrail();closeAll();window.scrollTo(0,0);if(page.view==="home")prog();
+}
+function go(id){var h=id==="home"?"home":id.indexOf("/")>0?id:slug(id);if(location.hash.slice(1)===h)route();else location.hash=h}
+nts.addEventListener("input",function(){try{localStorage.setItem(noteKey(),nts.value)}catch(e){}});
+window.addEventListener("hashchange",route);
+
+/* Clicks, search, toast */
+var toast=document.getElementById("toast"),tt;
+function say(m){toast.textContent=m;toast.classList.add("on");clearTimeout(tt);tt=setTimeout(function(){toast.classList.remove("on")},2600)}
+document.addEventListener("click",function(e){
+  var a=e.target.closest("[data-go]");if(a){go(a.dataset.go);return}
+  var m=e.target.closest("[data-msg]");if(m)say(m.dataset.msg);
+});
+var q=document.getElementById("q");
+q.addEventListener("input",function(){
+  var v=q.value.trim().toLowerCase();
+  cards.forEach(function(c){c.classList.toggle("dim",!!v&&c.dataset.q.indexOf(v)<0)});
+});
+q.addEventListener("keydown",function(e){
+  if(e.key!=="Enter")return;
+  var v=q.value.trim().toLowerCase();if(!v)return;
+  var g=names.filter(function(n){return n.toLowerCase().indexOf(v)===0})[0];
+  if(g)go(g);else say("Only genres open from search in this prototype.");
+});
+document.addEventListener("keydown",function(e){
+  var t=document.activeElement.tagName;
+  if(e.key==="/"&&t!=="INPUT"&&t!=="TEXTAREA"){e.preventDefault();q.focus()}
+  if(e.key==="Escape")closeAll();
+});
+route();
+
+/* Landing intro, first load of Home only: "Welcome to" shoots up, MuDis shrinks into the header, cards fly in from random directions, then the controls fade in. */
+function intro(){
+  var bw=document.querySelector(".bwrap"),wl=document.querySelector(".welcome");
+  root.classList.add("intro");rail.scrollLeft=0;
+  var r=bw.getBoundingClientRect(),vw=innerWidth,vh=innerHeight;
+  bw.style.transform="translate("+(vw/2-(r.left+r.width/2))+"px,"+(vh/2-(r.top+r.height/2))+"px) scale(1.5)";
+  cards.forEach(function(c){
+    var a=Math.random()*Math.PI*2,d=Math.max(vw,vh)*(.7+Math.random()*.5);
+    c.style.transition="none";c.style.opacity="0";
+    c.style.transform="translate("+Math.round(Math.cos(a)*d)+"px,"+Math.round(Math.sin(a)*d)+"px) rotate("+Math.round(Math.random()*80-40)+"deg)";
+  });
+  setTimeout(function(){wl.classList.add("gone")},900);
+  setTimeout(function(){bw.style.transition="transform 1.1s cubic-bezier(.6,0,.2,1)";bw.style.transform=""},1400);
+  setTimeout(function(){cards.forEach(function(c){
+    var dl=Math.round(Math.random()*700)+"ms";
+    c.style.transition="transform 1s cubic-bezier(.15,.75,.25,1) "+dl+",opacity .5s ease "+dl;
+    c.style.opacity="";c.style.transform="";
+  })},2300);
+  setTimeout(function(){root.classList.remove("intro")},3500);
+  setTimeout(function(){cards.forEach(function(c){c.style.transition=""});bw.style.transition="";wl.classList.remove("gone")},4500);
+}
+if(cur.view==="home"&&!rm)intro();
+</script>
+
+</body></html>
