@@ -3,7 +3,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
 /* Layout: one shell (search, MuDis, Path Map, Note it) that swaps between the genre-column home (L00) and a genre page (L01). Colour darkens with trail depth, as in the original two files. Single look by choice: greys only. */
-:root{--bg:#f3f3f1;--fg:#111;--gut:36px;--line:rgba(17,17,17,.3);color-scheme:light}
+:root{--bg:#fff;--fg:#111;--gut:36px;--line:rgba(17,17,17,.3);color-scheme:light}
 :root[data-level="1"]{--bg:#dcdcda;--line:rgba(17,17,17,.3)}
 :root[data-level="2"]{--bg:#a8a8a6}
 :root[data-level="3"]{--bg:#6a6a69;--fg:#f3f3f1;--line:rgba(243,243,241,.3)}
@@ -78,9 +78,9 @@ html:not([data-view="home"]) .ptype{display:block}
 .macts button.main{background:var(--fg);color:var(--bg)}
 @media (max-width:700px){.mstats{gap:12px}.mhint{display:none}}
 textarea{width:100%;height:130px;resize:vertical;padding:8px;border:1px solid var(--fg);background:transparent;font-size:14px}
-.rail{flex:1;display:flex;gap:22px;align-items:flex-start;padding:30px max(var(--gut),env(safe-area-inset-right,0px)) 24px max(var(--gut),env(safe-area-inset-left,0px));overflow:auto;scrollbar-width:none;scroll-snap-type:x proximity}
+.rail{flex:1;display:flex;gap:22px;align-items:flex-start;padding:30px max(var(--gut),env(safe-area-inset-right,0px)) 24px max(var(--gut),env(safe-area-inset-left,0px));overflow:auto;scrollbar-width:none}
 .rail::-webkit-scrollbar{display:none}
-.col{--w:clamp(190px,17vw,250px);flex:none;width:var(--w);scroll-snap-align:start}
+.col{--w:clamp(190px,17vw,250px);flex:none;width:var(--w)}
 .col:last-child{margin-right:12vw}
 .gname{margin:0 0 10px;padding:0;border:0;background:none;font-size:15px}
 .gname:hover{text-decoration:underline;text-underline-offset:4px}
@@ -104,9 +104,6 @@ textarea{width:100%;height:130px;resize:vertical;padding:8px;border:1px solid va
 .cb strong{font-size:20px;font-weight:500;letter-spacing:-.02em;line-height:1.05}
 .bar{display:flex;align-items:center;gap:22px;padding:12px max(var(--gut),env(safe-area-inset-right,0px)) 24px max(var(--gut),env(safe-area-inset-left,0px));font-size:12.5px}
 .scroll{display:flex;align-items:center;gap:16px;flex:1;min-width:0}
-.track{position:relative;flex:none;width:min(320px,28vw);height:1px;background:var(--line)}
-.fill{position:absolute;left:0;top:-1px;height:3px;width:0;background:var(--fg)}
-.track::after{content:"";position:absolute;right:-7px;top:-4.5px;border-left:10px solid var(--fg);border-top:4.5px solid transparent;border-bottom:4.5px solid transparent}
 .arrows{display:flex;gap:6px}
 .arrows button{width:28px;height:28px;border:1px solid var(--fg);border-radius:50%;background:none;line-height:1}
 .credit{opacity:.75;text-align:right}
@@ -168,13 +165,25 @@ h2.sec{margin:72px 0 22px;font-weight:500;font-size:clamp(28px,3.4vw,40px);lette
 .adetail{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;margin-top:30px}
 .adetail .kicker{margin:0}
 @media (max-width:700px){.aspread{grid-template-columns:minmax(0,1fr)}}
-/* Landing intro: "Welcome to" flies up, MuDis shrinks to the top, cards fly in, controls fade in */
-.bwrap{position:relative;display:inline-block;will-change:transform}
-.welcome{display:none;position:absolute;left:50%;bottom:calc(100% - 2px);transform:translateX(-50%);font-size:clamp(18px,2.4vw,34px);font-weight:400;letter-spacing:-.03em;line-height:1;white-space:nowrap}
-html.intro .welcome{display:block}
-.welcome.gone{transform:translate(-50%,-75vh);opacity:0;transition:transform .9s cubic-bezier(.5,0,.75,0),opacity .9s ease}
-html:not(.intro) :is(.search,.right,.brand p,.gname,.bar){transition:opacity .9s ease}
-html.intro .search,html.intro .right,html.intro .brand p,html.intro .gname,html.intro .bar{opacity:0;pointer-events:none}
+/* Landing intro (first visit only): sleeve with "Welcome to MuDis" shrinks left, the record slides out and rolls right
+   while the view follows it, bounces off the right wall, then the albums fly in and the header fades in.
+   Afterwards the record stays behind the Home columns and turns as you scroll. */
+.disc{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+.disc.front{z-index:100}
+.dworld{position:absolute;left:0;top:0;width:100%;height:100%;transform-origin:0 0}
+.sleeve{position:absolute;left:0;top:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:#fff;color:#111;border:1px solid rgba(0,0,0,.07);box-shadow:0 34px 60px -14px rgba(0,0,0,.5),0 10px 22px -6px rgba(0,0,0,.22),0 2px 6px rgba(0,0,0,.1);line-height:1;text-align:center;white-space:nowrap}
+html.intro .sleeve{display:flex}
+.sleeve span{opacity:0;transform:translateY(12px);transition:opacity .8s ease,transform .8s ease}
+.sleeve.on span{opacity:1;transform:none}
+.sleeve .sw{font-weight:400;letter-spacing:-.03em}
+.sleeve .sm{font-weight:500;letter-spacing:-.05em}
+.dwrap{position:absolute;left:0;top:0;border-radius:50%;box-shadow:0 30px 52px -16px rgba(0,0,0,.55),0 6px 14px rgba(0,0,0,.16)}
+.rec{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;background:#0c0c0c url("assets/Intro-assets/Vinyl_reference_jpeg.jpg") center/106.4% no-repeat}
+.rec span{color:#111;font-weight:500;letter-spacing:-.04em;line-height:1;text-align:center}
+/* Text that can sit over the black record on Home flips to white there */
+html[data-view="home"] :is(.brand a,.brand p,.gname,.credit){color:#fff;mix-blend-mode:difference}
+html:not(.intro) :is(.search,.right,.brand a,.brand p,.gname,.bar){transition:opacity .9s ease}
+html.intro .search,html.intro .right,html.intro .brand a,html.intro .brand p,html.intro .gname,html.intro .bar{opacity:0;pointer-events:none}
 html.intro body{overflow:hidden}
 html.intro .rail{overflow:visible}
 /* Genre hierarchy tree: Genre > Subgenre > Sub-subgenre, joined by elbow lines */
@@ -191,6 +200,8 @@ html.intro .rail{overflow:visible}
 .apic{position:relative;overflow:hidden;width:100%;aspect-ratio:1;display:flex;align-items:flex-end;justify-content:center;background:#c3c3c1}
 .apic .av{width:70%;height:auto}
 .apic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.lpic{align-items:center}
+.lpic span{font-size:clamp(40px,7vw,96px);font-weight:500;letter-spacing:-.05em;color:#111}
 .facts{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 22px;margin:0;font-size:17px;line-height:1.35}
 .facts dt{opacity:.7}
 .facts dd{margin:0}
@@ -211,7 +222,7 @@ html.intro .rail{overflow:visible}
 @media (max-width:900px){.acols{grid-template-columns:minmax(0,1fr);gap:0}}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:min(440px,calc(100% - 32px));padding:10px 18px;border:1px solid var(--fg);border-radius:99px;background:var(--bg);font-size:13.5px;z-index:90;opacity:0;pointer-events:none;transition:opacity .25s}
 .toast.on{opacity:1}
-@media (max-width:900px){:root{--gut:18px}.top{grid-template-columns:1fr 1fr}.brand{grid-column:1/-1;grid-row:2}.bar{flex-wrap:wrap}.grid,.artists{grid-template-columns:repeat(2,1fr)}.hist{min-width:900px}.track{display:none}}
+@media (max-width:900px){:root{--gut:18px}.top{grid-template-columns:1fr 1fr}.brand{grid-column:1/-1;grid-row:2}.bar{flex-wrap:wrap}.grid,.artists{grid-template-columns:repeat(2,1fr)}.hist{min-width:900px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -223,7 +234,7 @@ html.intro .rail{overflow:visible}
       <button class="ib" id="homeBtn" type="button" aria-label="Home, all genres" title="Home"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 7.5L8 2.5l5.5 5M4 6.5v7h8v-7"/></svg></button>
     </nav>
   </div>
-  <div class="brand"><div class="bwrap"><span class="welcome" aria-hidden="true">Welcome to</span><a href="#home" id="brandLink">MuDis</a></div><span class="ptype" id="ptype"></span><p>Pick a genre. Follow the trail down.</p></div>
+  <div class="brand"><a href="#home" id="brandLink">MuDis</a><span class="ptype" id="ptype"></span><p>Pick a genre. Follow the trail down.</p></div>
   <div class="right">
     <button class="pill" id="pmBtn" type="button" aria-expanded="false" aria-controls="map"><span id="pmTxt">Path Map</span><span id="lvl">L 00</span></button>
     <button class="pill" id="ntBtn" type="button" aria-expanded="false" aria-controls="nt"><span>Note it</span></button>
@@ -238,8 +249,6 @@ html.intro .rail{overflow:visible}
 <main class="rail" id="rail" tabindex="0" aria-label="Genres, scroll sideways"></main>
 <footer class="bar" id="homeBar">
   <div class="scroll">
-    <div class="track" aria-hidden="true"><div class="fill" id="fill"></div></div>
-    <span id="count">Scroll sideways to see more genres</span>
     <div class="arrows"><button type="button" id="prev" aria-label="Previous genres">‹</button><button type="button" id="next" aria-label="Next genres">›</button></div>
     <button class="pill" type="button" id="surprise">Surprise me</button>
   </div>
@@ -250,6 +259,7 @@ html.intro .rail{overflow:visible}
 <div class="wrap" id="album" hidden></div>
 <div class="wrap" id="map" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="disc" id="disc" aria-hidden="true"><div class="dworld" id="dworld"><div class="dwrap" id="dwrap"><div class="rec" id="rec"><span id="lbl">Mu<br>Dis</span></div></div><div class="sleeve" id="sleeve"><span class="sw" id="sw">Welcome to</span><span class="sm" id="sm">MuDis</span></div></div></div>
 
 <script>
 var G={
@@ -296,16 +306,13 @@ names.forEach(function(g){
   });
   rail.appendChild(col);
 });
-var fill=document.getElementById("fill"),count=document.getElementById("count");
 function prog(){
-  var m=rail.scrollWidth-rail.clientWidth,p=m>0?rail.scrollLeft/m:0;
-  fill.style.width=(p*100)+"%";
-  count.textContent="Genre "+(Math.round(p*(names.length-1))+1)+" of "+names.length+". Scroll sideways for more.";
+  if(window.discSpin)discSpin();
 }
 rail.addEventListener("scroll",prog,{passive:true});
 rail.addEventListener("wheel",function(e){
   if(rail.scrollHeight>rail.clientHeight+2||Math.abs(e.deltaY)<Math.abs(e.deltaX))return;
-  rail.scrollLeft+=e.deltaY;e.preventDefault();
+  rail.scrollLeft+=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?rail.clientWidth:1);e.preventDefault();
 },{passive:false});
 document.getElementById("prev").onclick=function(){rail.scrollBy({left:-rail.clientWidth*.6,behavior:"smooth"})};
 document.getElementById("next").onclick=function(){rail.scrollBy({left:rail.clientWidth*.6,behavior:"smooth"})};
@@ -427,7 +434,7 @@ function albumHTML(a){
     h+='<div class="aspread">'+coverDiv(a,x)+'<div class="trk"><h2>Track-list</h2><ol class="tl2">'+x.tracks.map(function(t,i){return '<li><button type="button" data-go="'+k+'/'+(i+1)+'" aria-label="Open song '+(i+1)+', '+esc(t[0])+', '+esc(t[1])+'"><span class="n">'+(i+1)+'.</span><span><span class="tt">'+esc(t[0])+'.</span> '+esc(t[1])+'</span></button></li>'}).join("")+'</ol>'+(x.trackNote?'<p class="note">'+esc(x.trackNote)+'</p>':'')+'</div></div>';
     h+='<div class="adetail"><p class="kicker">'+esc(a.kind)+' · '+esc(x.release)+' · '+esc(x.label)+'</p></div>';
     h+='<div class="acols"><div>';
-    h+='<h2 class="sec">About this album</h2><div class="prose">'+x.making.map(function(p){return '<p>'+esc(p)+'</p>'}).join("")+'<p>'+esc(x.rec)+'</p><p>'+esc(x.reception)+'</p></div>'+doors([[x.label,"Label"]],false,"Label pages are not built yet.","Deeper");
+    h+='<h2 class="sec">About this album</h2><div class="prose">'+x.making.map(function(p){return '<p>'+esc(p)+'</p>'}).join("")+'<p>'+esc(x.rec)+'</p><p>'+esc(x.reception)+'</p></div>'+(LB[slug(x.label)]?'<div class="dl">'+goDoor({t:x.label,s:"Label",go:x.label})+'</div>':doors([[x.label,"Label"]],false,"The page for this label is not built yet.","Deeper"));
     h+='</div><aside>';
     h+=genreTree(x.genres);
     h+='<h2 class="sec">Artist</h2>'+artistDoor(a.artist,"Behind the album");
@@ -466,6 +473,28 @@ function artistHTML(id){
   var al=Object.keys(ALB).filter(function(k){return slug(ALB[k].artist)===id});
   h+='<h2 class="sec">Albums in MuDis</h2><div class="dl">'+al.map(function(k){return goDoor({t:ALB[k].title,s:ALB[k].kind+" · "+ALB[k].year,go:k})}).join("")+'</div>';
   h+='</aside></div><footer class="foot">'+r.src+'</footer>';
+  return h;
+}
+/* Record label pages. Facts checked against Wikipedia: Apollo Records (Belgium) and R&S Records. Wikipedia gives no founding year for Apollo, so none is shown. */
+var LB={"apollo":{
+name:"Apollo",full:"Apollo Records",
+facts:[["Type","Ambient sub-label"],["Parent label","R&S Records"],["Country","Belgium"],["Style","Ambient music"],["Relaunched","2009, together with R&S"]],
+genres:{n:"Electronic",c:[{n:"Ambient"},{n:"Techno",c:[{n:"Ambient techno"}]}]},
+about:["Apollo is the ambient-music division of R&S Records, a Belgian dance label known mostly for techno.","R&S was founded in Ghent in 1983 by Renaat Vandepapeliere and Sabine Maes; the name comes from their initials. The original label stopped in 2000, and R&S and Apollo were relaunched together in 2009.","Apollo released Aphex Twin’s debut album, Selected Ambient Works 85–92, in 1992. Other artists on the label include Biosphere, Locust (Mark Van Hoen), Sun Electric, Manna and Thomas Fehlmann."],
+artists:["Aphex Twin|Debut album on Apollo","Biosphere|Microgravity, Patashnik","Locust|Weathered Well, Natural Composite, Truth Is Born of Arguments, Morning Light","Sun Electric|30.7.94 Live, Present, Via Nostra","Thomas Fehlmann|Good Fridge, OneToThree"],
+releases:[["Selected Ambient Works 85–92","Aphex Twin"],["Volume 1 – File Under Ambient","Apollo compilation"],["Microgravity","Biosphere"],["The Irresistible Force","The Irresistible Force"],["Visions of the Past","Robert Leiner"],["The Conversation","Cabaret Voltaire"],["Moving Through Here","John Beltran"],["Ki–Oku","DJ Krush & Toshinori Kondo"]],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Apollo_Records_(Belgium)">Wikipedia: Apollo Records (Belgium)</a> and <a href="https://en.wikipedia.org/wiki/R%26S_Records">Wikipedia: R&amp;S Records</a>, available under CC BY-SA 4.0.'
+}};
+function labelHTML(id){
+  var b=LB[id],h='<div class="ahd"><h1 class="atitle">'+esc(b.name)+'</h1><p class="aby">'+esc(b.full)+' · record label</p></div>';
+  h+='<div class="aspread"><div class="apic lpic" role="img" aria-label="'+esc(b.full)+' logo placeholder"><span>'+esc(b.name)+'</span></div><dl class="facts">'+b.facts.map(function(f){return '<dt>'+esc(f[0])+'</dt><dd>'+esc(f[1])+'</dd>'}).join("")+'</dl></div>';
+  h+='<div class="acols"><div>';
+  h+='<h2 class="sec">About the label</h2><div class="prose">'+b.about.map(function(p){return '<p>'+esc(p)+'</p>'}).join("")+'</div>';
+  h+='<h2 class="sec">Selected releases</h2><div class="dl">'+b.releases.map(function(r){var k=slug(r[0]);return ALB[k]?goDoor({t:r[0],s:r[1],go:k,side:true}):'<button type="button" class="side" data-msg="The page for '+esc(r[0])+' is not built yet."><span><b>'+esc(r[0])+'</b><small>'+esc(r[1])+'</small></span><i>Sideways</i></button>'}).join("")+'</div>';
+  h+='</div><aside>'+genreTree(b.genres);
+  h+='<h2 class="sec">Artists on the label</h2>'+b.artists.map(function(a){var p=a.split("|");return artistDoor(p[0],p[1])}).join("");
+  h+='<h2 class="sec">Parent label</h2>'+doors([["R&S Records","Ghent, Belgium · founded 1983"]],false,"The page for R&S Records is not built yet.","Deeper");
+  h+='</aside></div><footer class="foot">'+b.src+'</footer>';
   return h;
 }
 /* Floating cover: a 200px disc that drifts slowly through empty space on the song page and bounces off every piece of text, button and the page edges. */
@@ -551,7 +580,7 @@ document.getElementById("homeBtn").onclick=function(){go("home")};
 function addNode(k,parent,side,p){if(!T[k])T[k]={key:k,parent:parent,side:side,page:p,d:trail.length-1,o:tOrder++}}
 function stepDeeper(p){var pk=tkeys.length?tkeys[tkeys.length-1]:null,k=pk===null?p.id:pk+">"+p.id;trail.push(p);tkeys.push(k);addNode(k,pk,false,p)}
 function stepSideways(p){var pk=tkeys[tkeys.length-1],k=pk+"~"+p.id;trail[trail.length-1]=p;tkeys[tkeys.length-1]=k;addNode(k,pk,true,p);sideways++}
-var VIEWN={home:"Home",genre:"Genre",album:"Album",song:"Song",artist:"Artist"};
+var VIEWN={home:"Home",genre:"Genre",album:"Album",song:"Song",artist:"Artist",label:"Label"};
 function nodeSub(p){
   if(p.view==="home")return "Start";
   if(p.view==="genre")return "Genre page";
@@ -566,7 +595,7 @@ function pathKey(){return tkeys[tkeys.length-1]}
 function headline(){
   var lvl=trail.length-1;
   if(!lvl)return 'You’re at <em>Home</em>. Pick a genre or an album to start a trail.';
-  var f=trail[1],X=f.view==="genre"?f.name:f.view==="album"?ALB[f.id].genre:f.view==="artist"?AR[f.id].genres.n:f.name;
+  var f=trail[1],X=f.view==="genre"?f.name:f.view==="album"?ALB[f.id].genre:f.view==="artist"?AR[f.id].genres.n:f.view==="label"?LB[f.id].genres.n:f.name;
   var n=lvl-(f.view==="genre"?1:0);
   if(!n)return 'You’re at the top of <em>'+esc(X)+'</em>. Every page you open from here goes on your map.';
   return 'You’re '+n+' level'+(n>1?'s':'')+' below <em>'+esc(X)+'</em>, somewhere around <em>'+esc(cur.name)+'</em>.';
@@ -641,7 +670,7 @@ function mapWire(){
 }
 function openMap(){
   mapOpen=true;mapY=scrollY;closeAll();stopFloat();
-  rail.hidden=true;document.getElementById("homeBar").hidden=true;gp.hidden=true;ap.hidden=true;mp.hidden=false;
+  rail.hidden=true;document.getElementById("homeBar").hidden=true;document.getElementById("disc").hidden=true;gp.hidden=true;ap.hidden=true;mp.hidden=false;
   root.dataset.view="map";pmTxt.textContent="Close map";lab.textContent="✕";pb.setAttribute("aria-expanded","true");
   document.getElementById("ptype").textContent="Path map";document.title="Path map · MuDis";
   mp.innerHTML=mapHTML();window.scrollTo(0,0);mapWire();
@@ -665,7 +694,7 @@ function noteKey(){return "mudis-notes:"+cur.id}
 function route(){
   var s=decodeURIComponent(location.hash.slice(1)),g=names.filter(function(n){return slug(n)===s})[0];
   var m=s.match(/^(.+)\/(\d+)$/),sx=m&&X[m[1]],tn=m?+m[2]:0;
-  var page=g?{id:slug(g),view:"genre",name:g}:sx&&tn>=1&&tn<=sx.tracks.length?{id:s,view:"song",name:sx.tracks[tn-1][0],alb:m[1],n:tn}:ALB[s]?{id:s,view:"album",name:ALB[s].title}:AR[s]?{id:s,view:"artist",name:AR[s].name}:{id:"home",view:"home",name:"Home"};
+  var page=g?{id:slug(g),view:"genre",name:g}:sx&&tn>=1&&tn<=sx.tracks.length?{id:s,view:"song",name:sx.tracks[tn-1][0],alb:m[1],n:tn}:ALB[s]?{id:s,view:"album",name:ALB[s].title}:AR[s]?{id:s,view:"artist",name:AR[s].name}:LB[s]?{id:s,view:"label",name:LB[s].name}:{id:"home",view:"home",name:"Home"};
   var side=pendingSide;pendingSide=false;
   if(!trail.length)stepDeeper({id:"home",view:"home",name:"Home"});
   if(trail.length===1&&page.view==="song")stepDeeper({id:page.alb,view:"album",name:ALB[page.alb].title});
@@ -679,11 +708,12 @@ function route(){
   root.dataset.level=Math.min(lvl,5);root.dataset.view=page.view;
   lab.textContent=pad(lvl);
   document.getElementById("ptype").textContent=page.view==="home"?"":VIEWN[page.view];
-  rail.hidden=page.view!=="home";document.getElementById("homeBar").hidden=page.view!=="home";gp.hidden=page.view!=="genre";ap.hidden=page.view==="home"||page.view==="genre";
+  rail.hidden=page.view!=="home";document.getElementById("homeBar").hidden=page.view!=="home";document.getElementById("disc").hidden=page.view!=="home";gp.hidden=page.view!=="genre";ap.hidden=page.view==="home"||page.view==="genre";
   stopFloat();
   if(page.view==="genre"){gp.innerHTML=genreHTML(page.name);animateRoute()}
   if(page.view==="album")ap.innerHTML=albumHTML(ALB[page.id]);
   if(page.view==="artist")ap.innerHTML=artistHTML(page.id);
+  if(page.view==="label")ap.innerHTML=labelHTML(page.id);
   if(page.view==="song"){ap.innerHTML=songHTML(page);window.scrollTo(0,0);floatCover(X[page.alb].cover,page.alb,ALB[page.alb].title)}
   document.title=(page.view!=="home"?page.name+" · ":"")+"MuDis";
   document.getElementById("ntWhere").textContent="Notes attach to the page you’re on ("+page.name+"), so they’re waiting when you come back.";
@@ -719,28 +749,82 @@ document.addEventListener("keydown",function(e){
 });
 route();
 
-/* Landing intro, first load of Home only: "Welcome to" shoots up, MuDis shrinks into the header, cards fly in from random directions, then the controls fade in. */
+/* Landing intro, first visit only (once per browser tab, so going back Home or reloading skips it).
+   Times in ms: 0 "Welcome to MuDis" fades in on a sleeve that fills the page; 1000-2100 the sleeve shrinks to the left;
+   2600 (500ms later) the record slides out and rolls right for about 2.6s while the view follows it, so the sleeve leaves on the left;
+   5200 it hits the right wall and bounces; 5300 the albums fly in; 5800 the header fades in; all done by 7000.
+   A click or key press skips to the end. */
+var disc=document.getElementById("disc"),dworld=document.getElementById("dworld"),dwrap=document.getElementById("dwrap"),rec=document.getElementById("rec"),sleeve=document.getElementById("sleeve"),L=null,discBase=0,introOn=false;
+function discLayout(){
+  var W=innerWidth||root.clientWidth||1280,H=innerHeight||root.clientHeight||800,D=Math.round(Math.min(H*.94,W/1.45)),r=D/2,S=Math.round(D*1.03),Ls=Math.max(16,Math.round(W*.05));
+  var xc1=Ls+S/2+D*.42,xc2=Ls+S+r,a=(xc1+xc2)/2,rot=4*Math.PI*r;/* two full turns, so the label lands upright */
+  var xEnd=xc2+rot-(xc2-a)/2;
+  L={W:W,H:H,D:D,r:r,S:S,Ls:Ls,xc1:xc1,xc2:xc2,a:a,xEnd:xEnd,rest:W-r,camMax:xEnd-(W-r)};
+  dwrap.style.width=dwrap.style.height=D+"px";
+  sleeve.style.width=sleeve.style.height=S+"px";
+  document.getElementById("lbl").style.fontSize=Math.round(D*.072)+"px";
+  document.getElementById("sw").style.fontSize=Math.round(S*.07)+"px";
+  document.getElementById("sm").style.fontSize=Math.round(S*.16)+"px";
+}
+/* Rolling: no turn while the record is still in the sleeve, easing into a true roll as it clears the edge */
+function discRot(x){var a=L.a,b=L.xc2,d;if(x<=a)d=0;else if(x<b)d=(x-a)*(x-a)/(2*(b-a));else d=(b-a)/2+(x-b);return d/L.r*180/Math.PI}
+function discPut(x,y,deg){dwrap.style.transform="translate("+(x-L.r)+"px,"+(y-L.r)+"px)";rec.style.transform="rotate("+deg+"deg)"}
+function discRest(){if(!L)return;dworld.style.transform="";discPut(L.rest,L.H/2,discBase+rail.scrollLeft*.15)}
+function discSpin(){if(L&&!introOn)rec.style.transform="rotate("+(discBase+rail.scrollLeft*.15)+"deg)"}
+addEventListener("resize",function(){if(!introOn){discLayout();discRest()}});
+discLayout();discRest();
+
 function intro(){
-  var bw=document.querySelector(".bwrap"),wl=document.querySelector(".welcome");
-  root.classList.add("intro");rail.scrollLeft=0;
-  var r=bw.getBoundingClientRect(),vw=innerWidth,vh=innerHeight;
-  bw.style.transform="translate("+(vw/2-(r.left+r.width/2))+"px,"+(vh/2-(r.top+r.height/2))+"px) scale(1.5)";
+  introOn=true;root.classList.add("intro");rail.scrollLeft=0;disc.classList.add("front");discLayout();
+  var W=L.W,H=L.H,sc=L.Ls+L.S/2,k0=Math.max(W,H)/L.S*1.04,t0=performance.now(),flown=false,shown=false,done=false;
+  sleeve.style.transform="translate("+L.Ls+"px,"+(H-L.S)/2+"px)";
   cards.forEach(function(c){
-    var a=Math.random()*Math.PI*2,d=Math.max(vw,vh)*(.7+Math.random()*.5);
+    var a=Math.random()*Math.PI*2,d=Math.max(W,H)*(.7+Math.random()*.5);
     c.style.transition="none";c.style.opacity="0";
     c.style.transform="translate("+Math.round(Math.cos(a)*d)+"px,"+Math.round(Math.sin(a)*d)+"px) rotate("+Math.round(Math.random()*80-40)+"deg)";
   });
-  setTimeout(function(){wl.classList.add("gone")},900);
-  setTimeout(function(){bw.style.transition="transform 1.1s cubic-bezier(.6,0,.2,1)";bw.style.transform=""},1400);
-  setTimeout(function(){cards.forEach(function(c){
-    var dl=Math.round(Math.random()*700)+"ms";
-    c.style.transition="transform 1s cubic-bezier(.15,.75,.25,1) "+dl+",opacity .5s ease "+dl;
+  requestAnimationFrame(function(){sleeve.classList.add("on")});
+  function cl(v){return v<0?0:v>1?1:v}
+  function io(u){return u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2}
+  function fly(now){flown=true;disc.classList.remove("front");cards.forEach(function(c){
+    var dl=now?"0ms":Math.round(Math.random()*500)+"ms";
+    c.style.transition=now?"none":"transform 1s cubic-bezier(.15,.75,.25,1) "+dl+",opacity .5s ease "+dl;
     c.style.opacity="";c.style.transform="";
-  })},2300);
-  setTimeout(function(){root.classList.remove("intro")},3500);
-  setTimeout(function(){cards.forEach(function(c){c.style.transition=""});bw.style.transition="";wl.classList.remove("gone")},4500);
+  })}
+  function finish(){
+    done=true;introOn=false;removeEventListener("pointerdown",skip,true);removeEventListener("keydown",skip,true);
+    if(!flown)fly(true);root.classList.remove("intro");sleeve.classList.remove("on");
+    discBase=discRot(L.xEnd);discRest();
+    setTimeout(function(){cards.forEach(function(c){c.style.transition=""})},1100);
+  }
+  function skip(){if(!done)finish()}
+  addEventListener("pointerdown",skip,true);addEventListener("keydown",skip,true);
+  function frame(now){
+    if(done)return;
+    var t=now-t0,cam=0,x=L.xc1,y=H/2;
+    /* 1. sleeve fills the page, then shrinks to the left (scale eased in log space so the zoom feels even) */
+    var e=io(cl((t-1000)/1100)),k=Math.pow(k0,1-e),cx=W/2+(sc-W/2)*e;
+    /* 2. record slides out and rolls; the view follows so the record drifts from its peek spot to the right wall */
+    var u=cl((t-2600)/2600);
+    if(u>0){
+      x=L.xc1+(L.xEnd-L.xc1)*(1-Math.cos(u*Math.PI/2));
+      var sx=L.xc1+(L.rest-L.xc1)*u*u*(3-2*u);
+      cam=x-sx;
+    }
+    /* 3. bounce off the wall: two small knocks back, then rest against it */
+    if(t>5200){var b=cl((t-5200)/600);x=L.xEnd-L.D*.06*Math.abs(Math.sin(2*Math.PI*b))*(1-b)*(1-b);cam=L.camMax}
+    if(e<1)dworld.style.transform="translate("+(cx-k*sc)+"px,"+(H/2)*(1-k)+"px) scale("+k+")";
+    else dworld.style.transform="translateX("+(-cam)+"px)";
+    discPut(x,y,discRot(x));
+    if(t>=5300&&!flown)fly(false);
+    if(t>=5800&&!shown){shown=true;root.classList.remove("intro")}
+    if(t>=5800+600){dworld.style.transform="translateX("+(-cam)+"px)";finish();return}
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
 }
-if(cur.view==="home"&&!rm)intro();
+var seenIntro=false;try{seenIntro=sessionStorage.getItem("mudis-intro")==="1";sessionStorage.setItem("mudis-intro","1")}catch(e){}
+if(cur.view==="home"&&!rm&&!seenIntro)intro();
 </script>
 
 </body></html>
