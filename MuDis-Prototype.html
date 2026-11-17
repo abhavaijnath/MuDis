@@ -197,8 +197,8 @@ html.intro .sleeve{display:flex}
 .rec span{color:#111;font-weight:500;letter-spacing:-.04em;line-height:1;text-align:center}
 /* Text that can sit over the black record on Home flips to white there */
 html[data-view="home"] :is(.brand a,.brand p,.gname,.credit){color:#fff;mix-blend-mode:difference}
-html:not(.intro) :is(.search,.right,.brand a,.brand p,.gname,.bar){transition:opacity .9s ease}
-html.intro .search,html.intro .right,html.intro .brand a,html.intro .brand p,html.intro .gname,html.intro .bar{opacity:0;pointer-events:none}
+html:not(.intro) :is(.search,.lr-open,.right,.brand a,.brand p,.gname,.bar){transition:opacity .9s ease}
+html.intro .search,html.intro .lr-open,html.intro .right,html.intro .brand a,html.intro .brand p,html.intro .gname,html.intro .bar{opacity:0;pointer-events:none}
 html.intro body{overflow:hidden}
 html.intro .rail{overflow:visible}
 /* Genre hierarchy tree: Genre > Subgenre > Sub-subgenre, joined by elbow lines */
@@ -237,6 +237,55 @@ html.intro .rail{overflow:visible}
 @media (max-width:900px){.acols{grid-template-columns:minmax(0,1fr);gap:0}}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:min(440px,calc(100% - 32px));padding:10px 18px;border:1px solid var(--fg);border-radius:99px;background:var(--bg);font-size:13.5px;z-index:90;opacity:0;pointer-events:none;transition:opacity .25s}
 .toast.on{opacity:1}
+/* Listening Room: a calm overlay for listening to one whole album. No doorways, no trail steps, no level change.
+   Alignment numbers live in LR_SET at the top of the script. */
+.lr-open{margin-top:8px;width:fit-content}
+html:not([data-view="home"]) .lr-open{display:none}
+.lr{position:fixed;inset:0;z-index:150;background:rgba(255,255,255,.9);color:#111;opacity:0;transition:opacity .35s ease}
+.lr.on{opacity:1}
+.lr[hidden]{display:none}
+.lr-panel{position:absolute;inset:16px;border-radius:28px;background:#dcdcda;isolation:isolate;display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:24px;padding:20px 40px;overflow:hidden}
+.lr-h{position:absolute;left:28px;top:22px;z-index:25;margin:0;font-size:13px;font-weight:500}
+.lr-close{position:absolute;right:20px;top:16px;z-index:30}
+/* Sleeve wheel: sleeves sit on a curve that bends away to the left. The one in the middle is full size and fully opaque;
+   the further a sleeve is from the middle, the smaller and fainter it gets. Positions are set from JS as transforms. */
+.lr-stack{position:relative;min-height:0;--s:clamp(150px,min(38vh,24vw),300px);outline:0}
+.lr-sleeve{position:absolute;left:0;top:0;width:var(--s);height:var(--s);display:flex;flex-direction:column;justify-content:flex-end;padding:12px;border:0;overflow:hidden;text-align:left;box-shadow:0 10px 26px rgba(0,0,0,.28);transform-origin:50% 50%;will-change:transform,opacity}
+.lr-sleeve img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.lr-sleeve.mid{box-shadow:0 16px 34px rgba(0,0,0,.32)}
+.lr-sleeve:focus-visible{outline:2px solid #111;outline-offset:3px}
+.lr-sleeve strong,.lr-sleeve small{position:relative;display:block}
+.lr-sleeve strong{font-size:15px;font-weight:500;line-height:1.1}
+.lr-sleeve small{font-size:12px;margin-top:3px}
+.lr-tag{position:absolute;left:10px;top:10px;z-index:1;padding:5px 9px;border-radius:99px;background:#fff;color:#111;font-size:12px;line-height:1;white-space:nowrap}
+.lr-right{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:0}
+/* The player: as big as the screen height allows (the info lines and the Album of the day button take ~92px under it) */
+.lr-stage{position:relative;flex:none;width:min(calc(100vw - 32px - 80px - 24px - 220px),calc((100vh - 32px - 40px - 92px) * 760 / 595));aspect-ratio:760/595}
+.lr-frame{position:absolute}
+.lr-tt{position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:multiply;pointer-events:none;user-select:none}
+.lr-arm{position:absolute;z-index:18;height:auto;max-width:none;pointer-events:none;user-select:none;transition:transform .9s cubic-bezier(.45,0,.25,1)}
+.lr-rec{position:absolute;z-index:15;border-radius:50%;box-shadow:5px 9px 16px rgba(0,0,0,.35);visibility:hidden;will-change:transform}
+.lr-rec.on{visibility:visible}
+.lr-disc{position:absolute;inset:0;border-radius:50%;overflow:hidden;will-change:transform}
+.lr-disc img{position:absolute;max-width:none;height:auto;pointer-events:none;user-select:none}
+/* Centre label: the chosen album's cover, cut to a circle, with the spindle hole on top */
+.lr-art{position:absolute;border-radius:50%;overflow:hidden;transform:translate(-50%,-50%);left:50%;top:50%}
+.lr-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.lr-hole{position:absolute;left:50%;top:50%;border-radius:50%;background:#f3f3f1;transform:translate(-50%,-50%);box-shadow:inset 0 1px 2px rgba(0,0,0,.35)}
+/* Start / Stop: real buttons over the two knobs in the image, with their names printed on the knob */
+.lr-ctl{position:absolute;z-index:19;display:grid;place-items:center;padding:0;border:0;border-radius:50%;background:transparent;color:#111;font-size:12px;line-height:1;transform:translate(-50%,-50%);transition:transform .12s,background .12s,box-shadow .12s}
+.lr-ctl:active,.lr-ctl.press{transform:translate(-50%,-50%) scale(.93);background:rgba(0,0,0,.12);box-shadow:inset 0 2px 5px rgba(0,0,0,.35)}
+.lr-ctl[aria-pressed="true"]{box-shadow:inset 0 1px 4px rgba(0,0,0,.3)}
+.lr-ctl:focus-visible{outline:2px solid #111;outline-offset:3px}
+.lr-now,.lr-time{margin:0;font-size:13px;text-align:center}
+.lr-now{margin-top:10px}
+.lr-time{margin-top:4px;opacity:.7;font-variant-numeric:tabular-nums}
+.lr-aotd{margin-top:12px}
+@media (max-width:760px){
+  .lr-panel{inset:10px;grid-template-columns:1fr;grid-template-rows:170px 1fr;padding:56px 18px 20px}
+  .lr-stack{--s:120px}
+  .lr-stage{width:100%}
+}
 @media (max-width:900px){:root{--gut:18px}.top{grid-template-columns:1fr 1fr}.brand{grid-column:1/-1;grid-row:2}.bar{flex-wrap:wrap}.grid,.artists{grid-template-columns:repeat(2,1fr)}.hist{min-width:900px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -244,6 +293,7 @@ html.intro .rail{overflow:visible}
 <header class="top">
   <div class="left">
     <label class="pill search"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.7"/><path d="M10 10l4.5 4.5"/></svg><input id="q" type="search" placeholder="Search genre, artist, album" aria-label="Search genre, artist or album"></label>
+    <button class="pill lr-open" id="lrOpen" type="button" aria-haspopup="dialog">Listening session</button>
     <nav class="navb" aria-label="Page navigation">
       <button class="ib" id="backBtn" type="button" aria-label="Back to the previous page" title="Back"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 8H2.5M7 3.5L2.5 8 7 12.5"/></svg></button>
       <button class="ib" id="homeBtn" type="button" aria-label="Home, all genres" title="Home"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 7.5L8 2.5l5.5 5M4 6.5v7h8v-7"/></svg></button>
@@ -274,9 +324,63 @@ html.intro .rail{overflow:visible}
 <div class="wrap" id="album" hidden></div>
 <div class="wrap" id="map" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<!-- Listening Room: opens over Home from the "Listening session" pill -->
+<div class="lr" id="lr" role="dialog" aria-modal="true" aria-labelledby="lrTitle" hidden>
+  <div class="lr-panel">
+    <h2 class="lr-h" id="lrTitle">Listening session</h2>
+    <button class="ib lr-close" id="lrClose" type="button" aria-label="Close the listening session" title="Close (Esc)"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button>
+    <div class="lr-stack" id="lrStack" role="group" aria-roledescription="wheel" aria-label="Today’s records. Scroll, or use the up and down arrow keys, to turn the wheel; the record in the middle can be played"></div>
+    <div class="lr-right">
+      <div class="lr-stage" id="lrStage">
+        <div class="lr-frame" id="lrFrame">
+          <img class="lr-tt" src="assets/listening-room/turntable-without-arm.png" alt="">
+          <div class="lr-rec" id="lrRec"><div class="lr-disc" id="lrDisc"><img id="lrVinyl" src="assets/listening-room/placeholder-vinyl-image.png" alt=""><span class="lr-art" id="lrArt"></span><span class="lr-hole" id="lrHole"></span></div></div>
+          <img class="lr-arm" id="lrArm" src="assets/listening-room/players-arm-cutout.png" alt="">
+          <button class="lr-ctl" id="lrStart" type="button" aria-label="Start the record" aria-pressed="false">Start</button>
+          <button class="lr-ctl" id="lrStop" type="button" aria-label="Stop the record">Stop</button>
+        </div>
+      </div>
+      <p class="lr-now" id="lrNow" aria-live="polite"></p>
+      <p class="lr-time" id="lrTime"></p>
+      <button class="pill lr-aotd" id="lrAotd" type="button">Play the album of the day</button>
+    </div>
+  </div>
+</div>
 <div class="disc" id="disc" aria-hidden="true"><div class="dworld" id="dworld"><div class="dwrap" id="dwrap"><div class="rec" id="rec"><span id="lbl">Mu<br>Dis</span></div></div><div class="sleeve" id="sleeve"><span class="sw" id="sw">Welcome to</span><span class="sm" id="sm">MuDis</span></div></div></div>
 
 <script>
+/* ================= LISTENING ROOM: ALIGNMENT SETTINGS (nudge these) =================
+   All positions are percentages of the turntable image (1280 × 720 px): x = % of its width, y = % of its height.
+   The pixel value in each comment is the same spot in the image file. */
+var LR_SET={
+  platterX:48.55, platterY:47.57,  /* platter centre (621, 342 px): the record sits and spins here */
+  recordSize:40.6,                 /* record diameter, % of the turntable image width (≈520 px; the mat is 512 px) */
+  startX:27.27, startY:80.14,      /* "Start" knob centre (349, 577 px) */
+  stopX:31.17,  stopY:80.14,       /* "Stop" knob centre (399, 577 px) */
+  buttonSize:3.7,                  /* knob diameter, % of the image width (≈47 px); "Start" / "Stop" are printed on the knobs */
+  labelArtSize:32.5,               /* centre label: diameter of the album cover circle, % of record diameter (the blank label is 33.3%) */
+  holeSize:1.4,                    /* centre label: spindle hole on top of the cover, % of record diameter */
+  armPivotX:70.0, armPivotY:24.44, /* tonearm socket on the turntable (896, 176 px) */
+  armScale:0.56,                   /* size of the arm image relative to the turntable image */
+  armRestAngle:-4,                 /* parked arm angle in degrees (0 = as drawn; negative = further out) */
+  stylusLandsAt:92,                /* where the needle lands, % of the record radius from the centre */
+  view:{x:280,y:55,w:760,h:595}    /* part of the turntable image the player box is fitted to, px (the rest is white margin) */
+};
+/* ================= LISTENING ROOM: SLEEVE WHEEL SETTINGS ================= */
+var LR_WHEEL={
+  spacing:.6,        /* how far apart neighbouring sleeves sit on the curve (radians per sleeve) */
+  reachY:.52,        /* vertical reach of the curve, as a fraction of the wheel area's height */
+  bendX:.85,         /* how far the curve bends to the left, as a multiple of the sleeve size */
+  sideScale:.66,     /* size of the sleeves next to the middle one (1 = same size) */
+  sideOpacity:.45,   /* opacity of every sleeve that isn't in the middle */
+  scrollStep:110,    /* scroll distance (px) that turns the wheel by one sleeve; one mouse-wheel notch is about 100 */
+  snapDelay:140      /* ms after the last scroll before the wheel settles on the nearest sleeve */
+};
+/* Facts about the image files themselves. Only change these if you replace a file. */
+var LR_IMG={w:1280,h:720,
+  vinyl:{cx:635,cy:355,d:664},          /* record centre and diameter inside placeholder-vinyl-image.png */
+  arm:{px:628,py:215,sx:633,sy:692}};   /* pivot and needle tip inside players-arm-only.png / players-arm-cutout.png */
+
 var G={
 "Metal":["Paranoid|Black Sabbath|1970","Master of Puppets|Metallica|1986","Reign in Blood|Slayer|1986","The Number of the Beast|Iron Maiden|1982","Painkiller|Judas Priest|1990","Rust in Peace|Megadeth|1990","Vulgar Display of Power|Pantera|1992"],
 "Electronic":["Trans-Europe Express|Kraftwerk|1977","Selected Ambient Works 85–92|Aphex Twin|1992","Endtroducing…|DJ Shadow|1996","Homework|Daft Punk|1997","Music Has the Right to Children|Boards of Canada|1998","Untrue|Burial|2007","Random Access Memories|Daft Punk|2013"],
@@ -461,7 +565,7 @@ function genreHTML(g){
     h+='<p class="lede">'+esc(E.lede)+'</p>';
     h+='<h2 class="sec">Sub Genres</h2>'+chipRow(E.subs,false);
     h+='<h2 class="sec">Top Albums / Singles</h2><p class="sub">Pick one to open its page.</p><div class="grid">'+E.albums.map(function(a,i){var p=a.split("|");return coverBtn(p[0],p[1],p[2],p[3],i,E.albums.length)}).join("")+'</div>';
-    h+='<h2 class="sec">Essential Artists/ Bands</h2><div class="artists">'+E.artists.map(function(a){var p=a.split("|"),r=AR[slug(p[0])];return '<button class="artist" type="button" '+(r?'data-go="'+esc(p[0])+'"':'data-msg="The artist page for '+esc(p[0])+' is not built yet."')+'><span class="aph">'+AV+(r&&r.pic?'<img src="'+esc(r.pic)+'" alt="" onerror="this.remove()">':'')+'</span><b>'+esc(p[0])+'</b><span>'+esc(p[1])+'</span></button>'}).join("")+'</div>';
+    h+='<h2 class="sec">Essential Artists/ Bands</h2><div class="artists">'+E.artists.map(function(a){var p=a.split("|"),r=AR[slug(p[0])],pic=artistPic(p[0],g);return '<button class="artist" type="button" '+(r?'data-go="'+esc(p[0])+'"':'data-msg="The artist page for '+esc(p[0])+' is not built yet."')+'><span class="aph">'+AV+(pic?'<img src="'+esc(pic)+'" alt="" onerror="this.remove()">':'')+'</span><b>'+esc(p[0])+'</b><span>'+esc(p[1])+'</span></button>'}).join("")+'</div>';
     h+='<h2 class="sec">Related Genres</h2>'+chipRow(E.related,true);
     h+='<h2 class="sec">Genre History</h2><p class="sub">'+esc(E.histSub)+'</p><div class="histbox">'+E.hist+'</div>';
     h+='<footer class="foot">'+E.src+'</footer>';
@@ -1265,7 +1369,18 @@ cards.forEach(function(c){
   c.classList.add("art");c.insertBefore(im,c.firstChild);
 });
 function doors(list,side,msg,tag){return '<div class="dl">'+list.map(function(d){return '<button type="button" class="'+(side?'side':'')+'" data-msg="'+esc(msg)+'"><span><b>'+esc(d[0])+'</b><small>'+esc(d[1])+'</small></span><i>'+tag+'</i></button>'}).join("")+'</div>'}
-/* Artists with a written page. Facts checked against Wikipedia: Aphex Twin. */
+/* Photo on an "Essential Artists/ Bands" card: the artist page's photo, unless APIC gives a different one for that genre
+   (keyed by the artist's slug, then genre). Artists without a page can also be given a photo here as one file name. */
+var APIC={
+  "the-beatles":{Pop:"the-beatles-artist-image.jpg",Rock:"the-beatles-band-image.jpg"}
+};
+function artistPic(name,genre){
+  var k=slug(name),r=AR[k],p=APIC[k];
+  if(p&&typeof p==="object")p=p[genre];
+  return p?"assets/artists-or-bands/"+p:r&&r.pic||"";
+}
+/* Artists with a written page. Each entry's facts were checked against its Wikipedia article (named in its footer).
+   `alias` lists other names the artist's albums are credited under, so they show in "Albums in MuDis". */
 var AR={"aphex-twin":{
 name:"Aphex Twin",real:"Richard David James",pic:"assets/artists-or-bands/aphex-twin.jpg",
 facts:[["Born","18 August 1971, Limerick, Ireland"],["Raised","Cornwall, England"],["Active","1988–present"],["Labels","Warp, Rephlex, Apollo, R&S"],["Also known as","AFX, Caustic Window, Polygon Window, The Tuss, Bradley Strider and more"]],
@@ -1297,7 +1412,164 @@ genres:{n:"Electronic",c:[{n:"House",c:[{n:"French house"}]},{n:"Disco"}]},
 bio:["Daft Punk were Thomas Bangalter and Guy-Manuel de Homem-Christo, who met at school in Paris in 1987. Their first band, Darlin’, lasted about six months. A Melody Maker review dismissed its music as “a daft, punky thrash”, and the pair took their new name from it.","Their debut, Homework (1997), put them at the front of the French house movement, mixing house, funk, disco, techno and rock. From 1999 they hid behind silver and gold robot helmets, and Discovery (2001), with “One More Time” and “Harder, Better, Faster, Stronger”, became a landmark. Their 2006–2007 tour, played from a giant LED pyramid, helped bring dance music to a much wider audience in North America.","They scored Tron: Legacy in 2010, then swapped samples for live musicians on Random Access Memories (2013), which won the Grammy for Album of the Year while “Get Lucky” won Record of the Year. They split in 2021 after 28 years, announcing it with a video called “Epilogue”."],
 trivia:["They claimed their sampler exploded at 9:09 am on 9 September 1999, and that they woke up from surgery as robots.","Bangalter’s helmet was silver; Homem-Christo’s was gold.","Their only US number one came in 2016, on “Starboy” by the Weeknd.","Kanye West’s “Stronger” is built on “Harder, Better, Faster, Stronger”.","A flatworm, Baicalellia daftpunka, was named after them in 2018 because it partly resembles one of their helmets.","Japanese artist Leiji Matsumoto made Interstella 5555, an animated film set to Discovery, with them.","Bangalter said the 1974 film Phantom of the Paradise was the foundation for much of what they did artistically."],
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Daft_Punk">Wikipedia: Daft Punk</a>, available under CC BY-SA 4.0. Photo: Sony Music Entertainment, edited by W.carter, <a href="https://commons.wikimedia.org/wiki/File:Daft_Punk_in_2013_2-_centered.jpg">Wikimedia Commons</a>, CC BY 4.0.'
-}};
+},
+/* ---- Metal. Facts checked against Wikipedia: Black Sabbath, Judas Priest, Iron Maiden, Metallica. ---- */
+"black-sabbath":{
+name:"Black Sabbath",real:"Tony Iommi, Geezer Butler, Bill Ward and Ozzy Osbourne",pic:"assets/artists-or-bands/black-sabbath-band-image.jpg",
+facts:[["Formed","1968, Birmingham, England"],["Active","1968–2006, 2011–2017, 2025"],["Original line-up","Ozzy Osbourne, Tony Iommi, Geezer Butler, Bill Ward"],["Later singers","Ronnie James Dio, Ian Gillan, Glenn Hughes, Tony Martin"],["Labels","Vertigo, Warner Bros., I.R.S., Sanctuary and more"]],
+genres:{n:"Metal",c:[{n:"Heavy metal"}]},
+bio:["Black Sabbath grew out of the Birmingham blues scene. Guitarist Tony Iommi, bassist Geezer Butler, drummer Bill Ward and singer Ozzy Osbourne started out as the Polka Tulk Blues Band, became Earth, and took the name Black Sabbath in August 1969.","Their self-titled debut came out in February 1970 and reached number 8 in the UK; Paranoid followed the same year and went to number one. Albums such as Master of Reality, Vol. 4 and Sabbath Bloody Sabbath set the template for heavy metal: down-tuned riffs, slow menace and dark lyrics.","Osbourne was fired in 1979. Ronnie James Dio sang on Heaven and Hell and Mob Rules, and many line-up changes followed. The original four reunited in 1997 and again in 2011, released 13 in 2013, and played a farewell show in Birmingham in 2017. Their last concert, Back to the Beginning at Villa Park, took place on 5 July 2025; Osbourne died seventeen days later. They joined the Rock and Roll Hall of Fame in 2006."],
+trivia:["They changed their name from Earth because they kept being mistaken for another English band called Earth.","The debut album was released on Friday the 13th, February 1970.","Paranoid was meant to be called War Pigs; the record company changed the title.","A stage set ordered in metres instead of feet produced a Stonehenge replica too big to fit on any stage.","The 1974 California Jam, where they played, drew more than 200,000 fans.","They won two Grammys for Best Metal Performance and a Grammy Lifetime Achievement Award."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Black_Sabbath">Wikipedia: Black Sabbath</a>, available under CC BY-SA 4.0.'
+},
+"judas-priest":{
+name:"Judas Priest",real:"Rob Halford, Glenn Tipton, K. K. Downing and Ian Hill",pic:"assets/artists-or-bands/judas-priest-band-image.jpg",
+facts:[["Formed","1969, Birmingham, England"],["Active","1969–1992, 1996–present"],["Core line-up","Rob Halford, K. K. Downing, Glenn Tipton, Ian Hill"],["Named after","Bob Dylan’s “The Ballad of Frankie Lee and Judas Priest”"],["Labels","Gull, Columbia/CBS, Epic, Sony, SPV and more"]],
+genres:{n:"Metal",c:[{n:"Heavy metal"}]},
+bio:["Judas Priest formed in Birmingham in 1969. Singer Rob Halford joined in 1973 and guitarist Glenn Tipton in 1974, and with K. K. Downing and Ian Hill they became the band’s core. After a weak debut, Rocka Rolla, the albums Sad Wings of Destiny and Sin After Sin pared the blues out of their sound.","British Steel (1980) brought them to a mainstream audience, and Screaming for Vengeance (1982) gave them their most popular song, “You’ve Got Another Thing Comin’”. With drummer Scott Travis, Painkiller (1990) returned them to a faster, heavier sound.","Halford left in 1992 and Tim “Ripper” Owens sang with the band from 1996 to 2003, when Halford returned. Richie Faulkner replaced Downing in 2011. Later albums include Firepower (2018) and Invincible Shield (2024). The band won a Grammy in 2010 and entered the Rock and Roll Hall of Fame in 2022."],
+trivia:["Sin After Sin was the first of eleven albums in a row certified Gold or Platinum in the US.","Halford was badly hurt in Toronto in 1991 when his motorbike hit a drum riser on stage.","In 1990 a US court case claiming hidden messages in their music was dismissed; the judge called the supposed message a coincidence of a guitar chord and a breath.","Their first international tour, in 1974, included a hotel gig in Tønsberg, Norway.","They were among the first inductees of the VH1 Rock Honors in 2006."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Judas_Priest">Wikipedia: Judas Priest</a>, available under CC BY-SA 4.0.'
+},
+"iron-maiden":{
+name:"Iron Maiden",real:"Founded by Steve Harris",pic:"assets/artists-or-bands/iron-maiden-band-image.jpg",
+facts:[["Formed","1975, Leyton, East London, England"],["Active","1975–present"],["Line-up","Steve Harris, Bruce Dickinson, Dave Murray, Adrian Smith, Janick Gers, Nicko McBrain"],["Earlier singers","Paul Di’Anno, Blaze Bayley"],["Labels","EMI, Parlophone, Capitol, Columbia, BMG and more"]],
+genres:{n:"Metal",c:[{n:"Heavy metal",c:[{n:"New wave of British heavy metal"}]}]},
+bio:["Iron Maiden was formed in East London in 1975 by bassist and main songwriter Steve Harris. They played their first show in May 1976 and became leaders of the new wave of British heavy metal; their self-titled debut reached number 4 in the UK in 1980.","Bruce Dickinson replaced Paul Di’Anno in 1981, and The Number of the Beast (1982), his first album with the band, has sold almost 20 million copies. Blaze Bayley sang from 1994 to 1999, when Dickinson and guitarist Adrian Smith returned and the band’s popularity rose again.","Iron Maiden have sold more than 130 million albums. The Final Frontier, The Book of Souls and Senjutsu each went to number one in more than 25 countries."],
+trivia:["Harris named the band after the iron maiden torture device, which a film version of The Man in the Iron Mask brought to mind.","Their mascot, Eddie, has appeared on almost every cover for more than 40 years.","Their demo The Soundhouse Tapes sold all 5,000 copies within weeks.","Harris and guitarist Dave Murray are the only members to play on every album.","In 1984 they were the first Western act to bring a full-scale production behind the Iron Curtain, starting with five shows in Poland.","Their 1988 headline set at Donington drew 107,000 people, the festival’s largest crowd."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Iron_Maiden">Wikipedia: Iron Maiden</a>, available under CC BY-SA 4.0.'
+},
+"metallica":{
+name:"Metallica",real:"Founded by James Hetfield and Lars Ulrich",pic:"assets/artists-or-bands/metallica-band-image.jpg",
+facts:[["Formed","1981, Los Angeles, California"],["Active","1981–present"],["Line-up","James Hetfield, Lars Ulrich, Kirk Hammett, Robert Trujillo"],["Former members","Cliff Burton, Jason Newsted, Dave Mustaine, Ron McGovney"],["Labels","Megaforce, Elektra, Vertigo, Warner Bros., Blackened"]],
+genres:{n:"Metal",c:[{n:"Heavy metal"},{n:"Thrash metal"},{n:"Speed metal"}]},
+bio:["Metallica was formed in Los Angeles in 1981 by singer and guitarist James Hetfield and drummer Lars Ulrich. Their early albums made them leaders of thrash metal, and Master of Puppets (1986) was their first commercial success.","Bassist Cliff Burton was killed in a tour bus crash in Sweden in 1986. …And Justice for All (1988) earned the band’s first Grammy nomination, and the self-titled 1991 album, known as the Black Album, carried them to a mainstream audience and became the best-selling album of the SoundScan era.","Death Magnetic (2008) returned to a thrash sound, and 72 Seasons followed in 2023. Metallica have sold more than 163 million albums, won ten Grammys and joined the Rock and Roll Hall of Fame in 2009."],
+trivia:["Ulrich’s 1981 newspaper ad looked for musicians who liked Tygers of Pan Tang, Diamond Head and Iron Maiden.","Early pressings of the 1982 compilation Metal Massacre misspelled their name as “Mettallica”.","Kirk Hammett replaced Dave Mustaine on 11 April 1983, the same day Mustaine was dismissed.","The Black Album was remixed three times, cost US$1 million, and debuted at number one in 10 countries.","In December 2013 they played in Antarctica, becoming the first band to perform on all seven continents.","At the 1989 Grammys they lost Best Hard Rock/Metal Performance to Jethro Tull."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Metallica">Wikipedia: Metallica</a>, available under CC BY-SA 4.0.'
+},
+/* ---- Reggae. Facts checked against Wikipedia: Bob Marley, Toots and the Maytals, Jimmy Cliff, Lee "Scratch" Perry. ---- */
+"bob-marley":{
+name:"Bob Marley",real:"Robert Nesta Marley",pic:"assets/artists-or-bands/bob-marley-artist-image.jpg",alias:["The Wailers","Bob Marley and the Wailers"],
+facts:[["Born","6 February 1945, Nine Mile, Saint Ann, Jamaica"],["Died","11 May 1981, Miami, Florida, aged 36"],["Active","1962–1980"],["Band","The Wailers, with Peter Tosh and Bunny Wailer"],["Labels","Studio One, Upsetter, Island, Tuff Gong and more"]],
+genres:{n:"Reggae",c:[{n:"Ska"},{n:"Rocksteady"}]},
+bio:["Bob Marley was born in Nine Mile, Jamaica, in 1945 and moved to Trenchtown in Kingston at 12. There he formed a vocal group with Peter Tosh and Bunny Wailer that became the Wailers; their 1964 single “Simmer Down” went to number one in Jamaica.","The Wailers moved from ska and rocksteady to reggae in the late 1960s, and Marley became a Rastafarian. Signed to Island Records, they released Catch a Fire in 1973, and Eric Clapton’s cover of “I Shot the Sheriff” spread Marley’s name further. Exodus (1977) was recorded in England after he survived an attempt on his life in Kingston in December 1976.","At the One Love Peace Concert in 1978 he brought rival political leaders Michael Manley and Edward Seaga together on stage. Marley died of cancer in 1981, aged 36. He has sold more than 75 million records, his compilation Legend is the best-selling reggae album ever, and he joined the Rock and Roll Hall of Fame in 1994."],
+trivia:["“Simmer Down” sold an estimated 70,000 copies.","The first sleeve of Catch a Fire was shaped like a Zippo lighter with a lid that lifted up.","While living in Delaware he worked at a DuPont lab and a Chrysler plant under the name “Donald Marley”.","He said he drove a BMW because the letters stood for “Bob Marley and the Wailers”.","He was buried with his red Gibson Les Paul guitar and a Bible.","Jamaica awarded him its Order of Merit in 1981."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Bob_Marley">Wikipedia: Bob Marley</a>, available under CC BY-SA 4.0.'
+},
+"toots-and-the-maytals":{
+name:"Toots and the Maytals",real:"Toots Hibbert, Raleigh Gordon and Jerry Mathias",pic:"assets/artists-or-bands/toots-&-the-maytals-artist-image.jpg",
+facts:[["Formed","1962, Kingston, Jamaica"],["Leader","Frederick “Toots” Hibbert (died 11 September 2020)"],["Original trio","Toots Hibbert, Raleigh Gordon, Jerry Mathias"],["Gave reggae its name","“Do the Reggay”, 1968"],["Labels","Beverley’s, Trojan, Island, Mango, V2"]],
+genres:{n:"Reggae",c:[{n:"Ska"},{n:"Rocksteady"}]},
+bio:["Toots Hibbert met Raleigh Gordon and Jerry Mathias in Kingston in 1962, and the three formed a vocal trio known for close, gospel-style harmonies. They first charted with Coxsone Dodd at Studio One, then worked with Prince Buster and Byron Lee, and won Jamaica’s Independence Festival song contest in 1966 with “Bam Bam”.","Late in 1966 Hibbert was jailed for 18 months for marijuana possession. Back with producer Leslie Kong, the group released “Do the Reggay” in 1968, the song that gave reggae its name.","Two of their songs on the soundtrack of The Harder They Come (1972), and a deal with Island Records, took them to audiences abroad. They won the Grammy for Best Reggae Album in 2004 and again in 2021, after Hibbert’s death in 2020 at 77."],
+trivia:["They hold the record for the most Jamaican number-one hits: 31.","They won Jamaica’s Independence Festival song contest three times, including 1966 with “Bam Bam” and 1972 with “Pomp and Pride”.","In 1980 they recorded, pressed and released the album Toots Live within 24 hours, but Guinness never logged the record because nobody told them.","“Beautiful Woman” went to number one in New Zealand in 1982.","In 2017 they became only the second reggae act to play Coachella."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Toots_and_the_Maytals">Wikipedia: Toots and the Maytals</a>, available under CC BY-SA 4.0.'
+},
+"jimmy-cliff":{
+name:"Jimmy Cliff",real:"James Ezekiel Chambers",pic:"assets/artists-or-bands/jimmy-cliff-artist-image.jpg",
+facts:[["Born","30 July 1944, Saint James, Jamaica"],["Died","24 November 2025, Kingston, Jamaica, aged 81"],["Active","1962–2025"],["Film","Starred in The Harder They Come (1972)"],["Labels","Island, Trojan, CBS, Columbia, EMI and more"]],
+genres:{n:"Reggae",c:[{n:"Ska"},{n:"Rocksteady"}]},
+bio:["Jimmy Cliff was born James Chambers in Saint James, Jamaica, one of nine children, and was writing songs by primary school. At 14 his father took him to Kingston, where he took the stage name Cliff. Producer Leslie Kong recorded him, and “Hurricane Hattie” was a hit when he was 17.","He signed with Island Records and moved to the UK, releasing Hard Road to Travel in 1967. “Wonderful World, Beautiful People” and “Many Rivers to Cross” followed in 1969.","In 1972 he starred as Ivanhoe Martin in The Harder They Come, the first major commercial film from Jamaica, and its soundtrack carried reggae around the world. He won two Grammys for Best Reggae Album, received Jamaica’s Order of Merit in 2003 and joined the Rock and Roll Hall of Fame in 2010."],
+trivia:["He chose the name Cliff for the heights he hoped his career would reach.","His cover of Cat Stevens’s “Wild World” reached number 8 in the UK in 1970.","Paul Simon recorded “Mother and Child Reunion” with Cliff’s backing band.","Bob Dylan called Cliff’s “Vietnam” the best protest song he had ever heard.","Bruce Springsteen added Cliff’s song “Trapped” to his live shows.","His cover of “I Can See Clearly Now” featured in the film Cool Runnings."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Jimmy_Cliff">Wikipedia: Jimmy Cliff</a>, available under CC BY-SA 4.0.'
+},
+"lee-scratch-perry":{
+name:"Lee “Scratch” Perry",real:"Rainford Hugh Perry",pic:"assets/artists-or-bands/lee-scrartch-perry-artist-image.jpg",
+facts:[["Born","20 March 1936, Kendal, Hanover, Jamaica"],["Died","29 August 2021, Lucea, Hanover, Jamaica, aged 85"],["Active","1958–2021"],["Studio","The Black Ark, built in his back yard in 1973"],["Labels","Upsetter, Trojan, Island, Pama, Black Art and more"]],
+genres:{n:"Reggae",c:[{n:"Dub"},{n:"Ska"},{n:"Rocksteady"}]},
+bio:["Lee Perry began in the late 1950s selling records for Coxsone Dodd’s sound system, then worked at Dodd’s Studio One, where he recorded nearly thirty songs. After falling out with Dodd he joined Joe Gibbs, and in 1968 he left Gibbs and set up his own label, Upsetter Records.","Around 1970 he worked with Bob Marley and the Wailers. In 1973 he built the Black Ark studio in his back yard, where he produced Marley, Junior Byles, the Heptones, the Congos and others. His remixes and studio effects there made him one of the pioneers of dub.","By 1978 the Black Ark had fallen apart, and it later burned down. Perry’s career revived from the late 1980s through work with Adrian Sherwood and Mad Professor. He won a Grammy in 2003 for Jamaican E.T., and Jamaica made him a Commander of the Order of Distinction in 2012."],
+trivia:["“People Funny Boy”, a jab at Joe Gibbs, used a crying baby as a sample and sold 60,000 copies in Jamaica.","His instrumental “The Return of Django” was a top-five hit in the UK in 1969.","After leaving school at 15 he worked as a labourer building the first road into Negril.","He said he blew smoke into the microphone so the weed would get into the song.","He insisted he set the Black Ark on fire himself.","Rolling Stone ranked him 100th among the greatest artists of all time in 2004."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Lee_%22Scratch%22_Perry">Wikipedia: Lee “Scratch” Perry</a>, available under CC BY-SA 4.0.'
+},
+/* ---- Pop and Rock. Facts checked against Wikipedia: The Beatles, Michael Jackson, Madonna, Britney Spears, Bob Dylan, Led Zeppelin, Nirvana. ---- */
+"the-beatles":{
+name:"The Beatles",real:"John Lennon, Paul McCartney, George Harrison and Ringo Starr",pic:"assets/artists-or-bands/the-beatles-band-image.jpg",
+facts:[["Formed","1960, Liverpool, England"],["Active","1960–1970"],["Members","John Lennon, Paul McCartney, George Harrison, Ringo Starr"],["Early members","Stuart Sutcliffe, Pete Best"],["Labels","Parlophone, Capitol, Vee-Jay, Apple and more"]],
+genres:{n:"Rock",c:[{n:"Pop"},{n:"Beat"},{n:"Psychedelia"}]},
+bio:["The Beatles grew out of the Quarrymen, a group John Lennon started in 1956. As the Beatles, from 1960, they built their name in Liverpool clubs and in Hamburg. Brian Epstein became their manager in January 1962; Decca turned them down, but producer George Martin signed them to EMI’s Parlophone label, and Ringo Starr replaced drummer Pete Best that year.","“Love Me Do” reached number 17 in late 1962, and Beatlemania followed. In February 1964 they played The Ed Sullivan Show and their first US concert, and that April they held the top five places on the Billboard Hot 100.","They stopped touring in 1966 to work in the studio, releasing Sgt. Pepper’s Lonely Hearts Club Band in 1967, and broke up in 1970. With estimated sales of more than 600 million units, they won nine Grammys and an Academy Award and joined the Rock and Roll Hall of Fame in 1988."],
+trivia:["“She Loves You” sold three-quarters of a million copies in under four weeks and stayed the UK’s best-selling record until 1978.","About 73 million Americans watched their first Ed Sullivan appearance.","In the week of 4 April 1964 they held twelve places on the Billboard Hot 100.","Paul McCartney recorded “Yesterday” without the other three Beatles.","Their 1965 show at Shea Stadium drew a world-record crowd of 55,600."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/The_Beatles">Wikipedia: The Beatles</a>, available under CC BY-SA 4.0.'
+},
+"michael-jackson":{
+name:"Michael Jackson",real:"Michael Joseph Jackson",pic:"assets/artists-or-bands/Michael-Jackson-artist-image.jpg",
+facts:[["Born","29 August 1958, Gary, Indiana"],["Died","25 June 2009, Los Angeles, California"],["Active","1964–2009"],["Group","The Jackson 5"],["Labels","Steeltown, Motown, Epic, Sony"]],
+genres:{n:"Pop",c:[{n:"R&B"},{n:"Soul"},{n:"Funk"},{n:"Disco"}]},
+bio:["Michael Jackson began as a singer in the Jackson 5, who signed to Motown and topped the US chart with “I Want You Back” in January 1970. His first adult solo album, Off the Wall (1979), produced four US top-10 hits.","Thriller (1982) became the best-selling album in the world, with an estimated 70 million copies. It spent 37 weeks at number one in the US and was the first album with seven top-10 singles. Its videos for “Billie Jean”, “Beat It” and “Thriller” changed what a music video could be, and in 1983 he first performed the moonwalk on the TV special Motown 25.","Bad (1987) was the first album with five US number-one singles, and Dangerous and HIStory followed. Jackson died in 2009 while preparing for his This Is It concerts. He sold more than 500 million records, won 13 Grammys and was inducted into the Rock and Roll Hall of Fame twice."],
+trivia:["At the 1984 Grammys he won eight awards in one night, a record at the time.","His performance of “Dancing Machine” on Soul Train helped popularise the robot dance.","In 1980 he won a royalty rate of 37 percent of wholesale album profit, the highest in the industry.","“We Are the World”, which he wrote with Lionel Richie, sold 20 million copies.","His seven sold-out Wembley Stadium shows on the Bad tour drew 504,000 people, a Guinness world record.","He is the only artist with a US top-10 single in six different decades."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Michael_Jackson">Wikipedia: Michael Jackson</a>, available under CC BY-SA 4.0.'
+},
+"madonna":{
+name:"Madonna",real:"Madonna Louise Ciccone",pic:"assets/artists-or-bands/madonna-artist-image.jpg",
+facts:[["Born","16 August 1958, Bay City, Michigan"],["Active","1979–present"],["Early bands","Breakfast Club, Emmy"],["Own company","Maverick (1992–2009)"],["Labels","Sire, Warner, Maverick, Interscope"]],
+genres:{n:"Pop",c:[{n:"Dance"},{n:"Electronic"}]},
+bio:["Madonna moved to New York City in 1978 to dance, and played drums, guitar and sang in the rock bands Breakfast Club and Emmy. Her debut album, Madonna, came out in 1983, and Like a Virgin (1984) became her first number-one album in several countries.","Like a Prayer (1989) sold 15 million copies and made critics treat her as a serious artist. Erotica and her book Sex caused a backlash in 1992, but she won a Golden Globe for the film Evita in 1996, and Ray of Light (1998), often called her best album, won four Grammys.","She is the best-selling female music artist of all time and the first woman to earn US$1 billion from concerts, with twelve US number-one singles. She has won seven Grammys and joined the Rock and Roll Hall of Fame in her first year of eligibility."],
+trivia:["As a child her father paid her a quarter for every A on her report card.","Her 1987 concert near Paris drew more than 130,000 people, then a record for a female artist.","Pepsi dropped her sponsorship after religious groups objected to the “Like a Prayer” video.","Her 1991 documentary Truth or Dare was the highest-grossing documentary for eleven years.","Music (2000) sold four million copies in its first ten days."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Madonna">Wikipedia: Madonna</a>, available under CC BY-SA 4.0.'
+},
+"britney-spears":{
+name:"Britney Spears",real:"Britney Jean Spears",pic:"assets/artists-or-bands/britney-spears-artist-image.jpg",
+facts:[["Born","2 December 1981, McComb, Mississippi"],["Raised","Kentwood, Louisiana"],["Active","1992–present"],["TV start","The All-New Mickey Mouse Club, 1992"],["Labels","Jive, RCA"]],
+genres:{n:"Pop"},
+bio:["Britney Spears grew up in Kentwood, Louisiana, competed on Star Search, and joined The All-New Mickey Mouse Club in 1992. Jive Records signed her in 1997 after three other labels had turned her down.","Her debut single “…Baby One More Time” topped the US chart in late 1998, and the album followed in January 1999. Half of it was recorded at Cheiron Studios in Stockholm with producers including Max Martin and Denniz Pop. Oops!… I Did It Again (2000) also went straight to number one.","“Toxic”, from In the Zone (2003), won her a Grammy, and Blackout and Circus followed. From 2013 to 2015 she played the Piece of Me residency in Las Vegas. She has sold more than 150 million records."],
+trivia:["The record label wanted an animated video for “…Baby One More Time”; the schoolgirl idea was hers.","The debut album sold more than 10 million copies in its first year, the most ever by a teenage artist.","Oops!… I Did It Again sold 1.3 million copies in its first week, a record for a solo artist.","She was the first woman of the SoundScan era whose first four albums all debuted at number one in the US.","With Circus she became the youngest woman to have five albums debut at number one in the US."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Britney_Spears">Wikipedia: Britney Spears</a>, available under CC BY-SA 4.0.'
+},
+"bob-dylan":{
+name:"Bob Dylan",real:"Robert Allen Zimmerman",pic:"assets/artists-or-bands/bob-dylan-artist-image.jpg",
+facts:[["Born","24 May 1941, Duluth, Minnesota"],["Raised","Hibbing, Minnesota"],["Active","1957–present"],["Nobel Prize","Literature, 2016"],["Labels","Columbia, Asylum"]],
+genres:{n:"Rock",c:[{n:"Folk rock"},{n:"Folk"},{n:"Blues"},{n:"Country"},{n:"Gospel"}]},
+bio:["Bob Dylan was born Robert Zimmerman in Duluth, Minnesota, and grew up in Hibbing. In 1961 he moved to New York to visit his hero Woody Guthrie. The Freewheelin’ Bob Dylan (1963) included “Blowin’ in the Wind”, which became an anthem of the civil rights and anti-war movements.","At the 1965 Newport Folk Festival he played with an electric band, to cheers and boos. “Like a Rolling Stone”, a six-minute single, reached number 2 in the US, and Highway 61 Revisited and Blonde on Blonde followed. After a motorcycle crash in 1966 he did not tour for almost eight years.","Blood on the Tracks (1975) is counted among his masterpieces, and since the late 1980s he has toured almost constantly. He received the 2016 Nobel Prize in Literature “for having created new poetic expressions within the great American song tradition”, along with ten Grammys and an Academy Award."],
+trivia:["His debut album sold only 5,000 copies in its first year.","He saw Buddy Holly play in Duluth on 31 January 1959, days before Holly died.","In 1959 he played piano with Bobby Vee under the name Elston Gunnn.","“Hurricane” ran over eight minutes and still reached number 33 in the US.","He met violinist Scarlet Rivera when he saw her walking down the street with her violin case.","The Byrds’ electric version of his “Mr. Tambourine Man” went to number one in the US and UK."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Bob_Dylan">Wikipedia: Bob Dylan</a>, available under CC BY-SA 4.0.'
+},
+"led-zeppelin":{
+name:"Led Zeppelin",real:"Robert Plant, Jimmy Page, John Paul Jones and John Bonham",pic:"assets/artists-or-bands/led-zeppelin-band-image.jpg",
+facts:[["Formed","1968, London, England"],["Active","1968–1980"],["Members","Robert Plant, Jimmy Page, John Paul Jones, John Bonham"],["Own label","Swan Song (from 1974)"],["Labels","Atlantic, Swan Song"]],
+genres:{n:"Rock",c:[{n:"Hard rock"},{n:"Blues rock"},{n:"Folk rock"}]},
+bio:["After the Yardbirds played their last show in July 1968, guitarist Jimmy Page put together a new band to play the group’s remaining Scandinavian dates as the New Yardbirds. A legal letter forced a new name, and they chose Led Zeppelin, from the idea of a “lead balloon”.","Their 1969 debut reached the top ten in several countries, and Led Zeppelin II became their first number-one album. The untitled fourth album (1971), with “Stairway to Heaven”, has sold 37 million copies. Physical Graffiti (1975) was the first release on their own label, Swan Song.","Drummer John Bonham died on 25 September 1980, and the band announced its break-up that December. The others reunited for Live Aid in 1985 and, with Bonham’s son Jason on drums, at London’s O2 Arena in 2007. They have sold an estimated 200 to 300 million records and joined the Rock and Roll Hall of Fame in 1995."],
+trivia:["Atlantic signed them without seeing them play, for an advance of $143,000.","The debut album’s cover is a 1937 photo of the burning Hindenburg airship.","“Stairway to Heaven” was never released as a single, yet it was the most requested song on US rock radio in the 1970s.","Their 1973 show at Tampa Stadium drew 56,800 fans, beating the Beatles’ Shea Stadium record.","About 20 million people asked for tickets to the 2007 reunion, a Guinness record."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Led_Zeppelin">Wikipedia: Led Zeppelin</a>, available under CC BY-SA 4.0.'
+},
+"nirvana":{
+name:"Nirvana",real:"Kurt Cobain, Krist Novoselic and Dave Grohl",pic:"assets/artists-or-bands/nirvana-band-image.jpg",
+facts:[["Formed","1987, Aberdeen, Washington"],["Active","1987–1994"],["Members","Kurt Cobain, Krist Novoselic, Dave Grohl (from 1990)"],["Earlier drummers","Aaron Burckhard, Dale Crover, Dave Foster, Chad Channing, Dan Peters"],["Labels","Sub Pop, DGC"]],
+genres:{n:"Rock",c:[{n:"Grunge"},{n:"Alternative rock"},{n:"Punk rock"}]},
+bio:["Nirvana was formed in Aberdeen, Washington, in 1987 by singer and guitarist Kurt Cobain and bassist Krist Novoselic, and became part of the Seattle grunge scene. Their debut album, Bleach, came out on Sub Pop in 1989, and drummer Dave Grohl joined in September 1990.","After signing with DGC they released Nevermind (1991). Its first single, “Smells Like Teen Spirit”, was a breakthrough, and in January 1992 the album knocked Michael Jackson’s Dangerous off number one in the US. In Utero (1993) topped the charts in the US and UK.","The band ended in April 1994 after Cobain’s death. MTV Unplugged in New York was released later that year and won a Grammy. Nirvana have sold more than 75 million records and joined the Rock and Roll Hall of Fame in 2014, their first year of eligibility."],
+trivia:["Before settling on Nirvana they played as Skid Row, Pen Cap Chew, Bliss and Ted Ed Fred.","Bleach cost $606.17 to record.","The label hoped Nevermind would sell 250,000 copies; by Christmas 1991 it was selling 400,000 a week in the US.","In Utero was recorded in two weeks in Cannon Falls, Minnesota, for $25,000.","A British band also called Nirvana sued over the name; it was settled out of court."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Nirvana_(band)">Wikipedia: Nirvana (band)</a>, available under CC BY-SA 4.0.'
+},
+/* ---- Blues. Facts checked against Wikipedia: Mamie Smith, Robert Johnson, Muddy Waters, B.B. King. ---- */
+"mamie-smith":{
+name:"Mamie Smith",real:"Born Mamie Robinson",pic:"assets/artists-or-bands/mamie-smith-artist-image.png",
+facts:[["Born","26 May 1891, Cincinnati, Ohio (older sources say 1883)"],["Died","23 October 1946, New York City"],["Band","Mamie Smith & Her Jazz Hounds"],["Breakthrough","“Crazy Blues”, recorded 10 August 1920"],["Labels","Okeh, Ajax, Victor"]],
+genres:{n:"Blues",c:[{n:"Vaudeville"}]},
+bio:["Mamie Smith was touring as a dancer by about the age of ten, and as a teenager danced in Salem Tutt Whitney’s Smart Set. In 1913 she left to sing in Harlem clubs.","Songwriter Perry Bradford persuaded Fred Hager of Okeh Records to record a Black singer, and on 14 February 1920 she made her first record. On 10 August 1920 she recorded Bradford’s “Crazy Blues”, which reached number 3 and sold a million copies in less than a year.","She toured the US and Europe with her band, the Jazz Hounds, whose players over the years included Coleman Hawkins and Bubber Miley. She retired in 1931, came back in 1939 to act in films such as Paradise in Harlem, and died in New York in 1946."],
+trivia:["Her birth year was given as 1883 for decades, until a birth certificate showing 1891 was found in 2018.","Okeh was threatened with a boycott for recording a Black singer, yet the record sold extremely well.","“Crazy Blues” entered the Grammy Hall of Fame in 1994 and the National Recording Registry in 2005.","She sang on the radio station KGW in Portland, Oregon, in 1923.","Her grave stayed unmarked until fans raised over $8,000 for a granite headstone, put up in 2013."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Mamie_Smith">Wikipedia: Mamie Smith</a>, available under CC BY-SA 4.0.'
+},
+"robert-johnson":{
+name:"Robert Johnson",real:"Robert Leroy Johnson",pic:"assets/artists-or-bands/robert-johnson-artist-image.jpg",
+facts:[["Born","Probably 8 May 1911, Hazlehurst, Mississippi"],["Died","16 August 1938, near Greenwood, Mississippi, aged 27"],["Active","1929–1938"],["Recordings","29 songs, in San Antonio (1936) and Dallas (1937)"],["Label","Vocalion"]],
+genres:{n:"Blues",c:[{n:"Delta blues"}]},
+bio:["Robert Johnson grew up in Memphis and the Mississippi Delta. He learned guitar partly from Ike Zimmerman; Son House remembered him as a weak player who suddenly became brilliant. From 1932 he travelled between Memphis, Helena and Delta towns, playing street corners, juke joints and dances.","Producer Don Law recorded him in San Antonio in November 1936 and in Dallas in June 1937. Those sessions produced 29 songs, among them “Cross Road Blues”, which became a blues standard.","He died in 1938 at 27; the cause is still uncertain. Columbia’s 1961 reissue King of the Delta Blues Singers brought his music to a new audience and fed the British blues boom. He was among the first inductees of the Rock and Roll Hall of Fame in 1986."],
+trivia:["The story of selling his soul at the crossroads was first told about another bluesman, Tommy Johnson, who was no relation.","Nobody knows where he is buried; three different markers stand at possible graves near Greenwood.","For decades no photos of him were thought to exist; three were found in 1972 and 1973.","He used at least eight different surnames in different places.","In 1938 John Hammond wanted him for a Carnegie Hall concert, learned he had died, and played two of his records from the stage instead."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Robert_Johnson">Wikipedia: Robert Johnson</a>, available under CC BY-SA 4.0.'
+},
+"muddy-waters":{
+name:"Muddy Waters",real:"McKinley Morganfield",pic:"assets/artists-or-bands/muddy-waters-artist-image.jpg",
+facts:[["Born","4 April 1913, Issaquena County, Mississippi"],["Died","30 April 1983, Westmont, Illinois, aged 70"],["Active","1941–1982"],["Band","Little Walter, Jimmy Rogers, Otis Spann, Elga Edmonds"],["Labels","Aristocrat, Chess, Blue Sky"]],
+genres:{n:"Blues",c:[{n:"Chicago blues"},{n:"Delta blues"}]},
+bio:["Muddy Waters grew up on Stovall Plantation near Clarksdale, Mississippi, where Alan Lomax recorded him for the Library of Congress in 1941 and 1942. In 1943 he moved to Chicago to play music full-time, and in 1944 he bought his first electric guitar, because acoustic instruments couldn’t be heard in noisy clubs.","He recorded for Aristocrat, soon renamed Chess Records, and “I Can’t Be Satisfied” was a hit in 1948. With a band that included Little Walter on harmonica and Otis Spann on piano he cut classics such as “Hoochie Coochie Man” and “I Just Want to Make Love to You”.","His 1958 tour of England startled audiences with its electric sound and inspired a generation of British players. Hard Again (1977), produced by Johnny Winter, was a late comeback. He won six Grammys and joined the Rock and Roll Hall of Fame in 1987."],
+trivia:["His grandmother called him “Muddy” because he loved playing in the muddy water of Deer Creek.","At 17 he sold his last horse and put part of the money toward a guitar.","The Rolling Stones named themselves after his song “Rollin’ Stone”.","British papers in 1958 headlined his shows “Screaming Guitar and Howling Piano”.","He later disowned his own album Electric Mud (1968).","ZZ Top’s Billy Gibbons made a guitar, Muddywood, from a plank of his childhood home; a crater on Mercury is also named after him."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Muddy_Waters">Wikipedia: Muddy Waters</a>, available under CC BY-SA 4.0.'
+},
+"b-b-king":{
+name:"B.B. King",real:"Riley B. King",pic:"assets/artists-or-bands/b.b.-king-artist-image.jpg",
+facts:[["Born","16 September 1925, near Itta Bena, Mississippi"],["Died","14 May 2015, Las Vegas, Nevada, aged 89"],["Active","1942–2014"],["Guitar","Lucille"],["Labels","RPM, Kent, ABC, BluesWay, MCA, Geffen and more"]],
+genres:{n:"Blues",c:[{n:"Electric blues"},{n:"Memphis blues"},{n:"Rhythm and blues"},{n:"Soul"}]},
+bio:["B.B. King grew up in the Mississippi Delta and taught himself guitar. In Memphis he worked as a singer and disc jockey at the radio station WDIA, where he was called the “Beale Street Blues Boy”, later shortened to B. B.","“3 O’Clock Blues” became his first R&B number one in 1952, and he became one of the biggest R&B names of the 1950s, touring almost without a break. Live at the Regal, recorded in November 1964, is hailed as one of the greatest blues albums.","In the late 1960s he reached rock audiences, opening for the Rolling Stones in 1969, and “The Thrill Is Gone” won a Grammy in 1970. He joined the Rock and Roll Hall of Fame in 1987, received the Presidential Medal of Freedom in 2006, and died in Las Vegas in 2015."],
+trivia:["In 1956 he played 342 shows.","His guitar Lucille is named after the woman at the centre of a fight that started a fire in Twist, Arkansas.","His first guitar cost $15, taken out of his wages over two months.","Gibson launched a B.B. King Lucille model guitar in 1980.","In 1997 he gave a Lucille guitar to Pope John Paul II after a concert at the Vatican."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/B.B._King">Wikipedia: B.B. King</a>, available under CC BY-SA 4.0.'
+}
+};
 var AV='<svg class="av" viewBox="0 0 100 120" aria-hidden="true"><circle cx="50" cy="26" r="20"/><path d="M8 118c0-42 14-58 42-58s42 16 42 58z"/></svg>';
 function artistLink(n){return '<button class="lnk" type="button" '+(AR[slug(n)]?'data-go="'+esc(n)+'"':'data-msg="The artist page for '+esc(n)+' is not built yet."')+'>'+esc(n)+'</button>'}
 function artistDoor(n,sub){return AR[slug(n)]?'<div class="dl">'+goDoor({t:n,s:sub,go:n})+'</div>':doors([[n,sub]],false,"The artist page for "+n+" is not built yet.","Deeper")}
@@ -1353,7 +1625,8 @@ function artistHTML(id){
   h+='<h2 class="sec">Biography</h2><div class="prose">'+r.bio.map(function(p){return '<p>'+esc(p)+'</p>'}).join("")+'</div>';
   h+='<h2 class="sec">Trivia</h2><ul class="trivia">'+r.trivia.map(function(t){return '<li>'+esc(t)+'</li>'}).join("")+'</ul>';
   h+='</div><aside>'+genreTree(r.genres);
-  var al=Object.keys(ALB).filter(function(k){return slug(ALB[k].artist)===id});
+  var names_=[id].concat((r.alias||[]).map(slug));
+  var al=Object.keys(ALB).filter(function(k){return names_.indexOf(slug(ALB[k].artist))>-1});
   if(al.length)h+='<h2 class="sec">Albums in MuDis</h2><div class="dl">'+al.map(function(k){return goDoor({t:ALB[k].title,s:ALB[k].kind+" · "+ALB[k].year,go:k})}).join("")+'</div>';
   h+='</aside></div><footer class="foot">'+r.src+'</footer>';
   return h;
@@ -1708,6 +1981,303 @@ function intro(){
 }
 var seenIntro=false;try{seenIntro=sessionStorage.getItem("mudis-intro")==="1";sessionStorage.setItem("mudis-intro","1")}catch(e){}
 if(cur.view==="home"&&!rm&&!seenIntro)intro();
+
+/* ================= LISTENING ROOM =================
+   AUDIO HOOKS: not connected yet. Start and Stop call these two functions; put the audio code inside them later. */
+function startPlayback(album){
+  /* TODO audio: start playing `album` ({title, artist, year, ...} from ALB) */
+}
+function stopPlayback(){
+  /* TODO audio: stop or pause whatever startPlayback started */
+}
+
+(function(){
+  var S=LR_SET,I=LR_IMG,$=function(id){return document.getElementById(id)};
+  var ov=$("lr"),stack=$("lrStack"),frame=$("lrFrame"),rec=$("lrRec"),dsk=$("lrDisc"),vin=$("lrVinyl"),arm=$("lrArm"),art=$("lrArt"),
+      bStart=$("lrStart"),bStop=$("lrStop"),now=$("lrNow"),time=$("lrTime"),aotdBtn=$("lrAotd"),opener=$("lrOpen");
+  var RPM=360/1.8;   /* 33⅓ rpm: one turn every 1.8 s, in degrees per second */
+  var isOpen=false,cur=null,aotd=null,busy=false,playing=false,run=0,armRun=0,listened=0,lastTick=0,timer=0;
+  var spin={ang:0,vel:0,from:0,to:0,t0:0,dur:1,last:0,raf:0};
+
+  /* ---- Which albums: Electronic albums only, picked by today's date so everyone sees the same six all day ---- */
+  var pool=Object.keys(ALB).filter(function(k){return ALB[k].genre==="Electronic"&&ALB[k].kind==="Album"}).sort();
+  function dayNum(){var d=new Date();return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5)}
+  function seeded(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+  function todays(){var r=seeded(dayNum()),p=pool.slice();for(var i=p.length-1;i>0;i--){var j=Math.floor(r()*(i+1)),t=p[i];p[i]=p[j];p[j]=t}return p.slice(0,6)}
+  function lengthOf(k){
+    var x=X[k],s=0;if(!x||!x.tracks)return 0;
+    x.tracks.forEach(function(t){var m=String(t[1]||"").split(":").map(Number);s+=m.length===3?m[0]*3600+m[1]*60+m[2]:m.length===2?m[0]*60+m[1]:0});
+    return s;
+  }
+  function fmt(sec){sec=Math.floor(sec);var h=Math.floor(sec/3600),m=Math.floor(sec%3600/60),s=sec%60;return (h?h+":"+(m<10?"0":""):"")+(m<10&&!h?"0":"")+m+":"+(s<10?"0":"")+s}
+  function wait(ms){return new Promise(function(r){setTimeout(r,rm?0:ms)})}
+  function pct(v){return v+"%"}
+  /* Transform animation that always settles, even if the tab stops drawing frames (e.g. it's in the background) */
+  function move(el,frames,ms){
+    var a=el.animate(frames,{duration:ms});
+    return Promise.race([a.finished.catch(function(){}),new Promise(function(r){setTimeout(r,ms+400)})]).then(function(){try{a.finish()}catch(e){}});
+  }
+
+  /* ---- Place every layer from the settings ---- */
+  function layout(){
+    var v=S.view,W=I.w,H=I.h;
+    frame.style.width=pct(W/v.w*100);frame.style.height=pct(H/v.h*100);
+    frame.style.left=pct(-v.x/v.w*100);frame.style.top=pct(-v.y/v.h*100);
+    /* record: a circle centred on the platter */
+    var d=S.recordSize;
+    rec.style.width=pct(d);rec.style.height=pct(d*W/H);
+    rec.style.left=pct(S.platterX-d/2);rec.style.top=pct(S.platterY-d*W/H/2);
+    /* the vinyl image, cropped so its record fills that circle */
+    var vd=I.vinyl.d;
+    vin.style.width=pct(W/vd*100);vin.style.left=pct(-(I.vinyl.cx-vd/2)/vd*100);vin.style.top=pct(-(I.vinyl.cy-vd/2)/vd*100);
+    /* centre label: the album cover in a circle, and the spindle hole on top */
+    art.style.width=art.style.height=pct(S.labelArtSize);
+    $("lrHole").style.width=$("lrHole").style.height=pct(S.holeSize);
+    /* arm: scaled so its pivot sits on the turntable's socket */
+    var a=I.arm,k=S.armScale,px=S.armPivotX/100*W,py=S.armPivotY/100*H;
+    arm.style.width=pct(k*100);
+    arm.style.left=pct((px-k*a.px)/W*100);arm.style.top=pct((py-k*a.py)/H*100);
+    arm.style.transformOrigin=pct(a.px/W*100)+" "+pct(a.py/H*100);
+    /* buttons over the two knobs; their text sits on the knob */
+    [[bStart,S.startX,S.startY],[bStop,S.stopX,S.stopY]].forEach(function(b){
+      b[0].style.left=pct(b[1]);b[0].style.top=pct(b[2]);
+      b[0].style.width=pct(S.buttonSize);b[0].style.height=pct(S.buttonSize*W/H);
+    });
+  }
+  /* Arm angle that puts the needle at stylusLandsAt % of the record radius */
+  function playAngle(){
+    var W=I.w,H=I.h,a=I.arm,k=S.armScale,L=k*Math.hypot(a.sx-a.px,a.sy-a.py),
+        dx=S.armPivotX/100*W-S.platterX/100*W,dy=S.armPivotY/100*H-S.platterY/100*H,
+        r=S.recordSize/100*W/2*S.stylusLandsAt/100,
+        A=Math.hypot(dx,dy),K=(dx*dx+dy*dy+L*L-r*r)/(2*L),dl=Math.atan2(-dy,dx),
+        phi=Math.asin(Math.max(-1,Math.min(1,K/A)))-dl,phi0=-Math.atan2(a.sx-a.px,a.sy-a.py);
+    return (phi-phi0)*180/Math.PI;
+  }
+  function armTo(deg,lifted,ms){
+    arm.style.transitionDuration=(rm?0:ms)+"ms";
+    arm.style.transform="rotate("+deg.toFixed(2)+"deg) scale("+(lifted?1.03:1)+")";
+    return wait(ms);
+  }
+  function armIn(){var my=++armRun;return armTo(S.armRestAngle,true,220).then(function(){if(my===armRun)return armTo(playAngle(),true,900)}).then(function(){if(my===armRun)return armTo(playAngle(),false,320)})}
+  function armOut(){var my=++armRun;return armTo(playAngle(),true,260).then(function(){if(my===armRun)return armTo(S.armRestAngle,true,900)}).then(function(){if(my===armRun)return armTo(S.armRestAngle,false,260)})}
+
+  /* ---- Spinning: transform only. Speed eases between 0 and 33⅓ rpm ---- */
+  function spinTo(target,ms){
+    spin.from=spin.vel;spin.to=target;spin.t0=performance.now();spin.dur=ms;
+    if(rm){spin.vel=target;return}
+    if(!spin.raf){spin.last=performance.now();spin.raf=requestAnimationFrame(tick)}
+  }
+  function tick(t){
+    var dt=Math.min(.1,(t-spin.last)/1000),u=Math.min(1,(t-spin.t0)/spin.dur),e=u*u*(3-2*u);spin.last=t;
+    spin.vel=spin.from+(spin.to-spin.from)*e;spin.ang=(spin.ang+spin.vel*dt)%360;
+    dsk.style.transform="rotate("+spin.ang.toFixed(2)+"deg)";
+    if(u>=1&&spin.to===0){spin.vel=0;spin.raf=0;return}
+    spin.raf=requestAnimationFrame(tick);
+  }
+  function spinReset(){cancelAnimationFrame(spin.raf);spin.raf=0;spin.vel=0;spin.ang=0;dsk.style.transform=""}
+
+  /* ---- Lines under the turntable ---- */
+  function showTime(){
+    if(!cur){time.textContent="";return}
+    var len=lengthOf(cur);time.textContent="Time listened "+fmt(listened)+(len?" of "+fmt(len):"");
+  }
+  function showNow(){
+    if(!cur){now.textContent="Pick a sleeve to start listening.";time.textContent="";return}
+    var a=ALB[cur];now.textContent="Now playing: "+a.title+", "+a.artist+", "+a.year;showTime();
+  }
+  function counting(){if(playing){var n=performance.now();listened+=(n-lastTick)/1000;lastTick=n;showTime()}}
+
+  /* ---- Sleeve wheel ----
+     The six sleeves sit on a looping wheel. `pos` is the wheel's position (0 = first sleeve in the middle, 1.5 = halfway
+     between the 2nd and 3rd); it eases towards `target`. Every sleeve is placed with a transform from how far it is from the middle. */
+  var WH=LR_WHEEL,sl=[],n=0,pos=0,target=0,wraf=0,wlast=0,snapT=0,hov=-1,onK=null,frontK=null;
+  function sleeveOf(k){return stack.querySelector('[data-k="'+k+'"]')}
+  function build(){
+    var keys=todays();aotd=keys[0];n=keys.length;
+    stack.innerHTML="";sl=[];
+    keys.forEach(function(k,i){
+      var a=ALB[k],cv=coverOf(k),b=document.createElement("button"),day=k===aotd;
+      b.type="button";b.className="lr-sleeve"+(day?" aotd":"")+(cv?" art":"");b.dataset.k=k;b.dataset.i=i;
+      b.style.cssText=gray(i,n);
+      b.setAttribute("aria-label",(day?"Album of the day: ":"")+a.title+" by "+a.artist+", "+a.year+". Put this record on");
+      b.innerHTML=(cv?'<img src="'+esc(cv)+'" alt="" onerror="this.parentNode.classList.remove(\'art\');this.remove()">':'')+
+        (day?'<span class="lr-tag">Album of the day</span>':'')+(cv?'':'<strong>'+esc(a.title)+'</strong><small>'+esc(a.artist)+'</small>');
+      stack.appendChild(b);sl.push({el:b,k:k,pull:0,lift:0});
+    });
+    aotdBtn.hidden=!aotd;
+  }
+  function midIndex(){return ((Math.round(pos)%n)+n)%n}
+  /* how far sleeve i is from the middle, the short way round: -n/2 … n/2 (negative = above) */
+  function offset(i,from){var p=((i-from)%n+n)%n;return p>n/2?p-n:p}
+  function render(){
+    var narrow=innerWidth<=760,Sz=stack.querySelector(".lr-sleeve")?stack.querySelector(".lr-sleeve").offsetWidth:200,
+        sw=stack.clientWidth,sh=stack.clientHeight,mid=midIndex();
+    sl.forEach(function(s,i){
+      var p=offset(i,pos),a=Math.abs(p),th=Math.max(-1.55,Math.min(1.55,p*WH.spacing)),
+          along=Math.sin(th)*(narrow?sw:sh)*WH.reachY,bend=-(1-Math.cos(th))*Sz*WH.bendX,
+          sc=a<=1?1-(1-WH.sideScale)*a:Math.max(.3,WH.sideScale-(a-1)*.12),
+          op=a<=1?1-(1-WH.sideOpacity)*a:a<=2?WH.sideOpacity:WH.sideOpacity*Math.max(0,(2.6-a)/.6),
+          x=narrow?sw/2+along:Sz/2+8+bend,y=narrow?sh-Sz/2-8+bend:sh/2+along;
+      s.el.style.transform="translate("+(x-Sz/2+s.pull).toFixed(1)+"px,"+(y-Sz/2+s.lift).toFixed(1)+"px) scale("+sc.toFixed(3)+")";
+      s.el.style.opacity=op.toFixed(3);
+      s.el.style.visibility=op<.01?"hidden":"";
+      s.el.style.zIndex=s.k===frontK?20:Math.max(1,Math.round(10-a*3));
+      var isMid=i===mid;
+      s.el.classList.toggle("mid",isMid);s.el.tabIndex=isMid?0:-1;
+    });
+  }
+  /* one animation loop for the wheel turning, the playing sleeve sliding forward and the hover lift */
+  function wheelFrame(t){
+    var dt=Math.min(.1,(t-wlast)/1000),k=rm?1:1-Math.exp(-dt*12),moving=false;wlast=t;
+    var d=target-pos;if(Math.abs(d)>.002){pos+=d*k;moving=true}else pos=target;
+    var mid=midIndex();
+    sl.forEach(function(s,i){
+      var tp=s.k===onK?24:0,tl=i===hov&&i===mid?-6:0;
+      if(Math.abs(tp-s.pull)>.2){s.pull+=(tp-s.pull)*k;moving=true}else s.pull=tp;
+      if(Math.abs(tl-s.lift)>.2){s.lift+=(tl-s.lift)*k;moving=true}else s.lift=tl;
+    });
+    var f=document.activeElement,hadFocus=f&&f.classList&&f.classList.contains("lr-sleeve");
+    render();
+    if(hadFocus&&!f.classList.contains("mid"))sl[midIndex()].el.focus({preventScroll:true});
+    wraf=moving?requestAnimationFrame(wheelFrame):0;
+  }
+  function kick(){if(!wraf){wlast=performance.now();wraf=requestAnimationFrame(wheelFrame)}}
+  function turnBy(steps){target=Math.round(target)+steps;kick()}
+  function turnTo(i){target=Math.round(target)+offset(i,Math.round(target));kick()}
+  function settle(){clearTimeout(snapT);snapT=setTimeout(function(){target=Math.round(target);kick()},WH.snapDelay)}
+  /* Mouse wheel or two-finger trackpad swipe, anywhere on the page, turns the wheel */
+  addEventListener("wheel",function(e){
+    if(!isOpen)return;e.preventDefault();
+    var dy=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?innerHeight:1);
+    target+=dy/WH.scrollStep;kick();settle();
+  },{passive:false});
+  /* Only the middle sleeve plays; clicking any other sleeve turns it to the middle */
+  stack.addEventListener("click",function(e){
+    var b=e.target.closest(".lr-sleeve");if(!b)return;
+    if(b.classList.contains("mid"))choose(b.dataset.k);else turnTo(+b.dataset.i);
+  });
+  stack.addEventListener("mouseover",function(e){var b=e.target.closest(".lr-sleeve");hov=b?+b.dataset.i:-1;kick()});
+  stack.addEventListener("mouseleave",function(){hov=-1;kick()});
+
+  /* ---- Moving the record between a sleeve and the platter (FLIP: measure both, animate the difference) ---- */
+  function fromSleeve(k){
+    var sl=sleeveOf(k).getBoundingClientRect(),rr=rec.getBoundingClientRect(),
+        dx=sl.left+sl.width/2-(rr.left+rr.width/2),dy=sl.top+sl.height/2-(rr.top+rr.height/2),s=sl.width*.94/rr.width;
+    return {inside:"translate("+dx+"px,"+dy+"px) scale("+s+")",out:"translate("+(dx+sl.width*.6)+"px,"+dy+"px) scale("+s+")"};
+  }
+  function loadRecord(k){
+    var my=run,s=sleeveOf(k),cv=coverOf(k);
+    /* the chosen sleeve comes to the front and slides forward a little */
+    onK=frontK=k;kick();
+    /* centre label: this album's cover (or the sleeve's grey if there is no cover) */
+    art.style.background=s.style.background;
+    art.innerHTML=cv?'<img src="'+esc(cv)+'" alt="" onerror="this.remove()">':'';
+    spinReset();
+    return wait(300).then(function(){
+      if(my!==run)return;
+      cur=k;listened=0;showNow();rec.classList.add("on");
+      if(rm)return;
+      var p=fromSleeve(k);
+      return move(rec,[
+        {transform:p.inside,easing:"cubic-bezier(.35,0,.25,1)"},
+        {transform:p.out,offset:.3,easing:"cubic-bezier(.45,0,.2,1)"},
+        {transform:"none"}],1800);
+    }).then(function(){if(my===run){frontK=null;kick()}});
+  }
+  function unloadRecord(){
+    var my=run,k=cur;
+    var stopping=playing?stop(1400):Promise.resolve();
+    return stopping.then(function(){
+      if(my!==run||rm)return;
+      frontK=k;render();   /* its sleeve goes in front again so the record slides back in behind it */
+      var p=fromSleeve(k);
+      return move(rec,[
+        {transform:"none",easing:"cubic-bezier(.45,0,.2,1)"},
+        {transform:p.out,offset:.65,easing:"cubic-bezier(.35,0,.25,1)"},
+        {transform:p.inside}],1400).then(function(){rec.classList.remove("on")});
+    }).then(function(){
+      if(my!==run)return;
+      rec.classList.remove("on");onK=frontK=null;kick();cur=null;
+      return wait(250);
+    });
+  }
+  function choose(k){
+    if(busy||!sleeveOf(k))return;
+    if(k===cur){if(!playing)start();return}
+    var my=run;busy=true;stack.setAttribute("aria-busy","true");
+    (cur?unloadRecord():Promise.resolve()).then(function(){if(my===run)return loadRecord(k)}).then(function(){
+      if(my!==run)return;busy=false;stack.removeAttribute("aria-busy");start();
+    });
+  }
+
+  /* ---- Start / Stop ---- */
+  function start(){
+    if(!cur){if(aotd&&!busy){turnTo(0);choose(aotd)}return}
+    if(playing||busy)return;
+    playing=true;lastTick=performance.now();bStart.setAttribute("aria-pressed","true");
+    startPlayback(ALB[cur]);
+    armIn();spinTo(RPM,1200);
+  }
+  function stop(ms){
+    if(!playing)return Promise.resolve();
+    counting();playing=false;bStart.setAttribute("aria-pressed","false");
+    stopPlayback();
+    spinTo(0,ms||2000);armOut();
+    return wait(ms||2000);
+  }
+  function press(b){b.classList.add("press");setTimeout(function(){b.classList.remove("press")},140)}
+  bStart.addEventListener("click",function(){start()});
+  bStop.addEventListener("click",function(){stop()});
+  aotdBtn.addEventListener("click",function(){if(!aotd||busy)return;turnTo(0);choose(aotd)});
+
+  /* ---- Open / close ---- */
+  function open(){
+    if(isOpen)return;isOpen=true;
+    build();layout();cur=null;listened=0;showNow();
+    pos=target=0;hov=-1;onK=frontK=null;   /* the album of the day starts in the middle of the wheel */
+    armTo(S.armRestAngle,false,0);
+    ov.hidden=false;document.body.style.overflow="hidden";
+    render();
+    requestAnimationFrame(function(){ov.classList.add("on")});
+    timer=setInterval(counting,250);
+    (stack.querySelector(".lr-sleeve.mid")||$("lrClose")).focus();
+  }
+  function close(){
+    if(!isOpen)return;isOpen=false;run++;armRun++;busy=false;
+    if(playing){playing=false;stopPlayback()}
+    clearInterval(timer);clearTimeout(snapT);cancelAnimationFrame(wraf);wraf=0;
+    rec.getAnimations().forEach(function(a){a.cancel()});
+    spinReset();rec.classList.remove("on");cur=null;bStart.setAttribute("aria-pressed","false");
+    ov.classList.remove("on");ov.hidden=true;document.body.style.overflow="";
+    opener.focus();
+  }
+  opener.addEventListener("click",open);
+  $("lrClose").addEventListener("click",close);
+  addEventListener("hashchange",close);
+  addEventListener("resize",function(){if(isOpen){if(!busy)layout();render()}});
+
+  /* Keys while open: Escape leaves, Space toggles Start/Stop, up/down arrows turn the wheel, Tab stays inside the room */
+  document.addEventListener("keydown",function(e){
+    if(!isOpen)return;
+    if(e.key==="Escape"){e.preventDefault();e.stopPropagation();close();return}
+    if(e.key===" "||e.code==="Space"){
+      var t=document.activeElement;
+      /* Space on another sleeve or button presses that button; on Start/Stop, the sleeve that's on, or anywhere else it toggles */
+      if(t&&t.tagName==="BUTTON"&&!t.classList.contains("lr-ctl")&&!(cur&&t.dataset.k===cur))return;
+      e.preventDefault();e.stopPropagation();
+      if(playing){press(bStop);stop()}else{press(bStart);start()}
+      return;
+    }
+    if(e.key==="/"){e.stopPropagation();return}
+    if(e.key==="ArrowUp"||e.key==="ArrowDown"){e.preventDefault();e.stopPropagation();turnBy(e.key==="ArrowUp"?-1:1);return}
+    if(e.key==="Tab"){
+      var f=[].slice.call(ov.querySelectorAll("button")).filter(function(b){return !b.hidden&&b.tabIndex>=0&&b.offsetParent!==null});
+      if(!f.length)return;var i=f.indexOf(document.activeElement);
+      if(e.shiftKey&&i<=0){e.preventDefault();f[f.length-1].focus()}
+      else if(!e.shiftKey&&i===f.length-1){e.preventDefault();f[0].focus()}
+    }
+  },true);
+})();
 </script>
 
 </body></html>
