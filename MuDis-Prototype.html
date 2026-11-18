@@ -281,16 +281,16 @@ html.intro .rail{overflow:visible}
    and the headphone mascot spinning inside it on the right (an animated image with a transparent background).
    The empty ticket is cut clean from its picture with a drop shadow drawn here; it swaps to its olive "on click" picture when pressed. */
 .lr-open{display:block;margin-top:10px;width:fit-content;padding:0;border:0;background:none;color:#111;cursor:pointer}
-.lr-open .tk{position:relative;display:block;height:78px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.25)) drop-shadow(0 1px 1px rgba(0,0,0,.2));transition:transform .12s,filter .12s}
-.lr-open .tk img{display:block;height:100%;width:auto;pointer-events:none;user-select:none}
+.lr-open .tk{position:relative;display:block;width:min(260px,100%);filter:drop-shadow(0 4px 6px rgba(0,0,0,.25)) drop-shadow(0 1px 1px rgba(0,0,0,.2));transition:transform .12s,filter .12s}
+.lr-open .tk img{display:block;width:100%;height:auto;pointer-events:none;user-select:none}
 .lr-open .tk .tkd{position:absolute;left:0;top:0;visibility:hidden}
 .lr-open:active .tk .tku,.lr-open.press .tk .tku{visibility:hidden}
 .lr-open:active .tk .tkd,.lr-open.press .tk .tkd{visibility:visible}
 .lr-open:active .tk,.lr-open.press .tk{transform:translateY(1px);filter:drop-shadow(0 2px 3px rgba(0,0,0,.25)) drop-shadow(0 1px 1px rgba(0,0,0,.2))}
-.lr-open .tk-txt{position:absolute;left:20.5%;top:50%;transform:translateY(-50%);text-align:left;line-height:.92;font-weight:300;letter-spacing:-.03em;text-transform:uppercase;color:#111;pointer-events:none}
-.lr-open .tk-txt span{display:block;font-size:13px}
-.lr-open .tk-txt span+span{font-size:23px;letter-spacing:-.04em}
-.lr-open .tk .tk-masc{position:absolute;left:auto;right:14.5%;top:50%;height:66%;width:auto;transform:translateY(-50%)}
+.lr-open .tk-txt{position:absolute;left:18.5%;top:50%;transform:translateY(-50%);text-align:left;line-height:.92;font-weight:700;letter-spacing:-.03em;text-transform:uppercase;color:#111;pointer-events:none}
+.lr-open .tk-txt span{display:block;font-size:16px}
+.lr-open .tk-txt span+span{font-size:29px;letter-spacing:-.04em}
+.lr-open .tk .tk-masc{position:absolute;left:auto;right:19.5%;top:50%;height:62%;width:auto;transform:translateY(-50%)}
 .lr-open:focus-visible{outline:2px solid var(--fg);outline-offset:4px;border-radius:8px}
 html:not([data-view="home"]) .lr-open{display:none}
 .lr{position:fixed;inset:0;z-index:150;background:rgba(255,255,255,.9);color:#111;opacity:0;transition:opacity .35s ease}
