@@ -209,7 +209,7 @@ h2.sec{margin:72px 0 22px;font-weight:500;font-size:clamp(28px,3.4vw,40px);lette
 .disc{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
 .disc.front{z-index:100}
 .dworld{position:absolute;left:0;top:0;width:100%;height:100%;transform-origin:0 0}
-.sleeve{position:absolute;left:0;top:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:#fff;color:#111;border:1px solid rgba(0,0,0,.07);box-shadow:0 34px 60px -14px rgba(0,0,0,.5),0 10px 22px -6px rgba(0,0,0,.22),0 2px 6px rgba(0,0,0,.1);line-height:1;text-align:center;white-space:nowrap}
+.sleeve{position:absolute;left:0;top:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:#c7cbac;color:#111;border:1px solid rgba(0,0,0,.07);box-shadow:0 34px 60px -14px rgba(0,0,0,.5),0 10px 22px -6px rgba(0,0,0,.22),0 2px 6px rgba(0,0,0,.1);line-height:1;text-align:center;white-space:nowrap}
 html.intro .sleeve{display:flex}
 .sleeve span{opacity:0;transform:translateY(12px);transition:opacity .8s ease,transform .8s ease}
 .sleeve.on span{opacity:1;transform:none}
@@ -217,7 +217,7 @@ html.intro .sleeve{display:flex}
 .sleeve .sm{font-weight:500;letter-spacing:-.05em}
 .dwrap{position:absolute;left:0;top:0;border-radius:50%;box-shadow:0 30px 52px -16px rgba(0,0,0,.55),0 6px 14px rgba(0,0,0,.16)}
 .rec{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;background:#0c0c0c url("assets/Intro-assets/Vinyl_reference_jpeg.jpg") center/106.4% no-repeat}
-.rec span{color:#111;font-weight:500;letter-spacing:-.04em;line-height:1;text-align:center}
+.rec span{color:#111;font-weight:500;letter-spacing:-.04em;line-height:1;text-align:center;display:grid;place-items:center;width:33%;aspect-ratio:1;border-radius:50%;background:#c7cbac}
 /* Text that can sit over the black record on Home flips to white there */
 html[data-view="home"] :is(.brand a,.brand p,.gname,.credit){color:#fff;mix-blend-mode:difference}
 html:not(.intro) :is(.search,.lr-open,.right,.brand a,.brand p,.gname,.bar){transition:opacity .9s ease}
@@ -297,8 +297,8 @@ html.intro .rail{overflow:visible}
 .lr-open .tk{position:relative;display:block;width:min(260px,100%);filter:drop-shadow(0 4px 6px rgba(0,0,0,.25)) drop-shadow(0 1px 1px rgba(0,0,0,.2));transition:transform .12s,filter .12s}
 .lr-open .tk img{display:block;width:100%;height:auto;pointer-events:none;user-select:none}
 .lr-open .tk .tkd{position:absolute;left:0;top:0;visibility:hidden}
-.lr-open:active .tk .tku,.lr-open.press .tk .tku{visibility:hidden}
-.lr-open:active .tk .tkd,.lr-open.press .tk .tkd{visibility:visible}
+.lr-open:hover .tk .tku,.lr-open:active .tk .tku,.lr-open.press .tk .tku{visibility:hidden}
+.lr-open:hover .tk .tkd,.lr-open:active .tk .tkd,.lr-open.press .tk .tkd{visibility:visible}
 .lr-open:active .tk,.lr-open.press .tk{transform:translateY(1px);filter:drop-shadow(0 2px 3px rgba(0,0,0,.25)) drop-shadow(0 1px 1px rgba(0,0,0,.2))}
 .lr-open .tk-txt{position:absolute;left:18.5%;top:50%;transform:translateY(-50%);text-align:left;line-height:.92;font-weight:700;letter-spacing:-.03em;text-transform:uppercase;color:#111;pointer-events:none}
 .lr-open .tk-txt span{display:block;font-size:16px}
@@ -310,7 +310,8 @@ html:not([data-view="home"]) .lr-open{display:none}
 .lr.on{opacity:1}
 .lr[hidden]{display:none}
 .lr-panel{position:absolute;inset:16px;border-radius:28px;background:#1f4a35 url("assets/listening-room/room-tiles.jpg") center/cover;--fg:#f3f3f1;color:#f3f3f1;isolation:isolate;display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:24px;padding:20px 40px;overflow:hidden}
-.lr-h{position:absolute;left:28px;top:22px;z-index:25;margin:0;font-size:13px;font-weight:500}
+.lr-h{position:absolute;left:24px;top:16px;z-index:25;margin:0;font-size:13px;font-weight:500}
+.lr-h img{display:block;height:100%;width:auto;pointer-events:none;user-select:none}
 .lr-close{position:absolute;right:20px;top:16px;z-index:30}
 /* Sleeve wheel: sleeves sit on a curve that bends away to the left. The one in the middle is full size and fully opaque;
    the further a sleeve is from the middle, the smaller and fainter it gets. Positions are set from JS as transforms. */
@@ -323,7 +324,7 @@ html:not([data-view="home"]) .lr-open{display:none}
 .lr-sleeve strong{font-size:15px;font-weight:500;line-height:1.1}
 .lr-sleeve small{font-size:12px;margin-top:3px}
 .lr-tag{position:absolute;left:10px;top:10px;z-index:1;padding:5px 9px;border-radius:99px;background:#fff;color:#111;font-size:12px;line-height:1;white-space:nowrap}
-.lr-right{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:0}
+.lr-right{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;min-height:0}
 /* The player: as big as the screen height allows (the info lines and the Album of the day button take ~92px under it) */
 .lr-stage{position:relative;flex:none;width:min(calc(100vw - 32px - 80px - 24px - 220px),calc((100vh - 32px - 40px - 92px) * 760 / 595));aspect-ratio:760/595}
 .lr-frame{position:absolute}
@@ -340,7 +341,7 @@ html:not([data-view="home"]) .lr-open{display:none}
 .lr-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .lr-hole{position:absolute;left:50%;top:50%;border-radius:50%;background:#f3f3f1;transform:translate(-50%,-50%);box-shadow:inset 0 1px 2px rgba(0,0,0,.35)}
 /* Start / Stop: real buttons over the two knobs in the image, with their names printed on the knob */
-.lr-ctl{position:absolute;z-index:19;display:grid;place-items:center;padding:0;border:0;border-radius:50%;background:#f07a1e;mix-blend-mode:multiply;color:#111;font-size:12px;line-height:1;transform:translate(-50%,-50%);transition:transform .12s,background .12s,box-shadow .12s}
+.lr-ctl{position:absolute;z-index:19;display:grid;place-items:center;padding:0;border:0;border-radius:50%;background:#f07a1e;mix-blend-mode:multiply;color:#111;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;line-height:1;transform:translate(-50%,-50%);transition:transform .12s,background .12s,box-shadow .12s}
 .lr-ctl:active,.lr-ctl.press{transform:translate(-50%,-50%) scale(.93);background:#d8661a;box-shadow:inset 0 2px 5px rgba(0,0,0,.35)}
 .lr-ctl[aria-pressed="true"]{box-shadow:inset 0 1px 4px rgba(0,0,0,.3)}
 .lr-ctl:focus-visible{outline:2px solid #111;outline-offset:3px}
@@ -348,6 +349,11 @@ html:not([data-view="home"]) .lr-open{display:none}
 .lr-now{margin-top:10px}
 .lr-time{margin-top:4px;opacity:.7;font-variant-numeric:tabular-nums}
 .lr-aotd{margin-top:12px}
+.lr-aotd.key{height:58px}
+.lr-aotd .kc{line-height:1.15;text-align:center;white-space:normal}
+/* "Pick a sleeve" sits at the bottom left of the turntable side, just right of the sleeve wheel, while nothing is playing */
+.lr-pick{position:absolute;left:0;bottom:0;z-index:25;margin:0;font-size:13px;color:var(--fg)}
+.lr-pick[hidden]{display:none}
 @media (max-width:760px){
   .lr-panel{inset:10px;grid-template-columns:1fr;grid-template-rows:170px 1fr;padding:56px 18px 20px}
   .lr-stack{--s:120px}
@@ -370,7 +376,7 @@ html:not([data-view="home"]) .lr-open{display:none}
 /* genre chips are stacked text, so their arrow sits at the right edge */
 .chip::after{position:absolute;right:18px;top:50%;transform:translateY(-50%)}
 /* the search box is carved in like a field */
-.search{border-color:transparent;background:var(--sunk);box-shadow:inset 3px 3px 6px var(--sh-d),inset -3px -3px 6px var(--sh-l)}
+.search{border-color:transparent;background:#d6d9c0;box-shadow:inset 3px 3px 6px #b6ba9c,inset -3px -3px 6px #f4f6e4}
 @media (prefers-reduced-motion:reduce){.chip.side:hover,.dl button.side:hover{transform:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -413,11 +419,12 @@ html:not([data-view="home"]) .lr-open{display:none}
 <!-- Listening Room: opens over Home from the "Listening Room" pill -->
 <div class="lr" id="lr" role="dialog" aria-modal="true" aria-labelledby="lrTitle" hidden>
   <div class="lr-panel">
-    <h2 class="lr-h" id="lrTitle">Listening Room</h2>
+    <h2 class="lr-h key" id="lrTitle"><img src="assets/buttons/key-long-up.png" alt=""><span class="kc">Listening Room</span></h2>
     <p class="lr-shh" aria-hidden="true">shhh...</p>
-    <button class="ib lr-close" id="lrClose" type="button" aria-label="Close the listening session" title="Close (Esc)"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button>
+    <button class="key hk lr-close" id="lrClose" type="button" aria-label="Close the Listening Room" title="Close (Esc)"><img class="ku" src="assets/buttons/key-home-up.png" alt=""><img class="kd" src="assets/buttons/key-home-down.png" alt=""><span class="kc"><svg width="16" height="16" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></span></button>
     <div class="lr-stack" id="lrStack" role="group" aria-roledescription="wheel" aria-label="Today’s records. Scroll, or use the up and down arrow keys, to turn the wheel; the record in the middle can be played"></div>
     <div class="lr-right">
+      <p class="lr-pick" id="lrPick">Pick a sleeve to start listening.</p>
       <div class="lr-stage" id="lrStage">
         <div class="lr-frame" id="lrFrame">
           <img class="lr-tt" src="assets/listening-room/turntable-cutout.png" alt="">
@@ -430,7 +437,7 @@ html:not([data-view="home"]) .lr-open{display:none}
       <p class="lr-now" id="lrNow" aria-live="polite"></p>
       <p class="lr-time" id="lrTime"></p>
       <audio id="lrAudio" preload="none" hidden></audio>
-      <button class="pill lr-aotd" id="lrAotd" type="button">Play the album of the day</button>
+      <button class="key kl lr-aotd" id="lrAotd" type="button"><img class="ku" src="assets/buttons/key-long-up.png" alt=""><img class="kd" src="assets/buttons/key-long-down.png" alt=""><span class="kc">Play the album<br>of the day</span></button>
     </div>
   </div>
 </div>
@@ -2724,7 +2731,8 @@ function stopPlayback(){if(LRA.el)LRA.el.pause()}
   }
   var lastTrack=null;
   function showNow(){
-    if(!cur){now.textContent="Pick a sleeve to start listening.";time.textContent="";lastTrack=null;return}
+    var pick=document.getElementById("lrPick");if(pick)pick.hidden=!!cur;
+    if(!cur){now.textContent="";time.textContent="";lastTrack=null;return}
     if(audioLive()&&LRA.tracks.length){
       var t=lrTrackAt(LRA.el.currentTime||0);
       if(t!==lastTrack){lastTrack=t;now.textContent="Now playing: "+t.title}
