@@ -1533,7 +1533,10 @@ function doors(list,side,msg,tag){return '<div class="dl">'+list.map(function(d)
 /* Photo on an "Essential Artists/ Bands" card: the artist page's photo, unless APIC gives a different one for that genre
    (keyed by the artist's slug, then genre). Artists without a page can also be given a photo here as one file name. */
 var APIC={
-  "the-beatles":{Pop:"the-beatles-artist-image.jpg",Rock:"the-beatles-band-image.jpg"}
+  "the-beatles":{Pop:"the-beatles-artist-image.jpg",Rock:"the-beatles-band-image.jpg"},
+  /* Essential Artists without a page yet: photo on their genre card only */
+  "louis-armstrong":"louis-armstrong-artist-image.jpg","duke-ellington":"duke-ellington-artist-image.jpg","charlie-parker":"charlie-parker-artist-image.jpg",
+  "dj-kool-herc":"dj-kool-herc-artist-image.jpg","the-sugarhill-gang":"the-sugar-hill-gang-artist-image.jpg"
 };
 function artistPic(name,genre){
   var k=slug(name),r=AR[k],p=APIC[k];
@@ -1733,7 +1736,7 @@ src:'Text adapted from <a href="https://en.wikipedia.org/wiki/B.B._King">Wikiped
 /* ---- Album artists on Home with no photo yet. Facts checked against each artist's Wikipedia article (named in its footer). ---- */
 /* Electronic */
 "boards-of-canada":{
-name:"Boards of Canada",real:"Brothers Mike Sandison and Marcus Eoin",
+name:"Boards of Canada",real:"Brothers Mike Sandison and Marcus Eoin",pic:"assets/artists-or-bands/boards-of-canada-band-image.jpg",
 facts:[["Formed","1986, Cullen, Moray, Scotland"],["Active","1986–present"],["Members","Mike Sandison, Marcus Eoin"],["Former member","Chris Horne (left 1996)"],["Labels","Warp, Skam, Music70"]],
 genres:{n:"Electronic",c:[{n:"IDM"},{n:"Downtempo"},{n:"Folktronica"}]},
 bio:["Boards of Canada began in 1986, when Marcus Eoin joined his brother Mike Sandison’s band in Scotland. After Chris Horne left in 1996 they continued as a duo, and early records such as Twoism and Hi Scores came out on their own label and on Skam.","Music Has the Right to Children (1998), released by Warp and Skam, made their name. Geogaddi (2002), which they later linked to the September 11 attacks, and The Campfire Headphase (2005) followed.","After a seven-year gap, Tomorrow’s Harvest (2013) was announced through a trail of cryptic codes on Record Store Day records, radio and TV. In 2026 they returned again with Inferno."],
@@ -1741,7 +1744,7 @@ trivia:["They took their name from the National Film Board of Canada, whose docu
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Boards_of_Canada">Wikipedia: Boards of Canada</a>, available under CC BY-SA 4.0.'
 },
 "burial":{
-name:"Burial",real:"William Emmanuel Bevan",
+name:"Burial",real:"William Emmanuel Bevan",pic:"assets/artists-or-bands/burial-band-image.jpg",
 facts:[["From","South London, England"],["Active","2001–present"],["First signing","The first artist on Kode9’s Hyperdub (2005)"],["Works in","Sound Forge, a simple audio editor"],["Labels","Hyperdub, XL"]],
 genres:{n:"Electronic",c:[{n:"Dubstep"},{n:"UK garage"},{n:"Ambient"}]},
 bio:["Burial is the alias of William Bevan, a producer from South London. In 2005 he became the first artist signed to Kode9’s label Hyperdub, which released his South London Boroughs EP.","His self-titled debut (2006) was The Wire’s album of the year, and Untrue (2007) was nominated for the 2008 Mercury Prize. For years he stayed anonymous; in August 2008 he confirmed who he was by posting a photo of himself online.","Since then he has mostly released EPs, such as Kindred and Rival Dealer, later gathered on Tunes 2011–2019, and worked with Four Tet, Thom Yorke and Massive Attack. In 2024 he scored Andrea Arnold’s film Bird."],
@@ -1749,7 +1752,7 @@ trivia:["He builds tracks in Sound Forge rather than a sequencer: “Once I chan
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Burial_(musician)">Wikipedia: Burial (musician)</a>, available under CC BY-SA 4.0.'
 },
 "dj-shadow":{
-name:"DJ Shadow",real:"Joshua Paul Davis",
+name:"DJ Shadow",real:"Joshua Paul Davis",pic:"assets/artists-or-bands/dj-shadow-artist-image.jpg",
 facts:[["Born","29 June 1972, San Jose, California"],["Grew up","Davis, California"],["Active","1989–present"],["Co-founded","Solesides (1993), later Quannum"],["Labels","Mo’ Wax, Solesides, MCA, Universal, Mass Appeal"]],
 genres:{n:"Electronic",c:[{n:"Trip hop"},{n:"Turntablism"}]},
 bio:["DJ Shadow is Josh Davis, who grew up in Davis, California, and DJed on the UC Davis station KDVS. In 1993 he co-founded the label Solesides with Blackalicious and Lyrics Born.","His debut album, Endtroducing….. (1996), was built almost entirely from samples of old records and was widely acclaimed. He also produced UNKLE’s debut Psyence Fiction (1998).","Later albums include The Private Press (2002), The Outsider (2006), The Mountain Will Fall (2016), Our Pathetic Age (2019) and Action Adventure (2023)."],
@@ -1758,7 +1761,7 @@ src:'Text adapted from <a href="https://en.wikipedia.org/wiki/DJ_Shadow">Wikiped
 },
 /* Metal */
 "megadeth":{
-name:"Megadeth",real:"Founded by Dave Mustaine and David Ellefson",
+name:"Megadeth",real:"Founded by Dave Mustaine and David Ellefson",pic:"assets/artists-or-bands/megadeth-band-image.jpg",
 facts:[["Formed","1983, Los Angeles, California"],["Active","1983–2002, 2004–present"],["Classic members","Dave Mustaine, David Ellefson, Marty Friedman, Nick Menza"],["One of","The “Big Four” of thrash"],["Labels","Combat, Capitol, Sanctuary, Roadrunner and more"]],
 genres:{n:"Metal",c:[{n:"Thrash metal"},{n:"Speed metal"},{n:"Heavy metal"}]},
 bio:["Dave Mustaine formed Megadeth in Los Angeles in 1983, after being fired from Metallica before their debut album, with bassist David Ellefson. With Metallica, Slayer and Anthrax they became one of the “Big Four” of thrash.","Peace Sells… but Who’s Buying? (1986) was their first major-label album. Rust in Peace (1990), with guitarist Marty Friedman and drummer Nick Menza, is often called genre-defining, and Countdown to Extinction (1992) was their biggest seller.","Mustaine broke up the band in 2002 after a nerve injury left him unable to play guitar, then re-formed it in 2004. Megadeth won their first Grammy in 2017, and their self-titled final album (2026) became their first US number one."],
@@ -1766,7 +1769,7 @@ trivia:["Mustaine took the name from a politician’s pamphlet about the “arse
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Megadeth">Wikipedia: Megadeth</a>, available under CC BY-SA 4.0.'
 },
 "pantera":{
-name:"Pantera",real:"Founded by Dimebag Darrell and Vinnie Paul",
+name:"Pantera",real:"Founded by Dimebag Darrell and Vinnie Paul",pic:"assets/artists-or-bands/pantera-band-image.jpg",
 facts:[["Formed","1981, Arlington, Texas"],["Active","1981–2003, 2022–present"],["Classic line-up","Phil Anselmo, Dimebag Darrell, Rex Brown, Vinnie Paul"],["Pioneered","Groove metal"],["Labels","Metal Magic, Atco, East West, Elektra"]],
 genres:{n:"Metal",c:[{n:"Groove metal"},{n:"Thrash metal"}]},
 bio:["Pantera was formed in Arlington, Texas, in 1981 by brothers Dimebag Darrell (guitar) and Vinnie Paul (drums). With singer Terry Glaze they made three glam metal albums in the mid-1980s; Phil Anselmo took over vocals in 1986.","Cowboys from Hell (1990) is credited with creating groove metal. Vulgar Display of Power (1992) made them bigger still, and Far Beyond Driven (1994) went straight to number one in the US.","The brothers ended the band in 2003. Dimebag was killed during a concert in 2004, and Vinnie Paul died in 2018. In 2022 Anselmo and bassist Rex Brown revived Pantera with Zakk Wylde and Charlie Benante."],
@@ -1774,7 +1777,7 @@ trivia:["They were called Gemini and Eternity before naming themselves after the
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Pantera">Wikipedia: Pantera</a>, available under CC BY-SA 4.0.'
 },
 "slayer":{
-name:"Slayer",real:"Tom Araya, Kerry King, Jeff Hanneman and Dave Lombardo",
+name:"Slayer",real:"Tom Araya, Kerry King, Jeff Hanneman and Dave Lombardo",pic:"assets/artists-or-bands/slayer-band-image.jpg",
 facts:[["Formed","1981, Huntington Park, California"],["Active","1981–2019, 2024–present"],["Founders","Tom Araya, Kerry King, Jeff Hanneman, Dave Lombardo"],["Later members","Paul Bostaph, Gary Holt"],["Labels","Metal Blade, Def Jam, American, Nuclear Blast"]],
 genres:{n:"Metal",c:[{n:"Thrash metal"}]},
 bio:["Slayer was formed in Huntington Park, California, in 1981 by Tom Araya, Kerry King, Jeff Hanneman and Dave Lombardo. Brian Slagel signed them to Metal Blade in 1983, and they became one of the “Big Four” of thrash.","Reign in Blood (1986), produced by Rick Rubin for Def Jam, is one of the most influential thrash albums. Columbia at first refused to distribute it over the song “Angel of Death”.","Hanneman died in 2013, and Gary Holt took his place. Slayer won two Grammys, in 2007 and 2008, ended their final world tour in 2019, and returned for a few festival shows in 2024."],
@@ -1783,7 +1786,7 @@ src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Slayer">Wikipedia:
 },
 /* Jazz */
 "miles-davis":{
-name:"Miles Davis",real:"Miles Dewey Davis III",
+name:"Miles Davis",real:"Miles Dewey Davis III",pic:"assets/artists-or-bands/miles-davis-artist-image.jpg",
 facts:[["Born","26 May 1926, Alton, Illinois"],["Died","28 September 1991, Santa Monica, California, aged 65"],["Instrument","Trumpet"],["Active","1944–1975, 1980–1991"],["Labels","Capitol, Prestige, Columbia, Warner Bros."]],
 genres:{n:"Jazz",c:[{n:"Bebop"},{n:"Cool jazz"},{n:"Modal jazz"},{n:"Jazz fusion"}]},
 bio:["Miles Davis left Juilliard in the mid-1940s to play in Charlie Parker’s bebop group. His Birth of the Cool sessions of 1949–50 helped shape cool jazz, and after a well-received set at Newport in 1955 he signed to Columbia and formed his first great quintet, with John Coltrane.","Kind of Blue (1959) became one of the most popular jazz albums ever, selling more than five million copies in the US. In the 1960s his second quintet, with Wayne Shorter, Herbie Hancock, Ron Carter and Tony Williams, helped invent post-bop.","From In a Silent Way he went electric, and Bitches Brew (1970) helped launch jazz fusion. After a five-year break from 1975 he returned with albums such as Tutu. He joined the Rock and Roll Hall of Fame in 2006."],
@@ -1791,7 +1794,7 @@ trivia:["His mother wanted him to play the violin.","Arguing with doctors too so
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Miles_Davis">Wikipedia: Miles Davis</a>, available under CC BY-SA 4.0.'
 },
 "john-coltrane":{
-name:"John Coltrane",real:"John William Coltrane",
+name:"John Coltrane",real:"John William Coltrane",pic:"assets/artists-or-bands/jhon-coltrane-artist-image.jpg",
 facts:[["Born","23 September 1926, Hamlet, North Carolina"],["Died","17 July 1967, Huntington, New York, aged 40"],["Instruments","Tenor and soprano saxophone"],["Classic Quartet","McCoy Tyner, Jimmy Garrison, Elvin Jones"],["Labels","Prestige, Blue Note, Atlantic, Impulse!"]],
 genres:{n:"Jazz",c:[{n:"Hard bop"},{n:"Modal jazz"},{n:"Spiritual jazz"},{n:"Free jazz"}]},
 bio:["John Coltrane served in the US Navy in 1945–46, playing in a navy band at Pearl Harbor. From 1955 to 1957 he was in Miles Davis’s first great quintet, and in 1957 he worked with Thelonious Monk; critic Ira Gitler called his dense, rapid style “sheets of sound”.","Blue Train (1958) was his only album as a leader for Blue Note. Giant Steps (1960) introduced the chord sequence now called “Coltrane changes”, and in the early 1960s he formed his Classic Quartet with McCoy Tyner, Jimmy Garrison and Elvin Jones.","A Love Supreme (1965), a four-part spiritual suite, became his best-selling album. His last work moved toward free jazz before he died of liver cancer in 1967. He received a special Pulitzer citation in 2007."],
@@ -1799,7 +1802,7 @@ trivia:["He joined the Navy on 6 August 1945, the day the first atomic bomb was 
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/John_Coltrane">Wikipedia: John Coltrane</a>, available under CC BY-SA 4.0.'
 },
 "charles-mingus":{
-name:"Charles Mingus",real:"Charles Mingus Jr.",
+name:"Charles Mingus",real:"Charles Mingus Jr.",pic:"assets/artists-or-bands/harles-Mingus-artist-image.jpg",
 facts:[["Born","22 April 1922, Nogales, Arizona"],["Raised","Watts, Los Angeles"],["Died","5 January 1979, Cuernavaca, Mexico, aged 56"],["Instruments","Double bass, piano"],["Labels","Debut, Atlantic, Columbia, Candid, Impulse! and more"]],
 genres:{n:"Jazz",c:[{n:"Hard bop"},{n:"Post-bop"},{n:"Third stream"}]},
 bio:["Charles Mingus grew up in Watts, Los Angeles. He toured with Louis Armstrong in 1943 and played in Lionel Hampton’s band in the late 1940s, and in 1952 he co-founded Debut Records with drummer Max Roach.","Pithecanthropus Erectus (1956) was his breakthrough as a bandleader and composer. Mingus Ah Um (1959) became one of his best-known albums, and The Black Saint and the Sinner Lady (1963) is praised as one of the great feats of jazz orchestration.","He published his autobiography, Beneath the Underdog, in 1971. In the mid-1970s ALS ended his bass playing, and he was working with Joni Mitchell on the album Mingus when he died in 1979."],
@@ -1807,7 +1810,7 @@ trivia:["His huge work Epitaph runs 4,235 bars and about two hours; it was first
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Charles_Mingus">Wikipedia: Charles Mingus</a>, available under CC BY-SA 4.0.'
 },
 "dave-brubeck-quartet":{
-name:"Dave Brubeck Quartet",real:"Dave Brubeck, Paul Desmond, Eugene Wright and Joe Morello",
+name:"Dave Brubeck Quartet",real:"Dave Brubeck, Paul Desmond, Eugene Wright and Joe Morello",pic:"assets/artists-or-bands/Dave-Brubeck-Quartet-artist-image.jpg",
 facts:[["Formed","1951, San Francisco"],["Classic line-up","Dave Brubeck, Paul Desmond, Eugene Wright, Joe Morello (1958–1967)"],["Biggest hit","“Take Five”, written by Paul Desmond"],["First","Jazz album to sell a million copies (Time Out)"],["Labels","Fantasy, Columbia, Atlantic and more"]],
 genres:{n:"Jazz",c:[{n:"Cool jazz"},{n:"West Coast jazz"}]},
 bio:["Pianist Dave Brubeck formed the quartet in 1951 with alto saxophonist Paul Desmond, playing a residency at San Francisco’s Black Hawk club. Albums such as Jazz at Oberlin and Jazz Goes to College came from their tours of colleges.","Drummer Joe Morello joined in 1956 and bassist Eugene Wright became a permanent member in 1959. In 1958 the US State Department sent the group on a tour of Europe and Asia.","Time Out (1959), built on unusual time signatures, was the first jazz album to sell a million copies, and Desmond’s “Take Five” in 5/4 became the best-selling jazz single ever. The classic quartet ended in 1967."],
@@ -1815,7 +1818,7 @@ trivia:["Brubeck was nearly expelled from college because he couldn’t read mus
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Dave_Brubeck_Quartet">Wikipedia: Dave Brubeck Quartet</a>, available under CC BY-SA 4.0.'
 },
 "herbie-hancock":{
-name:"Herbie Hancock",real:"Herbert Jeffrey Hancock",
+name:"Herbie Hancock",real:"Herbert Jeffrey Hancock",pic:"assets/artists-or-bands/Herbie-Hancock-artist-image.jpg",
 facts:[["Born","12 April 1940, Chicago, Illinois"],["Active","1961–present"],["Instruments","Piano, keyboards, synthesizer"],["Band","Miles Davis Quintet (from 1963)"],["Labels","Blue Note, Columbia, Warner Bros., Verve"]],
 genres:{n:"Jazz",c:[{n:"Post-bop"},{n:"Jazz fusion"},{n:"Jazz-funk"}]},
 bio:["Herbie Hancock was a child prodigy who played a Mozart piano concerto with the Chicago Symphony Orchestra at 11. His Blue Note debut, Takin’ Off (1962), included “Watermelon Man”, and in 1963 he joined Miles Davis’s quintet.","Maiden Voyage (1965) gave jazz another standard. His Mwandishi albums of the early 1970s mixed electronic and acoustic instruments, and Head Hunters (1973) crossed over to a pop audience.","“Rockit” (1983) was a pop hit, often cited as the first jazz hip-hop song. He won an Oscar for the score of Round Midnight, and River: The Joni Letters won the 2008 Grammy for Album of the Year. He has won 14 Grammys."],
@@ -1824,7 +1827,7 @@ src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Herbie_Hancock">Wi
 },
 /* Reggae */
 "burning-spear":{
-name:"Burning Spear",real:"Winston Rodney",
+name:"Burning Spear",real:"Winston Rodney",pic:"assets/artists-or-bands/burning-spears-artist-image.jpg",
 facts:[["Born","1 March 1945, Saint Ann’s Bay, Jamaica"],["Active","1969–present"],["Grammys","Best Reggae Album, 2000 and 2009"],["Honour","Order of Distinction, Jamaica (2007)"],["Labels","Studio One, Island, Heartbeat, Burning Music"]],
 genres:{n:"Reggae",c:[{n:"Roots reggae"},{n:"Dub"}]},
 bio:["Winston Rodney grew up in Saint Ann, Jamaica, like Bob Marley, who in 1969 suggested he try Coxsone Dodd’s Studio One. His first single there was “Door Peep”.","Working with Jack Ruby’s Hi-Power sound system, he recorded Marcus Garvey (1975), which led to a deal with Island Records. His songs draw on Rastafari and on Marcus Garvey’s Pan-African ideas. From 1976 he used the name Burning Spear on his own, and his 1977 London show was released as Live!","He set up his own label, Burning Music, and won the Grammy for Best Reggae Album in 2000 and 2009. Jamaica made him an Officer of the Order of Distinction in 2007."],
@@ -1832,7 +1835,7 @@ trivia:["His stage name comes from Jomo Kenyatta, Kenya’s first president afte
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Burning_Spear">Wikipedia: Burning Spear</a>, available under CC BY-SA 4.0.'
 },
 "the-congos":{
-name:"The Congos",real:"Cedric Myton, Roydel “Ashanti” Johnson and Watty Burnett",
+name:"The Congos",real:"Cedric Myton, Roydel “Ashanti” Johnson and Watty Burnett",pic:"assets/artists-or-bands/the-congos-artist-image.jpg",
 facts:[["Formed","Mid-1970s, Jamaica"],["Voices","Cedric Myton (falsetto), Roydel Johnson (tenor), Watty Burnett (baritone)"],["Producer","Lee “Scratch” Perry"],["Best known for","Heart of the Congos (1977)"],["Labels","Black Ark, Go-Feet, Blood and Fire and more"]],
 genres:{n:"Reggae",c:[{n:"Roots reggae"},{n:"Dub"}]},
 bio:["The Congos began as a duo of Cedric Myton and Roydel Johnson, who recorded “At the Feast” for Lee “Scratch” Perry. During sessions at Perry’s Black Ark studio, Watty Burnett joined to make them a trio.","Heart of the Congos (1977), recorded with Perry, is their best-known work. Perry was in a dispute with Island Records when it was finished, so it came out only on his own Black Ark label, which limited its reach abroad; it was reissued in 1980.","Myton kept the name going into the mid-1980s, and the group re-formed in the 1990s. In 2009 the three reunited with Perry for Back in the Black Ark."],
@@ -1840,7 +1843,7 @@ trivia:["Perry reportedly treated the three singers as extra instruments in the 
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/The_Congos">Wikipedia: The Congos</a>, available under CC BY-SA 4.0.'
 },
 "black-uhuru":{
-name:"Black Uhuru",real:"Led by Derrick “Duckie” Simpson",
+name:"Black Uhuru",real:"Led by Derrick “Duckie” Simpson",pic:"assets/artists-or-bands/black-uhuru-artist-image.jpg",
 facts:[["Formed","1972, Waterhouse, Kingston, Jamaica"],["Active","1972–present"],["Classic line-up","Duckie Simpson, Michael Rose, Puma Jones, with Sly and Robbie"],["First","Winners of the first Best Reggae Album Grammy (1985)"],["Labels","Taxi, Island, RAS and more"]],
 genres:{n:"Reggae",c:[{n:"Dub"}]},
 bio:["Black Uhuru began in Kingston in 1972 as Uhuru, Swahili for “freedom”. Their debut album Love Crisis (1977) was produced by Prince Jammy, and in 1978 Puma Jones joined and the group took its best-known name.","With Michael Rose singing and Sly and Robbie as rhythm section and producers, they signed to Island in 1980. Red (1981) reached number 28 in the UK, and Anthem (1984) won the first-ever Grammy for Best Reggae Album in 1985.","Rose left in 1984, and Puma Jones died in 1990. Duckie Simpson has kept the group going, releasing As the World Turns in 2018."],
@@ -1849,7 +1852,7 @@ src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Black_Uhuru">Wikip
 },
 /* Pop */
 "taylor-swift":{
-name:"Taylor Swift",real:"Taylor Alison Swift",
+name:"Taylor Swift",real:"Taylor Alison Swift",pic:"assets/artists-or-bands/taylor-swift-artist-image.jpg",
 facts:[["Born","13 December 1989, West Reading, Pennsylvania"],["Raised","Pennsylvania, then near Nashville, Tennessee"],["Active","2003–present"],["Grammys","14, including four for Album of the Year"],["Labels","Big Machine, Republic"]],
 genres:{n:"Pop",c:[{n:"Country"},{n:"Folk"}]},
 bio:["Taylor Swift moved to the Nashville area as a teenager to pursue country music, signed with Big Machine in 2005, and released her self-titled debut in 2006. Fearless (2008) won the Grammy for Album of the Year.","With 1989 (2014) she moved from country to pop. After a dispute over the master recordings of her early albums, she began re-recording them as “Taylor’s Version” albums in 2021. Folklore and Evermore, surprise-released in 2020, turned towards indie folk.","Midnights (2022) gave her a record fourth Album of the Year. The Eras Tour (2023–2024) became the highest-grossing concert tour ever, at about $2 billion, and The Tortured Poets Department (2024) sold 2.6 million US units in its first week. Time named her Person of the Year in 2023."],
@@ -1865,7 +1868,7 @@ trivia:["He was named after his father’s stage name, Prince Rogers, but as a c
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Prince_(musician)">Wikipedia: Prince (musician)</a>, available under CC BY-SA 4.0.'
 },
 "amy-winehouse":{
-name:"Amy Winehouse",real:"Amy Jade Winehouse",
+name:"Amy Winehouse",real:"Amy Jade Winehouse",pic:"assets/artists-or-bands/amy-winehouse-artist-image.jpg",
 facts:[["Born","14 September 1983, Enfield, London"],["Died","23 July 2011, Camden, London, aged 27"],["Active","2003–2011"],["Producers","Salaam Remi, Mark Ronson"],["Labels","Island, Universal Republic, Lioness"]],
 genres:{n:"Pop",c:[{n:"Soul"},{n:"R&B"},{n:"Jazz"}]},
 bio:["Amy Winehouse went to the Sylvia Young Theatre School in London. Her debut album Frank (2003), produced mostly by Salaam Remi, mixed jazz and soul, and its single “Stronger Than Me” won an Ivor Novello Award.","Back to Black (2006), made with Remi and Mark Ronson, was an international success. At the 2008 Grammys she won five awards, including Record and Song of the Year for “Rehab”.","In 2009 she started her own label, Lioness Records. She died in 2011, aged 27, and the Amy Winehouse Foundation was set up in her name."],
@@ -1873,7 +1876,7 @@ trivia:["Her five Grammys in one night tied the record for a female artist and m
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Amy_Winehouse">Wikipedia: Amy Winehouse</a>, available under CC BY-SA 4.0.'
 },
 "katy-perry":{
-name:"Katy Perry",real:"Katheryn Elizabeth Hudson",
+name:"Katy Perry",real:"Katheryn Elizabeth Hudson",pic:"assets/artists-or-bands/katty-perry-artist-image.jpg",
 facts:[["Born","25 October 1984, Santa Barbara, California"],["Active","2001–present"],["Record","Five US number ones from one album, Teenage Dream"],["TV","American Idol judge, 2018–2024"],["Labels","Red Hill, Columbia, Capitol"]],
 genres:{n:"Pop",c:[{n:"Rock"},{n:"Disco"}]},
 bio:["Katy Perry first released a gospel album, Katy Hudson, in 2001; it sold poorly, and Columbia later dropped her. Signed to Capitol, she broke through with “I Kissed a Girl”, which spent seven weeks at number one in the US in 2008.","Teenage Dream (2010) produced five US number-one singles, a record for an album by a woman, and Prism (2013) added “Roar” and “Dark Horse”. Her 2015 Super Bowl halftime show drew 118.5 million US viewers.","She was a judge on American Idol from 2018 to 2024 and released Witness, Smile and 143. In 2025 she flew into space on Blue Origin’s NS-31."],
@@ -1881,7 +1884,7 @@ trivia:["Her gospel debut reportedly sold about 200 copies before its label clos
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Katy_Perry">Wikipedia: Katy Perry</a>, available under CC BY-SA 4.0.'
 },
 "dua-lipa":{
-name:"Dua Lipa",real:"Dua Lipa",
+name:"Dua Lipa",real:"Dua Lipa",pic:"assets/artists-or-bands/dua-lipa-artist-image.jpg",
 facts:[["Born","22 August 1995, London, England"],["Family","Kosovo Albanian parents from Pristina"],["Active","2013–present"],["Awards","Seven Brit Awards, three Grammys"],["Label","Warner"]],
 genres:{n:"Pop",c:[{n:"Disco"},{n:"House"}]},
 bio:["Dua Lipa was born in London to Kosovo Albanian parents; her father sang in the Kosovar rock band Oda. She was working as a cocktail waitress when she signed with a management company in 2013.","Her self-titled debut (2017) gave her a first UK number one, “New Rules”, and in 2018 she won two Brit Awards; “One Kiss” with Calvin Harris was the UK’s best-selling song that year. In 2019 she won the Grammy for Best New Artist.","Future Nostalgia (2020) was her first UK number-one album and won the Grammy for Best Pop Vocal Album; “Levitating” topped the US year-end chart for 2021. She sang “Dance the Night” for the film Barbie (2023), and Radical Optimism (2024) went to number one in the UK."],
@@ -1890,7 +1893,7 @@ src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Dua_Lipa">Wikipedi
 },
 /* Rock */
 "pink-floyd":{
-name:"Pink Floyd",real:"Syd Barrett, Roger Waters, Richard Wright, Nick Mason and David Gilmour",
+name:"Pink Floyd",real:"Syd Barrett, Roger Waters, Richard Wright, Nick Mason and David Gilmour",pic:"assets/artists-or-bands/pink-floyd-band-image.jpg",
 facts:[["Formed","1965, London, England"],["Founders","Syd Barrett, Roger Waters, Richard Wright, Nick Mason"],["Joined 1967","David Gilmour"],["Sales","More than 250 million records"],["Labels","EMI, Harvest, Capitol, Columbia"]],
 genres:{n:"Rock",c:[{n:"Progressive rock"},{n:"Psychedelic rock"},{n:"Art rock"}]},
 bio:["Pink Floyd was formed in London in 1965 by Syd Barrett, Roger Waters, Richard Wright and Nick Mason. Their debut, The Piper at the Gates of Dawn, came out in 1967. David Gilmour joined that year, and Barrett left in 1968 as his mental health declined.","The Dark Side of the Moon (1973) went to number one in the US and stayed on the Billboard chart for more than 14 years. Wish You Were Here (1975), Animals (1977) and The Wall (1979), which spent 15 weeks at number one in the US, followed.","Waters left in 1985, and Gilmour led the band on two more albums. All four classic members reunited once, for Live 8 in 2005. Barrett died in 2006 and Wright in 2008. The band joined the Rock and Roll Hall of Fame in 1996."],
@@ -1898,7 +1901,7 @@ trivia:["The name joins the first names of two bluesmen, Pink Anderson and Floyd
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Pink_Floyd">Wikipedia: Pink Floyd</a>, available under CC BY-SA 4.0.'
 },
 "sex-pistols":{
-name:"Sex Pistols",real:"Johnny Rotten, Steve Jones, Paul Cook, Glen Matlock and Sid Vicious",
+name:"Sex Pistols",real:"Johnny Rotten, Steve Jones, Paul Cook, Glen Matlock and Sid Vicious",pic:"assets/artists-or-bands/sex-pistols-band-image.jpg",
 facts:[["Formed","1975, London, England"],["Main run","1975–1978, with later reunions"],["Members","Johnny Rotten, Steve Jones, Paul Cook, Glen Matlock, Sid Vicious"],["Manager","Malcolm McLaren"],["Labels","EMI, A&M, Virgin"]],
 genres:{n:"Rock",c:[{n:"Punk rock"}]},
 bio:["The Sex Pistols formed in London in 1975, managed by Malcolm McLaren. Swearing live on Bill Grundy’s TV show in December 1976 made them a national scandal, and both EMI and A&M dropped them.","“God Save the Queen” (1977), released during the Queen’s Silver Jubilee, was banned by the BBC and called the most heavily censored record in British history. Never Mind the Bollocks, Here’s the Sex Pistols went to number one in the UK in October 1977.","Johnny Rotten announced the break-up on stage at their last US show in January 1978, and Sid Vicious died in 1979. The others reunited for tours from 1996. They were inducted into the Rock and Roll Hall of Fame in 2006 but refused to attend."],
@@ -1906,7 +1909,7 @@ trivia:["Steve Jones nicknamed John Lydon “Johnny Rotten” because of his tee
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Sex_Pistols">Wikipedia: Sex Pistols</a>, available under CC BY-SA 4.0.'
 },
 "the-strokes":{
-name:"The Strokes",real:"Julian Casablancas, Nick Valensi, Albert Hammond Jr., Nikolai Fraiture and Fabrizio Moretti",
+name:"The Strokes",real:"Julian Casablancas, Nick Valensi, Albert Hammond Jr., Nikolai Fraiture and Fabrizio Moretti",pic:"assets/artists-or-bands/the-strokes-band-image.jpg",
 facts:[["Formed","1998, New York City"],["Active","1998–present"],["Members","Julian Casablancas, Nick Valensi, Albert Hammond Jr., Nikolai Fraiture, Fabrizio Moretti"],["Grammy","Best Rock Album, The New Abnormal (2021)"],["Labels","Rough Trade, RCA, Cult"]],
 genres:{n:"Rock",c:[{n:"Indie rock"},{n:"Garage rock"},{n:"Post-punk revival"}]},
 bio:["Julian Casablancas, Nick Valensi and Fabrizio Moretti began playing together at Dwight School in Manhattan, and the Strokes played their first show in September 1999. The Modern Age EP started a bidding war among labels.","Is This It (2001) was widely acclaimed and helped lead the garage rock revival. Room on Fire (2003) and First Impressions of Earth (2006) sold well before the band took a break from about 2007.","They returned with Angles (2011) and Comedown Machine (2013). The New Abnormal (2020), produced by Rick Rubin, won the Grammy for Best Rock Album, and Reality Awaits followed in 2026."],
@@ -1915,7 +1918,7 @@ src:'Text adapted from <a href="https://en.wikipedia.org/wiki/The_Strokes">Wikip
 },
 /* Hip-hop */
 "public-enemy":{
-name:"Public Enemy",real:"Chuck D and Flavor Flav, with the Bomb Squad",
+name:"Public Enemy",real:"Chuck D and Flavor Flav, with the Bomb Squad",pic:"assets/artists-or-bands/public-enemy-artist-image.jpg",
 facts:[["Formed","1985, Long Island, New York"],["Active","1985–present"],["Key members","Chuck D, Flavor Flav, Terminator X, Professor Griff"],["Producers","The Bomb Squad"],["Labels","Def Jam, Columbia, PIAS"]],
 genres:{n:"Hip-hop",c:[{n:"Political hip-hop"},{n:"East Coast hip-hop"}]},
 bio:["Public Enemy was formed on Long Island in 1985 by Chuck D and Flavor Flav, with production by the Bomb Squad. Their debut, Yo! Bum Rush the Show, came out on Def Jam in 1987.","It Takes a Nation of Millions to Hold Us Back (1988) was the first hip-hop album voted album of the year in The Village Voice’s critics’ poll. “Fight the Power” became the theme of Spike Lee’s film Do the Right Thing, and Fear of a Black Planet (1990) was later added to the US National Recording Registry.","The group joined the Rock and Roll Hall of Fame in 2013 and received a Grammy Lifetime Achievement Award."],
@@ -1923,7 +1926,7 @@ trivia:["Chuck D’s early tape Public Enemy #1 was partly made to answer a loca
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Public_Enemy">Wikipedia: Public Enemy</a>, available under CC BY-SA 4.0.'
 },
 "a-tribe-called-quest":{
-name:"A Tribe Called Quest",real:"Q-Tip, Phife Dawg, Ali Shaheed Muhammad and Jarobi White",
+name:"A Tribe Called Quest",real:"Q-Tip, Phife Dawg, Ali Shaheed Muhammad and Jarobi White",pic:"assets/artists-or-bands/A-Tribe-Called-Quest-artist-image.jpg",
 facts:[["Formed","1985, Queens, New York"],["Members","Q-Tip, Phife Dawg, Ali Shaheed Muhammad, Jarobi White"],["Collective","Native Tongues"],["Hall of Fame","Rock and Roll Hall of Fame, 2024"],["Labels","Jive, Epic"]],
 genres:{n:"Hip-hop",c:[{n:"Jazz rap"},{n:"Alternative hip-hop"}]},
 bio:["A Tribe Called Quest formed in Queens in 1985 and were founding members of the Native Tongues collective. Their debut, People’s Instinctive Travels and the Paths of Rhythm (1990), was the first album to get five mics from The Source.","The Low End Theory (1991) and Midnight Marauders (1993) followed. Beats, Rhymes and Life (1996) was their first US number one, and they called The Love Movement (1998) their final album.","They reunited in 2006. Phife Dawg died in March 2016, months before We Got It from Here… Thank You 4 Your Service went to number one. They played their last concert in 2017 and joined the Rock and Roll Hall of Fame in 2024."],
@@ -1931,7 +1934,7 @@ trivia:["The Jungle Brothers, who went to the same high school as Q-Tip, came up
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/A_Tribe_Called_Quest">Wikipedia: A Tribe Called Quest</a>, available under CC BY-SA 4.0.'
 },
 "de-la-soul":{
-name:"De La Soul",real:"Posdnuos, Trugoy the Dove and Maseo",
+name:"De La Soul",real:"Posdnuos, Trugoy the Dove and Maseo",pic:"assets/artists-or-bands/De-La-Soul-artist-image.jpg",
 facts:[["Formed","1988, Amityville, Long Island, New York"],["Members","Posdnuos, Maseo; Trugoy the Dove (died 2023)"],["Producer","Prince Paul (early albums)"],["Collective","Native Tongues"],["Labels","Tommy Boy, Sanctuary, Mass Appeal and more"]],
 genres:{n:"Hip-hop",c:[{n:"Jazz rap"},{n:"Alternative hip-hop"}]},
 bio:["De La Soul formed on Long Island in 1988. Their debut, 3 Feet High and Rising (1989), produced with Prince Paul, is their biggest success, and “Me Myself and I” was a hit.","De La Soul Is Dead (1991) was darker and later became a cult classic. They won their first Grammy in 2006 for “Feel Good Inc.” with Gorillaz.","For years their early albums were missing from streaming services because of sample clearances. Trugoy the Dove died in 2023, and that March their first six albums finally arrived on streaming."],
@@ -1939,7 +1942,7 @@ trivia:["Their names are wordplay: Trugoy is “yogurt” backwards, and Posdnuo
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/De_La_Soul">Wikipedia: De La Soul</a>, available under CC BY-SA 4.0.'
 },
 "nas":{
-name:"Nas",real:"Nasir bin Olu Dara Jones",
+name:"Nas",real:"Nasir bin Olu Dara Jones",pic:"assets/artists-or-bands/Nas-artist-image.jpg",
 facts:[["Born","14 September 1973, Brooklyn, New York"],["Active","1989–present"],["Debut album","Illmatic (1994)"],["Grammy","Best Rap Album, King’s Disease (2021)"],["Labels","Columbia, Def Jam, Mass Appeal and more"]],
 genres:{n:"Hip-hop",c:[{n:"East Coast hip-hop"},{n:"Boom bap"}]},
 bio:["Nas made his recording debut in 1991 on Main Source’s “Live at the Barbeque” and signed with Columbia in 1992. His debut album, Illmatic (1994), is now in the US National Recording Registry.","It Was Written (1996) went to number one in the US. His long feud with Jay-Z peaked with “Ether” on Stillmatic (2001), seen as a career revival, and in 2006 he signed to Def Jam, then run by Jay-Z.","King’s Disease (2020), the first of a series produced by Hit-Boy, won him his first Grammy. In 2025 he released Light-Years with DJ Premier. He also co-founded Mass Appeal Records."],
@@ -1947,7 +1950,7 @@ trivia:["He met producer Large Professor at 16 in a studio where Rakim and Kool 
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Nas">Wikipedia: Nas</a>, available under CC BY-SA 4.0.'
 },
 "dr-dre":{
-name:"Dr. Dre",real:"Andre Romell Young",
+name:"Dr. Dre",real:"Andre Romell Young",pic:"assets/artists-or-bands/dr-dre-artist-image.jpg",
 facts:[["Born","18 February 1965, Compton, California"],["Active","1984–present"],["Groups","World Class Wreckin’ Cru, N.W.A"],["Labels founded","Death Row (co-founder), Aftermath"],["Labels","Ruthless, Death Row, Aftermath, Interscope"]],
 genres:{n:"Hip-hop",c:[{n:"West Coast hip-hop"},{n:"G-funk"}]},
 bio:["Dr. Dre started with the World Class Wreckin’ Cru in 1984 and in 1987 formed N.W.A with Eazy-E and Ice Cube. Their album Straight Outta Compton (1989) is credited with popularising gangsta rap.","He left N.W.A in 1991 and co-founded Death Row Records. His solo album The Chronic (1992) made him one of the best-selling artists of 1993 and won him a Grammy. In 1996 he founded Aftermath, which signed Eminem in 1998 and 50 Cent in 2002, and later Kendrick Lamar.","His second album, 2001 (1999), went to number two in the US, and Compton followed in 2015. Apple bought his Beats company for $3.4 billion in 2014, and his 2022 Super Bowl halftime show won an Emmy."],
@@ -1955,7 +1958,7 @@ trivia:["His name comes from “Dr. J”, the nickname of his favourite basketba
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Dr._Dre">Wikipedia: Dr. Dre</a>, available under CC BY-SA 4.0.'
 },
 "wu-tang-clan":{
-name:"Wu-Tang Clan",real:"RZA, GZA, Method Man, Raekwon, Ghostface Killah, Inspectah Deck, U-God, Masta Killa, Ol’ Dirty Bastard and Cappadonna",
+name:"Wu-Tang Clan",real:"RZA, GZA, Method Man, Raekwon, Ghostface Killah, Inspectah Deck, U-God, Masta Killa, Ol’ Dirty Bastard and Cappadonna",pic:"assets/artists-or-bands/Wu-Tang-Clan-artist-image.jpg",
 facts:[["Formed","1992, Staten Island, New York"],["Leader and producer","RZA"],["Members","RZA, GZA, Method Man, Raekwon, Ghostface Killah, Inspectah Deck, U-God, Masta Killa, Cappadonna"],["Late member","Ol’ Dirty Bastard (died 2004)"],["Labels","Loud, RCA, Asylum, Warner Bros. and more"]],
 genres:{n:"Hip-hop",c:[{n:"East Coast hip-hop"},{n:"Hardcore hip-hop"}]},
 bio:["Wu-Tang Clan came together in Staten Island in 1992, led by producer RZA. Their debut, Enter the Wu-Tang (36 Chambers) (1993), was released by Loud/RCA under a deal that let each member sign solo contracts with other labels, which led to a wave of solo albums from 1994 to 1996.","Wu-Tang Forever (1997) went to number one in the US and was nominated for a Grammy. Ol’ Dirty Bastard died in 2004.","Later albums include The W, 8 Diagrams and A Better Tomorrow (2014). In 2015 they made a single copy of Once Upon a Time in Shaolin. Their final tour ended in Philadelphia in July 2025."],
@@ -1963,7 +1966,7 @@ trivia:["The only copy of Once Upon a Time in Shaolin sold for $2 million, the m
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Wu-Tang_Clan">Wikipedia: Wu-Tang Clan</a>, available under CC BY-SA 4.0.'
 },
 "kendrick-lamar":{
-name:"Kendrick Lamar",real:"Kendrick Lamar Duckworth",
+name:"Kendrick Lamar",real:"Kendrick Lamar Duckworth",pic:"assets/artists-or-bands/kendrick-lamar-artist-image.jpg",
 facts:[["Born","17 June 1987, Compton, California"],["Active","2003–present"],["Pulitzer Prize","Music, 2018, for DAMN."],["Grammys","27, the most for any rapper"],["Labels","Top Dawg, Aftermath, Interscope, pgLang"]],
 genres:{n:"Hip-hop",c:[{n:"West Coast hip-hop"},{n:"Conscious hip-hop"},{n:"Jazz rap"}]},
 bio:["Kendrick Lamar rapped as K.Dot in high school and signed with Top Dawg Entertainment in 2005. After his debut Section.80 (2011), good kid, m.A.A.d city (2012), his first major-label album, was widely acclaimed.","To Pimp a Butterfly (2015) was his first US number one. DAMN. (2017) won the 2018 Pulitzer Prize for Music, and he curated the Black Panther soundtrack. In 2020 he co-founded the creative company pgLang.","In 2024 his song “Not Like Us” and the album GNX came out of a feud with Drake; “Not Like Us” won five Grammys, including Record of the Year. He headlined the Super Bowl halftime show in 2025."],
@@ -1972,7 +1975,7 @@ src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Kendrick_Lamar">Wi
 },
 /* Blues */
 "junior-wells":{
-name:"Junior Wells",real:"Amos Wells Blakemore Jr.",
+name:"Junior Wells",real:"Amos Wells Blakemore Jr.",pic:"assets/artists-or-bands/junior-wells-artist-image.jpg",
 facts:[["Born","9 December 1934, Memphis, Tennessee"],["Died","15 January 1998, Chicago, Illinois"],["Instrument","Harmonica, vocals"],["Partner","Buddy Guy"],["Labels","States, Chief, Delmark and more"]],
 genres:{n:"Blues",c:[{n:"Chicago blues"}]},
 bio:["Junior Wells learned harmonica as a child from his cousin Junior Parker and Sonny Boy Williamson II, and moved to Chicago with his mother in 1948. In 1952 he replaced Little Walter in Muddy Waters’s band.","On Chief Records he cut his signature song, “Messin’ with the Kid”. Hoodoo Man Blues (1965), made for Delmark with Buddy Guy on guitar, is called one of the classic blues albums of the 1960s, and the two later worked together on several projects.","Touring with the Rolling Stones in the 1970s brought him to rock audiences. He died in Chicago in 1998."],
@@ -1980,7 +1983,7 @@ trivia:["He bought his first harmonica for $2.00 with money from working on a so
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Junior_Wells">Wikipedia: Junior Wells</a>, available under CC BY-SA 4.0.'
 },
 "john-mayall":{
-name:"John Mayall",real:"John Brumwell Mayall",
+name:"John Mayall",real:"John Brumwell Mayall",pic:"assets/artists-or-bands/john-mayall-artist-image.jpg",
 facts:[["Born","29 November 1933, Macclesfield, England"],["Died","22 July 2024, California, aged 90"],["Band","John Mayall & the Bluesbreakers"],["Instruments","Vocals, keyboards, guitar, harmonica"],["Labels","Decca, Polydor, ABC, Eagle and more"]],
 genres:{n:"Blues",c:[{n:"British blues"},{n:"Blues rock"}]},
 bio:["John Mayall led John Mayall & the Bluesbreakers, who played London’s Marquee Club from late 1963. Blues Breakers with Eric Clapton (1966) was his breakthrough, reaching number 6 in the UK.","Many later stars passed through the Bluesbreakers, among them Peter Green, John McVie, Mick Fleetwood and Mick Taylor all passed through. The Turning Point (1969) was recorded live at the Fillmore East.","He was made an OBE in 2005, joined the Rock and Roll Hall of Fame in 2024, and died that year aged 90."],
@@ -1988,7 +1991,7 @@ trivia:["“Clapton is God” graffiti appeared in London while Clapton was in h
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/John_Mayall">Wikipedia: John Mayall</a>, available under CC BY-SA 4.0.'
 },
 "albert-king":{
-name:"Albert King",real:"Born Albert Nelson",
+name:"Albert King",real:"Born Albert Nelson",pic:"assets/artists-or-bands/albert-king-artist-image.jpg",
 facts:[["Born","25 April 1923, Indianola, Mississippi"],["Died","21 December 1992, Memphis, Tennessee"],["Guitar","A Flying V he called “Lucy”"],["Nickname","The Velvet Bulldozer"],["Labels","Bobbin, King, Stax, Atlantic"]],
 genres:{n:"Blues",c:[{n:"Electric blues"},{n:"Rhythm and blues"}]},
 bio:["Albert King was left-handed and played right-handed guitars turned upside down, which shaped his sound. In 1953 he took the name Albert King and was billed as B.B. King’s brother, though they were probably not related.","At Stax Records he recorded with Booker T. & the MG’s, and Born Under a Bad Sign (1967) became his best-known album; Cream and Jimi Hendrix covered its title track. His 1968 shows at the Fillmore in San Francisco produced several live albums.","Stevie Ray Vaughan named him a major influence, and Eric Clapton said he inspired Cream’s Disraeli Gears. King joined the Blues Hall of Fame in 1983 and, after his death, the Rock and Roll Hall of Fame in 2013."],
