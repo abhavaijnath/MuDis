@@ -2,7 +2,7 @@
 <title>MuDis Prototype</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
-/* Layout: one shell (search, MuDis, Path Map, Note it) that swaps between the genre-column home (L00) and a genre page (L01). Colour darkens with trail depth, as in the original two files. Single look by choice: greys only. */
+/* Layout: one shell (search, MuDis, Trail, Note it) that swaps between the genre-column home (L00) and a genre page (L01). Colour darkens with trail depth, as in the original two files. Single look by choice: greys only. */
 :root{--bg:#fff;--fg:#111;--gut:36px;--line:rgba(17,17,17,.3);color-scheme:light}
 :root[data-level="1"]{--bg:#dcdcda;--line:rgba(17,17,17,.3)}
 :root[data-level="2"]{--bg:#a8a8a6}
@@ -41,7 +41,7 @@ html:not([data-view="home"]) .ptype{display:block}
 .panel.open{display:block}
 .panel h2{margin:0 0 6px;font-size:15px;font-weight:600}
 .panel p{margin:0 0 12px}
-/* Path Map page: headline, stats, pannable/zoomable trail tree, actions. Background stays the colour of the level you opened it from. */
+/* Trail page (was Path Map): headline, stats, pannable/zoomable trail tree, actions. Background stays the colour of the level you opened it from. */
 .mkick{margin:34px 0 14px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;opacity:.75}
 .mhead{margin:0 0 0 -3px;max-width:15em;font-weight:500;font-size:clamp(36px,6vw,84px);letter-spacing:-.045em;line-height:1}
 .mhead em{font-style:italic;font-weight:400}
@@ -78,6 +78,9 @@ html:not([data-view="home"]) .ptype{display:block}
 .macts button.main{background:var(--fg);color:var(--bg)}
 @media (max-width:700px){.mstats{gap:12px}.mhint{display:none}}
 textarea{width:100%;height:130px;resize:vertical;padding:8px;border:1px solid var(--fg);background:transparent;font-size:14px}
+/* "Note it": the writing area is a yellow sticky note; its border still follows the level colour */
+#notes{background:#fbe48c;color:#111}
+#notes::placeholder{color:#111;opacity:.55}
 .rail{flex:1;display:flex;gap:22px;align-items:flex-start;padding:30px max(var(--gut),env(safe-area-inset-right,0px)) 24px max(var(--gut),env(safe-area-inset-left,0px));overflow:auto;scrollbar-width:none}
 .rail::-webkit-scrollbar{display:none}
 .col{--w:clamp(190px,17vw,250px);flex:none;width:var(--w)}
@@ -110,8 +113,15 @@ textarea{width:100%;height:130px;resize:vertical;padding:8px;border:1px solid va
 .cb strong{font-size:20px;font-weight:500;letter-spacing:-.02em;line-height:1.05}
 .bar{display:flex;align-items:center;gap:22px;padding:12px max(var(--gut),env(safe-area-inset-right,0px)) 24px max(var(--gut),env(safe-area-inset-left,0px));font-size:12.5px}
 .scroll{display:flex;align-items:center;gap:16px;flex:1;min-width:0}
-.arrows{display:flex;gap:6px}
-.arrows button{width:28px;height:28px;border:1px solid var(--fg);border-radius:50%;background:none;line-height:1}
+/* Keyboard-key buttons (previous / next genres, Surprise me): each key is cut clean from its picture and swaps to its own pressed picture while held or clicked. The drop shadow is drawn here, and gets tighter when the key is down. */
+.arrows{display:flex;gap:6px;align-items:flex-end}
+.key{position:relative;display:block;height:52px;padding:0;border:0;background:none;line-height:0;filter:drop-shadow(0 4px 5px rgba(0,0,0,.28)) drop-shadow(0 1px 1px rgba(0,0,0,.25));transition:filter .08s}
+.key img{display:block;height:100%;width:auto;pointer-events:none;user-select:none}
+.key .kd{position:absolute;left:0;top:0;visibility:hidden}
+.key:active .ku,.key.press .ku{visibility:hidden}
+.key:active .kd,.key.press .kd{visibility:visible}
+.key:active,.key.press{filter:drop-shadow(0 2px 3px rgba(0,0,0,.28)) drop-shadow(0 1px 1px rgba(0,0,0,.25))}
+.key:focus-visible{outline:2px solid var(--fg);outline-offset:3px;border-radius:12px}
 .credit{opacity:.75;text-align:right}
 .wrap{max-width:1180px;width:100%;margin:0 auto;padding:0 max(var(--gut),env(safe-area-inset-right,0px)) 0 max(var(--gut),env(safe-area-inset-left,0px));flex:1}
 h1{margin:34px 0 8px -6px;font-weight:500;font-size:clamp(52px,13vw,176px);letter-spacing:-.055em;line-height:.9;overflow-wrap:anywhere}
@@ -287,7 +297,9 @@ html:not([data-view="home"]) .lr-open{display:none}
 /* The player: as big as the screen height allows (the info lines and the Album of the day button take ~92px under it) */
 .lr-stage{position:relative;flex:none;width:min(calc(100vw - 32px - 80px - 24px - 220px),calc((100vh - 32px - 40px - 92px) * 760 / 595));aspect-ratio:760/595}
 .lr-frame{position:absolute}
-.lr-tt{position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:multiply;pointer-events:none;user-select:none}
+.lr-tt{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;user-select:none}
+/* room colour #dcdcda; the turntable is a cut-out with its own soft shadow, so it keeps its cream colour on any background */
+.lr-shh{position:absolute;right:28px;bottom:20px;z-index:25;margin:0;font-family:Helvetica,"Nimbus Sans",Arial,sans-serif;font-weight:700;font-size:15px;color:#000;pointer-events:none}
 .lr-arm{position:absolute;z-index:18;height:auto;max-width:none;pointer-events:none;user-select:none;transition:transform .9s cubic-bezier(.45,0,.25,1)}
 .lr-rec{position:absolute;z-index:15;border-radius:50%;box-shadow:5px 9px 16px rgba(0,0,0,.35);visibility:hidden;will-change:transform}
 .lr-rec.on{visibility:visible}
@@ -298,8 +310,8 @@ html:not([data-view="home"]) .lr-open{display:none}
 .lr-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .lr-hole{position:absolute;left:50%;top:50%;border-radius:50%;background:#f3f3f1;transform:translate(-50%,-50%);box-shadow:inset 0 1px 2px rgba(0,0,0,.35)}
 /* Start / Stop: real buttons over the two knobs in the image, with their names printed on the knob */
-.lr-ctl{position:absolute;z-index:19;display:grid;place-items:center;padding:0;border:0;border-radius:50%;background:transparent;color:#111;font-size:12px;line-height:1;transform:translate(-50%,-50%);transition:transform .12s,background .12s,box-shadow .12s}
-.lr-ctl:active,.lr-ctl.press{transform:translate(-50%,-50%) scale(.93);background:rgba(0,0,0,.12);box-shadow:inset 0 2px 5px rgba(0,0,0,.35)}
+.lr-ctl{position:absolute;z-index:19;display:grid;place-items:center;padding:0;border:0;border-radius:50%;background:#f07a1e;mix-blend-mode:multiply;color:#111;font-size:12px;line-height:1;transform:translate(-50%,-50%);transition:transform .12s,background .12s,box-shadow .12s}
+.lr-ctl:active,.lr-ctl.press{transform:translate(-50%,-50%) scale(.93);background:#d8661a;box-shadow:inset 0 2px 5px rgba(0,0,0,.35)}
 .lr-ctl[aria-pressed="true"]{box-shadow:inset 0 1px 4px rgba(0,0,0,.3)}
 .lr-ctl:focus-visible{outline:2px solid #111;outline-offset:3px}
 .lr-now,.lr-time{margin:0;font-size:13px;text-align:center}
@@ -318,7 +330,7 @@ html:not([data-view="home"]) .lr-open{display:none}
 <header class="top">
   <div class="left">
     <label class="pill search"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.7"/><path d="M10 10l4.5 4.5"/></svg><input id="q" type="search" placeholder="Search genre, artist, album" aria-label="Search genre, artist or album"></label>
-    <button class="pill lr-open" id="lrOpen" type="button" aria-haspopup="dialog">Listening session</button>
+    <button class="pill lr-open" id="lrOpen" type="button" aria-haspopup="dialog">Listening Room</button>
     <nav class="navb" aria-label="Page navigation">
       <button class="ib" id="backBtn" type="button" aria-label="Back to the previous page" title="Back"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 8H2.5M7 3.5L2.5 8 7 12.5"/></svg></button>
       <button class="ib" id="homeBtn" type="button" aria-label="Home, all genres" title="Home"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 7.5L8 2.5l5.5 5M4 6.5v7h8v-7"/></svg></button>
@@ -326,7 +338,7 @@ html:not([data-view="home"]) .lr-open{display:none}
   </div>
   <div class="brand"><a href="#home" id="brandLink">MuDis</a><span class="ptype" id="ptype"></span><p>Pick a genre. Follow the trail down.</p></div>
   <div class="right">
-    <button class="pill" id="pmBtn" type="button" aria-expanded="false" aria-controls="map"><span id="pmTxt">Path Map</span><span id="lvl">L 00</span></button>
+    <button class="pill" id="pmBtn" type="button" aria-expanded="false" aria-controls="map"><span id="pmTxt">Trail</span><span id="lvl">L 00</span></button>
     <button class="pill" id="ntBtn" type="button" aria-expanded="false" aria-controls="nt"><span>Note it</span></button>
   </div>
   <div class="panel" id="nt">
@@ -339,8 +351,8 @@ html:not([data-view="home"]) .lr-open{display:none}
 <main class="rail" id="rail" tabindex="0" aria-label="Genres, scroll sideways"></main>
 <footer class="bar" id="homeBar">
   <div class="scroll">
-    <div class="arrows"><button type="button" id="prev" aria-label="Previous genres">‹</button><button type="button" id="next" aria-label="Next genres">›</button></div>
-    <button class="pill" type="button" id="surprise">Surprise me</button>
+    <div class="arrows"><button class="key" type="button" id="prev" aria-label="Previous genres"><img class="ku" src="assets/buttons/key-prev-up.png" alt=""><img class="kd" src="assets/buttons/key-prev-down.png" alt=""></button><button class="key" type="button" id="next" aria-label="Next genres"><img class="ku" src="assets/buttons/key-next-up.png" alt=""><img class="kd" src="assets/buttons/key-next-down.png" alt=""></button></div>
+    <button class="key" type="button" id="surprise" aria-label="Surprise me"><img class="ku" src="assets/buttons/key-surprise-up.png" alt=""><img class="kd" src="assets/buttons/key-surprise-down.png" alt=""></button>
   </div>
   <span class="credit">Cover art from Spotify. Text from Wikipedia, CC BY-SA 4.0.</span>
 </footer>
@@ -349,16 +361,17 @@ html:not([data-view="home"]) .lr-open{display:none}
 <div class="wrap" id="album" hidden></div>
 <div class="wrap" id="map" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
-<!-- Listening Room: opens over Home from the "Listening session" pill -->
+<!-- Listening Room: opens over Home from the "Listening Room" pill -->
 <div class="lr" id="lr" role="dialog" aria-modal="true" aria-labelledby="lrTitle" hidden>
   <div class="lr-panel">
-    <h2 class="lr-h" id="lrTitle">Listening session</h2>
+    <h2 class="lr-h" id="lrTitle">Listening Room</h2>
+    <p class="lr-shh" aria-hidden="true">shhh...</p>
     <button class="ib lr-close" id="lrClose" type="button" aria-label="Close the listening session" title="Close (Esc)"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></button>
     <div class="lr-stack" id="lrStack" role="group" aria-roledescription="wheel" aria-label="Today’s records. Scroll, or use the up and down arrow keys, to turn the wheel; the record in the middle can be played"></div>
     <div class="lr-right">
       <div class="lr-stage" id="lrStage">
         <div class="lr-frame" id="lrFrame">
-          <img class="lr-tt" src="assets/listening-room/turntable-without-arm.png" alt="">
+          <img class="lr-tt" src="assets/listening-room/turntable-cutout.png" alt="">
           <div class="lr-rec" id="lrRec"><div class="lr-disc" id="lrDisc"><img id="lrVinyl" src="assets/listening-room/placeholder-vinyl-image.png" alt=""><span class="lr-art" id="lrArt"></span><span class="lr-hole" id="lrHole"></span></div></div>
           <img class="lr-arm" id="lrArm" src="assets/listening-room/players-arm-cutout.png" alt="">
           <button class="lr-ctl" id="lrStart" type="button" aria-label="Start the record" aria-pressed="false">Start</button>
@@ -557,10 +570,11 @@ rail.addEventListener("wheel",function(e){
   if(rail.scrollHeight>rail.clientHeight+2||Math.abs(e.deltaY)<Math.abs(e.deltaX))return;
   rail.scrollLeft+=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?rail.clientWidth:1);e.preventDefault();
 },{passive:false});
-document.getElementById("prev").onclick=function(){rail.scrollBy({left:-rail.clientWidth*.6,behavior:"smooth"})};
-document.getElementById("next").onclick=function(){rail.scrollBy({left:rail.clientWidth*.6,behavior:"smooth"})};
+function keyPress(b){b.classList.add("press");setTimeout(function(){b.classList.remove("press")},140)}
+document.getElementById("prev").onclick=function(){keyPress(this);rail.scrollBy({left:-rail.clientWidth*.6,behavior:"smooth"})};
+document.getElementById("next").onclick=function(){keyPress(this);rail.scrollBy({left:rail.clientWidth*.6,behavior:"smooth"})};
 var rm=matchMedia("(prefers-reduced-motion:reduce)").matches;
-document.getElementById("surprise").onclick=function(){
+document.getElementById("surprise").onclick=function(){keyPress(this);
   var c=cards[Math.floor(Math.random()*cards.length)];
   document.querySelectorAll(".pick").forEach(function(x){x.classList.remove("pick")});
   c.closest(".col").scrollIntoView({behavior:rm?"auto":"smooth",inline:"center",block:"nearest"});
@@ -2064,7 +2078,7 @@ function nodeSub(p){
   return "Artist page";
 }
 
-/* Path Map page */
+/* Trail page (was Path Map) */
 var mapOpen=false,mapY=0,MV={s:1,x:0,y:0};
 function pathKey(){return tkeys[tkeys.length-1]}
 function headline(){
@@ -2100,7 +2114,7 @@ function mapHTML(){
     nodes+='<button type="button" class="mn '+(on?"on":"off")+(k===ck?" cur":"")+'" data-key="'+esc(k)+'" style="left:'+(n.x-6)+'px;top:'+(n.y-7)+'px"'+(k===ck?' aria-current="page"':'')+'><i></i><small>'+(n.d?pad(n.d)+' · '+VIEWN[n.page.view]+(n.side?' · Sideways':''):'Start')+'</small><b>'+esc(n.page.name)+'</b><span>'+esc(nodeSub(n.page))+'</span></button>';
   });
   var lvl=trail.length-1;
-  return '<p class="mkick">Path map · so far</p><h1 class="mhead">'+headline()+'</h1>'
+  return '<p class="mkick">Trail · so far</p><h1 class="mhead">'+headline()+'</h1>'
   +'<div class="mstats"><div><b>'+two(lvl)+'</b><span>Levels down</span></div><div><b>'+two(Object.keys(seen).length)+'</b><span>Pages read</span></div><div><b>'+two(sideways)+'</b><span>Sideways turns</span></div></div>'
   +'<div class="mview" id="mview" aria-label="Map of every page you have opened. Drag to move around."><div class="mworld" id="mworld" style="width:'+ww+'px;height:'+wh+'px"><svg width="'+ww+'" height="'+wh+'" aria-hidden="true">'+lines+'</svg>'+nodes+'</div>'
   +'<p class="mhint">Drag to pan · Ctrl or ⌘ + scroll to zoom · Click a page to open it</p>'
@@ -2146,8 +2160,8 @@ function mapWire(){
 function openMap(){
   mapOpen=true;mapY=scrollY;closeAll();stopFloat();
   rail.hidden=true;document.getElementById("homeBar").hidden=true;document.getElementById("disc").hidden=true;gp.hidden=true;ap.hidden=true;mp.hidden=false;
-  root.dataset.view="map";pmTxt.textContent="Close map";lab.textContent="✕";pb.setAttribute("aria-expanded","true");
-  document.getElementById("ptype").textContent="Path map";document.title="Path map · MuDis";
+  root.dataset.view="map";pmTxt.textContent="Close trail";lab.textContent="✕";pb.setAttribute("aria-expanded","true");
+  document.getElementById("ptype").textContent="Trail";document.title="Trail · MuDis";
   mp.innerHTML=mapHTML();window.scrollTo(0,0);mapWire();
   mapFit();if(MV.s<.6){MV.s=.8;mapYou()}
 }
@@ -2179,7 +2193,7 @@ function route(){
   else if(trail.length>1&&(side||(page.view==="song"&&cur&&cur.view==="song"&&cur.alb===page.alb)))stepSideways(page);
   else stepDeeper(page);
   cur=page;var lvl=trail.length-1;if(cur.view!=="home")seen[cur.id]=1;remember();
-  mapOpen=false;mp.hidden=true;mp.innerHTML="";pmTxt.textContent="Path Map";pb.setAttribute("aria-expanded","false");
+  mapOpen=false;mp.hidden=true;mp.innerHTML="";pmTxt.textContent="Trail";pb.setAttribute("aria-expanded","false");
   root.dataset.level=Math.min(lvl,5);root.dataset.view=page.view;
   lab.textContent=pad(lvl);
   document.getElementById("ptype").textContent=page.view==="home"?"":VIEWN[page.view];
