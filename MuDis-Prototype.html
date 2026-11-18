@@ -468,6 +468,11 @@ var LR_SET={
    Track start times are not typed in: they are calculated by adding up the track lengths in the album data, starting at 0
    (see lrTracks below, which gives every track a `start` field). They are estimates; check them by listening.
    offsets: nudge a track's start, in seconds, by track number (1-based). Negative = earlier, positive = later. */
+/* LR_FULL_ALBUM: false = every album in the Listening Room plays Apple's 30-second samples, track after track (same on any computer).
+   true = albums listed in LR_AUDIO below play their full-album file instead (only works where that file exists, e.g. your laptop). */
+var LR_FULL_ALBUM=false;
+/* Albums Apple has no samples for: kept off the Listening Room wheel so every sleeve plays sound */
+var LR_NO_SAMPLE=["endtroducing","switched-on-bach"];
 var LR_AUDIO={
   "random-access-memories":{
     src:"assets/audio/Daft-Punk-Random-Access-Memories.mp3",
@@ -2621,25 +2626,48 @@ function lrTracks(key){
     sum+=len;return tr;
   });
 }
-function lrHasAudio(key){return !!LR_AUDIO[key]}
+function lrHasAudio(key){return LR_FULL_ALBUM&&!!LR_AUDIO[key]}
 /* Which track is playing at time `sec`: the last track whose start is at or before it */
 function lrTrackAt(sec){var i=0;LRA.tracks.forEach(function(t,j){if(sec>=t.start)i=j});return LRA.tracks[i]}
 /* Called when a record is put on the platter: point the audio element at that album's file (or nothing) */
 function lrPrepare(key){
   var el=LRA.el;if(!el)return;
-  el.pause();LRA.key=key;LRA.missing=false;
-  if(!lrHasAudio(key)){el.removeAttribute("src");el.load();LRA.tracks=[];LRA.total=0;return}
+  el.pause();LRA.key=key;LRA.missing=false;LRA.mode=lrHasAudio(key)?"full":"sample";
+  if(!lrHasAudio(key)){
+    el.removeAttribute("src");el.load();LRA.tracks=[];LRA.total=0;
+    /* sample mode: fetch the album's 30-second samples from Apple now, so Start plays straight away */
+    LRA.sm={list:null,idx:0,status:"Loading samples…",want:false};
+    pvAlbum(key,function(list){
+      if(LRA.key!==key)return;
+      var ok=list&&list.some(function(s){return s&&s.previewUrl});
+      LRA.sm.list=ok?list:null;LRA.sm.status=ok?"":(list?"No samples for this album":"Samples need an internet connection");
+      if(ok)LRA.sm.idx=lrNextSample(0);
+      if(ok&&LRA.sm.want){LRA.sm.want=false;lrPlaySample()}
+      if(LRA.onTick)LRA.onTick();
+    });
+    return;
+  }
   LRA.tracks=lrTracks(key);LRA.total=LRA.tracks.reduce(function(s,t){return s+t.len},0);
   var src=LR_AUDIO[key].src;
   if(el.getAttribute("src")!==src){el.setAttribute("src",src);el.preload="metadata";el.load()}else el.currentTime=0;
 }
-function startPlayback(album){
-  var el=LRA.el,key=slug(album.title);
-  if(!el||!lrHasAudio(key)||LRA.missing)return;
-  if(LRA.key!==key)lrPrepare(key);
+/* Sample mode: the first track at or after i that has a sample (-1 if none) */
+function lrNextSample(i){var l=LRA.sm&&LRA.sm.list;if(!l)return -1;for(;i<l.length;i++)if(l[i]&&l[i].previewUrl)return i;return -1}
+function lrPlaySample(){
+  var el=LRA.el,sm=LRA.sm;if(!el||!sm||!sm.list)return;
+  if(sm.idx<0)sm.idx=lrNextSample(0);if(sm.idx<0)return;
+  var url=sm.list[sm.idx].previewUrl;
+  if(el.getAttribute("src")!==url){el.setAttribute("src",url);el.load()}
   var p=el.play();if(p&&p.catch)p.catch(function(){});
 }
-function stopPlayback(){if(LRA.el)LRA.el.pause()}
+function startPlayback(album){
+  var el=LRA.el,key=slug(album.title);if(!el)return;
+  if(LRA.key!==key)lrPrepare(key);
+  if(LRA.mode==="sample"){if(LRA.sm.list)lrPlaySample();else LRA.sm.want=true;return}
+  if(LRA.missing)return;
+  var p=el.play();if(p&&p.catch)p.catch(function(){});
+}
+function stopPlayback(){if(LRA.el)LRA.el.pause();if(LRA.sm)LRA.sm.want=false}
 (function(){
   var el=document.getElementById("lrAudio");if(!el)return;LRA.el=el;
   function tick(){if(LRA.onTick)LRA.onTick()}
@@ -2651,8 +2679,21 @@ function stopPlayback(){if(LRA.el)LRA.el.pause()}
     tick();
   });
   /* missing or unreadable file: say so quietly and keep everything else working */
-  el.addEventListener("error",function(){if(el.getAttribute("src")){LRA.missing=true;tick()}});
-  el.addEventListener("ended",tick);
+  el.addEventListener("error",function(){
+    if(!el.getAttribute("src"))return;
+    /* a sample that won't play: skip to the next track's sample */
+    if(LRA.mode==="sample"&&LRA.sm&&LRA.sm.list){var n=lrNextSample(LRA.sm.idx+1);if(n>=0){LRA.sm.idx=n;lrPlaySample()}else if(LRA.onEnd)LRA.onEnd();tick();return}
+    LRA.missing=true;tick();
+  });
+  el.addEventListener("ended",function(){
+    /* sample mode: go on to the next track's sample; after the last one the record spins down */
+    if(LRA.mode==="sample"&&LRA.sm&&LRA.sm.list){
+      var n=lrNextSample(LRA.sm.idx+1);
+      if(n>=0){LRA.sm.idx=n;lrPlaySample()}
+      else{LRA.sm.idx=lrNextSample(0);el.removeAttribute("src");el.load();if(LRA.onEnd)LRA.onEnd()}
+    }
+    tick();
+  });
 })();
 
 (function(){
@@ -2664,7 +2705,7 @@ function stopPlayback(){if(LRA.el)LRA.el.pause()}
   var spin={ang:0,vel:0,from:0,to:0,t0:0,dur:1,last:0,raf:0};
 
   /* ---- Which albums: Electronic albums only, picked by today's date so everyone sees the same six all day ---- */
-  var pool=Object.keys(ALB).filter(function(k){return ALB[k].genre==="Electronic"&&ALB[k].kind==="Album"}).sort();
+  var pool=Object.keys(ALB).filter(function(k){return ALB[k].genre==="Electronic"&&ALB[k].kind==="Album"&&LR_NO_SAMPLE.indexOf(k)<0}).sort();
   function dayNum(){var d=new Date();return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5)}
   function seeded(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
   function todays(){
@@ -2750,8 +2791,16 @@ function stopPlayback(){if(LRA.el)LRA.el.pause()}
   /* Albums with audio: the track at the audio's current time, and position / album length.
      Albums without audio (or a missing file): the album line, time listened, and a quiet "Audio not added yet". */
   function audioLive(){return cur&&lrHasAudio(cur)&&LRA.key===cur&&!LRA.missing}
+  /* Sample mode: which track is being sampled, and how far into its 30 seconds */
+  function sampleLive(){return cur&&LRA.key===cur&&LRA.mode==="sample"&&LRA.sm}
   function showTime(){
     if(!cur){time.textContent="";return}
+    if(sampleLive()){
+      var sm=LRA.sm,N=X[cur]&&X[cur].tracks?X[cur].tracks.length:0;
+      if(sm.status){time.textContent=sm.status;return}
+      var d=LRA.el.duration,dur=isFinite(d)&&d>0?d:30;
+      time.textContent="Sample · Track "+(sm.idx+1)+" of "+N+" · "+fmt(LRA.el.currentTime||0)+" / "+fmt(dur);return;
+    }
     if(audioLive()){
       var d=LRA.el.duration,len=isFinite(d)&&d>0?d:LRA.total;
       time.textContent=fmt(LRA.el.currentTime||0)+" / "+fmt(len);return;
@@ -2762,13 +2811,18 @@ function stopPlayback(){if(LRA.el)LRA.el.pause()}
   function showNow(){
     var pick=document.getElementById("lrPick");if(pick)pick.hidden=!!cur;
     if(!cur){now.textContent="";time.textContent="";lastTrack=null;return}
-    if(audioLive()&&LRA.tracks.length){
+    if(sampleLive()&&LRA.sm.list&&LRA.sm.idx>=0&&X[cur]){
+      var st=X[cur].tracks[LRA.sm.idx],tag=cur+"/"+LRA.sm.idx;
+      if(tag!==lastTrack){lastTrack=tag;now.textContent="Now playing: "+st[0]+" · "+ALB[cur].artist}
+    }else if(audioLive()&&LRA.tracks.length){
       var t=lrTrackAt(LRA.el.currentTime||0);
       if(t!==lastTrack){lastTrack=t;now.textContent="Now playing: "+t.title}
     }else{lastTrack=null;var a=ALB[cur];now.textContent="Now playing: "+a.title+", "+a.artist+", "+a.year}
     showTime();
   }
   LRA.onTick=function(){if(isOpen)showNow()};
+  /* after the last sample the record spins down, ready to play the album again from track 1 */
+  LRA.onEnd=function(){if(playing)stop()};
   function counting(){if(playing){var n=performance.now();listened+=(n-lastTick)/1000;lastTick=n;showTime()}}
 
   /* ---- Sleeve wheel ----
