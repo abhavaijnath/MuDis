@@ -133,6 +133,10 @@ textarea{width:100%;height:130px;resize:vertical;padding:8px;border:1px solid va
 .key.hk .kc svg{display:block}
 .key[aria-expanded="true"] .ku{visibility:hidden}
 .key[aria-expanded="true"] .kd{visibility:visible}
+/* Trail turns into an orange "Close trail" key (pressed in) while the trail map is open */
+.key .od{position:absolute;left:0;top:0;visibility:hidden}
+#pmBtn[aria-expanded="true"] .ku,#pmBtn[aria-expanded="true"] .kd{visibility:hidden}
+#pmBtn[aria-expanded="true"] .od{visibility:visible}
 .key[aria-expanded="true"]{filter:drop-shadow(0 2px 3px rgba(0,0,0,.28)) drop-shadow(0 1px 1px rgba(0,0,0,.25))}
 .key:active .kc,.key.press .kc,.key[aria-expanded="true"] .kc{transform:translateY(1px)}
 .credit{opacity:.75;text-align:right}
@@ -216,14 +220,15 @@ html.intro .sleeve{display:flex}
 .sleeve .sw{font-weight:400;letter-spacing:-.03em}
 .sleeve .sm{font-weight:500;letter-spacing:-.05em}
 .dwrap{position:absolute;left:0;top:0;border-radius:50%;box-shadow:0 30px 52px -16px rgba(0,0,0,.55),0 6px 14px rgba(0,0,0,.16)}
-.rec{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;background:#0c0c0c url("assets/Intro-assets/Vinyl_reference_jpeg.jpg") center/106.4% no-repeat}
-.rec span{color:#111;font-weight:500;letter-spacing:-.04em;line-height:1;text-align:center;display:grid;place-items:center;width:33%;aspect-ratio:1;border-radius:50%;background:#c7cbac}
+.rec{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;background:#0c0c0c url("assets/Intro-assets/Vinyl_reference_jpeg.jpg") center/109% no-repeat}
+.rec span{color:#111;font-weight:500;letter-spacing:-.04em;line-height:1;text-align:center;display:grid;place-items:center;width:35%;aspect-ratio:1;border-radius:50%;background:#c7cbac}
 /* Text that can sit over the black record on Home flips to white there */
 html[data-view="home"] :is(.brand a,.brand p,.gname,.credit){color:#fff;mix-blend-mode:difference}
 html:not(.intro) :is(.search,.lr-open,.right,.brand a,.brand p,.gname,.bar){transition:opacity .9s ease}
 html.intro .search,html.intro .lr-open,html.intro .right,html.intro .brand a,html.intro .brand p,html.intro .gname,html.intro .bar{opacity:0;pointer-events:none}
 html.intro body{overflow:hidden}
 html.intro .rail{overflow:visible}
+html.intro .col.clone{visibility:hidden}
 /* Genre hierarchy tree: Genre > Subgenre > Sub-subgenre, joined by elbow lines */
 .gtree,.gtree ul{list-style:none;margin:0;padding:0}
 .gtree ul{margin-left:16px}
@@ -310,8 +315,6 @@ html:not([data-view="home"]) .lr-open{display:none}
 .lr.on{opacity:1}
 .lr[hidden]{display:none}
 .lr-panel{position:absolute;inset:16px;border-radius:28px;background:#1f4a35 url("assets/listening-room/room-tiles.jpg") center/cover;--fg:#f3f3f1;color:#f3f3f1;isolation:isolate;display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:24px;padding:20px 40px;overflow:hidden}
-.lr-h{position:absolute;left:24px;top:16px;z-index:25;margin:0;font-size:13px;font-weight:500}
-.lr-h img{display:block;height:100%;width:auto;pointer-events:none;user-select:none}
 .lr-close{position:absolute;right:20px;top:16px;z-index:30}
 /* Sleeve wheel: sleeves sit on a curve that bends away to the left. The one in the middle is full size and fully opaque;
    the further a sleeve is from the middle, the smaller and fainter it gets. Positions are set from JS as transforms. */
@@ -345,8 +348,8 @@ html:not([data-view="home"]) .lr-open{display:none}
 .lr-ctl:active,.lr-ctl.press{transform:translate(-50%,-50%) scale(.93);background:#d8661a;box-shadow:inset 0 2px 5px rgba(0,0,0,.35)}
 .lr-ctl[aria-pressed="true"]{box-shadow:inset 0 1px 4px rgba(0,0,0,.3)}
 .lr-ctl:focus-visible{outline:2px solid #111;outline-offset:3px}
-.lr-now,.lr-time{margin:0;font-size:13px;text-align:center}
-.lr-now{margin-top:10px}
+.lr-now,.lr-time{position:relative;z-index:20;margin:0;font-size:13px;text-align:center}
+.lr-now{margin-top:10px;color:#fff}
 .lr-time{margin-top:4px;opacity:.7;font-variant-numeric:tabular-nums}
 .lr-aotd{margin-top:12px}
 .lr-aotd.key{height:58px}
@@ -392,7 +395,7 @@ html:not([data-view="home"]) .lr-open{display:none}
   </div>
   <div class="brand"><a href="#home" id="brandLink">MuDis</a><span class="ptype" id="ptype"></span><p>Pick a genre. Follow the trail down.</p></div>
   <div class="right">
-    <button class="key kl" id="pmBtn" type="button" aria-expanded="false" aria-controls="map"><img class="ku" src="assets/buttons/key-long-up.png" alt=""><img class="kd" src="assets/buttons/key-long-down.png" alt=""><span class="kc"><span id="pmTxt">Trail</span><span id="lvl">L 00</span></span></button>
+    <button class="key kl" id="pmBtn" type="button" aria-expanded="false" aria-controls="map"><img class="ku" src="assets/buttons/key-long-up.png" alt=""><img class="kd" src="assets/buttons/key-long-down.png" alt=""><img class="od" src="assets/buttons/key-orange-long-down.png" alt=""><span class="kc"><span id="pmTxt">Trail</span><span id="lvl">L 00</span></span></button>
     <button class="key kl" id="ntBtn" type="button" aria-expanded="false" aria-controls="nt"><img class="ku" src="assets/buttons/key-long-up.png" alt=""><img class="kd" src="assets/buttons/key-long-down.png" alt=""><span class="kc"><span>Note it</span></span></button>
   </div>
   <div class="panel" id="nt">
@@ -406,7 +409,7 @@ html:not([data-view="home"]) .lr-open{display:none}
 <footer class="bar" id="homeBar">
   <div class="scroll">
     <div class="arrows"><button class="key" type="button" id="prev" aria-label="Previous genres"><img class="ku" src="assets/buttons/key-prev-up.png" alt=""><img class="kd" src="assets/buttons/key-prev-down.png" alt=""></button><button class="key" type="button" id="next" aria-label="Next genres"><img class="ku" src="assets/buttons/key-next-up.png" alt=""><img class="kd" src="assets/buttons/key-next-down.png" alt=""></button></div>
-    <button class="key" type="button" id="surprise" aria-label="Surprise me"><img class="ku" src="assets/buttons/key-surprise-up.png" alt=""><img class="kd" src="assets/buttons/key-surprise-down.png" alt=""></button>
+    <button class="key kl" type="button" id="surprise" aria-label="Surprise me"><img class="ku" src="assets/buttons/key-orange-long-up.png" alt=""><img class="kd" src="assets/buttons/key-orange-long-down.png" alt=""><span class="kc">surprise me</span></button>
   </div>
   <span class="credit">Cover art from Spotify. Text from Wikipedia, CC BY-SA 4.0.</span>
 </footer>
@@ -417,11 +420,10 @@ html:not([data-view="home"]) .lr-open{display:none}
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <audio id="pvAudio" preload="none" hidden></audio>
 <!-- Listening Room: opens over Home from the "Listening Room" pill -->
-<div class="lr" id="lr" role="dialog" aria-modal="true" aria-labelledby="lrTitle" hidden>
+<div class="lr" id="lr" role="dialog" aria-modal="true" aria-label="Listening Room" hidden>
   <div class="lr-panel">
-    <h2 class="lr-h key" id="lrTitle"><img src="assets/buttons/key-long-up.png" alt=""><span class="kc">Listening Room</span></h2>
     <p class="lr-shh" aria-hidden="true">shhh...</p>
-    <button class="key hk lr-close" id="lrClose" type="button" aria-label="Close the Listening Room" title="Close (Esc)"><img class="ku" src="assets/buttons/key-home-up.png" alt=""><img class="kd" src="assets/buttons/key-home-down.png" alt=""><span class="kc"><svg width="16" height="16" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></span></button>
+    <button class="key hk lr-close" id="lrClose" type="button" aria-label="Close the Listening Room" title="Close (Esc)"><img class="ku" src="assets/buttons/key-orange-short-up.png" alt=""><img class="kd" src="assets/buttons/key-orange-short-down.png" alt=""><span class="kc"><svg width="16" height="16" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8"/></svg></span></button>
     <div class="lr-stack" id="lrStack" role="group" aria-roledescription="wheel" aria-label="Today’s records. Scroll, or use the up and down arrow keys, to turn the wheel; the record in the middle can be played"></div>
     <div class="lr-right">
       <p class="lr-pick" id="lrPick">Pick a sleeve to start listening.</p>
@@ -1503,6 +1505,30 @@ cards.forEach(function(c){
   var im=document.createElement("img");im.src=cv;im.alt="";im.onerror=function(){c.classList.remove("art");im.remove()};
   c.classList.add("art");c.insertBefore(im,c.firstChild);
 });
+/* Home columns loop: after Blues comes Metal again, both ways. Two copies of all the columns sit on each side of the real set;
+   when scrolling settles (or immediately, near an end) the rail quietly jumps by exactly one set, onto identical columns.
+   The copies are hidden from keyboard tabbing and screen readers, and the record's spin is offset so it never skips. */
+var LOOP={W:0,n:0,t:0};
+(function(){
+  var orig=[].slice.call(rail.children);LOOP.n=orig.length;
+  function copySet(){return orig.map(function(c){var k=c.cloneNode(true);k.classList.add("clone");k.setAttribute("aria-hidden","true");k.querySelectorAll("button").forEach(function(b){b.tabIndex=-1});return k})}
+  for(var s=0;s<2;s++){copySet().forEach(function(k){rail.insertBefore(k,orig[0])});copySet().forEach(function(k){rail.appendChild(k)})}
+})();
+function loopMeasure(){var cols=rail.children,a=cols[2*LOOP.n],b=cols[3*LOOP.n];if(a&&b)LOOP.W=b.offsetLeft-a.offsetLeft;return LOOP.W}
+/* keep the scroll position within half a set of the real columns */
+function loopFix(){
+  if(!LOOP.W&&!loopMeasure())return;
+  var W=LOOP.W,sl=rail.scrollLeft,d=0;
+  while(sl+d<1.5*W)d+=W;while(sl+d>=2.5*W)d-=W;
+  if(d){rail.scrollLeft=sl+d;if(typeof discBase==="number")discBase-=d*.15}
+}
+function loopStart(){loopMeasure();rail.scrollLeft=2*LOOP.W}
+rail.addEventListener("scroll",function(){
+  clearTimeout(LOOP.t);var W=LOOP.W,sl=rail.scrollLeft;
+  if(W&&(sl<.5*W||sl>3.5*W))loopFix();else LOOP.t=setTimeout(loopFix,160);
+},{passive:true});
+addEventListener("resize",function(){var old=LOOP.W,sl=rail.scrollLeft;if(!old)return;var f=(sl-2*old)/old;loopMeasure();rail.scrollLeft=2*LOOP.W+f*LOOP.W});
+loopStart();addEventListener("load",function(){if(rail.scrollLeft<LOOP.W)loopStart()});
 function doors(list,side,msg,tag){return '<div class="dl">'+list.map(function(d){return '<button type="button" class="'+(side?'side':'')+'" data-msg="'+esc(msg)+'"><span><b>'+esc(d[0])+'</b><small>'+esc(d[1])+'</small></span><i>'+tag+'</i></button>'}).join("")+'</div>'}
 /* Photo on an "Essential Artists/ Bands" card: the artist page's photo, unless APIC gives a different one for that genre
    (keyed by the artist's slug, then genre). Artists without a page can also be given a photo here as one file name. */
@@ -2196,7 +2222,7 @@ function mapHTML(){
   +'<p class="mhint">Drag to pan · Ctrl or ⌘ + scroll to zoom · Click a page to open it</p>'
   +'<div class="mzoom"><button type="button" data-z="out" aria-label="Zoom out">−</button><output id="mzv">100%</output><button type="button" data-z="in" aria-label="Zoom in">+</button><hr><button type="button" data-z="fit">Fit</button><button type="button" data-z="you">You</button></div></div>'
   +'<div class="mfoot"><span>Your trail</span><span>'+trail.map(function(p){return esc(p.name)}).join(" → ")+'</span></div>'
-  +'<div class="macts">'+[["mShare","Share map"," main"],["mDig","Keep digging",""],["mReset","Start over",""]].map(function(b){return '<button type="button" class="key kl mk'+b[2]+'" id="'+b[0]+'"><img class="ku" src="assets/buttons/key-long-up.png" alt=""><img class="kd" src="assets/buttons/key-long-down.png" alt=""><span class="kc">'+b[1]+'</span></button>'}).join("")+'</div>';
+  +'<div class="macts">'+[["mShare","Share map"," main"],["mDig","Keep digging",""],["mReset","Start over",""]].map(function(b){var im=b[2]?"key-orange-long":"key-long";return '<button type="button" class="key kl mk'+b[2]+'" id="'+b[0]+'"><img class="ku" src="assets/buttons/'+im+'-up.png" alt=""><img class="kd" src="assets/buttons/'+im+'-down.png" alt=""><span class="kc">'+b[1]+'</span></button>'}).join("")+'</div>';
 }
 function mapSet(){
   var w=document.getElementById("mworld");if(!w)return;
@@ -2486,7 +2512,7 @@ document.addEventListener("click",function(e){
 var q=document.getElementById("q");
 q.addEventListener("input",function(){
   var v=q.value.trim().toLowerCase();
-  cards.forEach(function(c){c.classList.toggle("dim",!!v&&c.dataset.q.indexOf(v)<0)});
+  rail.querySelectorAll(".card").forEach(function(c){c.classList.toggle("dim",!!v&&c.dataset.q.indexOf(v)<0)});   /* copies in the loop too */
 });
 q.addEventListener("keydown",function(e){
   if(e.key!=="Enter")return;
@@ -2527,7 +2553,7 @@ addEventListener("resize",function(){if(!introOn){discLayout();discRest()}});
 discLayout();discRest();
 
 function intro(){
-  introOn=true;root.classList.add("intro");rail.scrollLeft=0;disc.classList.add("front");discLayout();
+  introOn=true;root.classList.add("intro");loopStart();disc.classList.add("front");discLayout();
   var W=L.W,H=L.H,sc=L.Ls+L.S/2,k0=Math.max(W,H)/L.S*1.04,t0=performance.now(),flown=false,shown=false,done=false;
   sleeve.style.transform="translate("+L.Ls+"px,"+(H-L.S)/2+"px)";
   cards.forEach(function(c){
@@ -2546,7 +2572,7 @@ function intro(){
   function finish(){
     done=true;introOn=false;removeEventListener("pointerdown",skip,true);removeEventListener("keydown",skip,true);
     if(!flown)fly(true);root.classList.remove("intro");sleeve.classList.remove("on");
-    discBase=discRot(L.xEnd);discRest();
+    discBase=discRot(L.xEnd)-rail.scrollLeft*.15;discRest();   /* the rail starts on the real columns (not at 0), so offset the spin to land the label upright */
     setTimeout(function(){cards.forEach(function(c){c.style.transition=""})},1100);
   }
   function skip(){if(!done)finish()}
