@@ -1953,7 +1953,7 @@ function albumHTML(a){
     h='<div class="ahead">'+coverDiv(a,null)+'<div class="ameta"><p class="kicker">'+esc(a.kind)+' · '+esc(a.year)+'</p><h1 class="atitle">'+esc(a.title)+'</h1><p class="aby">by '+artistLink(a.artist)+'</p><div class="tags"><button class="tag" type="button" data-go="'+esc(a.genre)+'">'+esc(a.genre)+'</button></div></div></div>';
     h+='<p class="lede muted" style="margin-top:40px">The tracklist, story and credits for this '+esc(a.kind.toLowerCase())+' are not written yet. Blocks with no content stay hidden. Every album on the Home page has a written page.</p>';
   }
-  h+='<div class="abot"><h2 class="sec">More in '+esc(a.genre)+'</h2>'+(GP[a.genre]?'<p class="lede" style="margin-bottom:18px">'+esc(GP[a.genre].lede.split(". ")[0])+'.</p>':'')+'<div class="dl"><button type="button" data-go="'+esc(a.genre)+'"><span><b>'+esc(a.genre)+'</b><small>Genre page</small></span><i>Sideways</i></button></div></div>';
+  h+='<div class="abot"><h2 class="sec">More in '+esc(a.genre)+'</h2>'+(GP[a.genre]?'<p class="lede" style="margin-bottom:18px">'+esc(GP[a.genre].lede.split(". ")[0])+'.</p>':'')+'<div class="dl"><button type="button" class="side" data-go="'+esc(a.genre)+'"><span><b>'+esc(a.genre)+'</b><small>Genre page</small></span><i>Sideways</i></button></div></div>';
   h+='<footer class="foot">'+(x?x.src:'Cover art from Spotify. Text from Wikipedia, CC BY-SA 4.0.')+'</footer>';
   return h;
 }
