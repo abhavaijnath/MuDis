@@ -277,7 +277,18 @@ html.intro .rail{overflow:visible}
 @media (max-width:700px){.ahd.hasp{grid-template-columns:1fr}.plw{grid-column:1;grid-row:10;align-items:flex-start;margin-top:14px}.plcap{text-align:left}}
 /* Listening Room: a calm overlay for listening to one whole album. No doorways, no trail steps, no level change.
    Alignment numbers live in LR_SET at the top of the script. */
-.lr-open{margin-top:8px;width:fit-content}
+/* Listening Room entrance under the search bar: a ticket and the headphone mascot side by side, one button.
+   The ticket is cut clean from its picture with a drop shadow drawn here; it swaps to its olive "on click" picture when pressed.
+   The mascot is a small silent looping video whose white background disappears on the white Home page. */
+.lr-open{display:flex;align-items:center;gap:8px;margin-top:10px;width:fit-content;padding:0;border:0;background:none;color:inherit;cursor:pointer}
+.lr-open .tk{position:relative;display:block;height:70px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.25)) drop-shadow(0 1px 1px rgba(0,0,0,.2));transition:transform .12s,filter .12s}
+.lr-open .tk img{display:block;height:100%;width:auto;pointer-events:none;user-select:none}
+.lr-open .tk .tkd{position:absolute;left:0;top:0;visibility:hidden}
+.lr-open:active .tk .tku,.lr-open.press .tk .tku{visibility:hidden}
+.lr-open:active .tk .tkd,.lr-open.press .tk .tkd{visibility:visible}
+.lr-open:active .tk,.lr-open.press .tk{transform:translateY(1px);filter:drop-shadow(0 2px 3px rgba(0,0,0,.25)) drop-shadow(0 1px 1px rgba(0,0,0,.2))}
+.lr-open .masc{display:block;width:70px;height:70px;mix-blend-mode:multiply;pointer-events:none}
+.lr-open:focus-visible{outline:2px solid var(--fg);outline-offset:4px;border-radius:8px}
 html:not([data-view="home"]) .lr-open{display:none}
 .lr{position:fixed;inset:0;z-index:150;background:rgba(255,255,255,.9);color:#111;opacity:0;transition:opacity .35s ease}
 .lr.on{opacity:1}
@@ -333,7 +344,7 @@ html:not([data-view="home"]) .lr-open{display:none}
 <header class="top">
   <div class="left">
     <label class="pill search"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.7"/><path d="M10 10l4.5 4.5"/></svg><input id="q" type="search" placeholder="Search genre, artist, album" aria-label="Search genre, artist or album"></label>
-    <button class="pill lr-open" id="lrOpen" type="button" aria-haspopup="dialog">Listening Room</button>
+    <button class="lr-open" id="lrOpen" type="button" aria-haspopup="dialog" aria-label="Listening Room"><span class="tk"><img class="tku" src="assets/listening-room/ticket-up.png" alt=""><img class="tkd" src="assets/listening-room/ticket-down.png" alt=""></span><video class="masc" src="assets/listening-room/mascot-small.mp4" poster="assets/listening-room/mascot-still.png" muted loop playsinline autoplay preload="auto" aria-hidden="true" tabindex="-1"></video></button>
     <nav class="navb" aria-label="Page navigation">
       <button class="ib" id="backBtn" type="button" aria-label="Back to the previous page" title="Back"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 8H2.5M7 3.5L2.5 8 7 12.5"/></svg></button>
       <button class="ib" id="homeBtn" type="button" aria-label="Home, all genres" title="Home"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 7.5L8 2.5l5.5 5M4 6.5v7h8v-7"/></svg></button>
@@ -2849,7 +2860,13 @@ function stopPlayback(){if(LRA.el)LRA.el.pause()}
     ov.classList.remove("on");ov.hidden=true;document.body.style.overflow="";
     opener.focus();
   }
-  opener.addEventListener("click",open);
+  /* the ticket shows its olive "on click" picture for a moment, then the room opens */
+  opener.addEventListener("click",function(){
+    if(isOpen)return;opener.classList.add("press");
+    setTimeout(function(){opener.classList.remove("press");open()},rm?0:220);
+  });
+  /* reduced motion: the mascot stays still, facing forward */
+  (function(){var v=opener.querySelector(".masc");if(v&&rm){v.removeAttribute("autoplay");v.pause();try{v.currentTime=0}catch(e){}}})();
   $("lrClose").addEventListener("click",close);
   addEventListener("hashchange",close);
   addEventListener("resize",function(){if(isOpen){if(!busy)layout();render()}});
