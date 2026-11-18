@@ -237,6 +237,31 @@ html.intro .rail{overflow:visible}
 @media (max-width:900px){.acols{grid-template-columns:minmax(0,1fr);gap:0}}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:min(440px,calc(100% - 32px));padding:10px 18px;border:1px solid var(--fg);border-radius:99px;background:var(--bg);font-size:13.5px;z-index:90;opacity:0;pointer-events:none;transition:opacity .25s}
 .toast.on{opacity:1}
+/* Mini player on album and song pages: sits beside the title. Alignment numbers live in PL_SET at the top of the script. */
+.ahd.hasp{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:clamp(20px,3vw,40px);align-items:start}
+.ahd.hasp>*:not(.plw){grid-column:1}
+.plw{grid-column:2;grid-row:1/span 3;display:flex;flex-direction:column;align-items:center;margin-top:-6px}
+/* Layers, bottom to top: the device (play picture), the pause picture cut to the middle button only, the cover circle, the arm, the buttons */
+.pl{position:relative;width:clamp(220px,22vw,290px);aspect-ratio:900/411;filter:drop-shadow(0 8px 12px rgba(0,0,0,.28)) drop-shadow(0 2px 3px rgba(0,0,0,.2))}
+.pl .st{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;user-select:none}
+.pl .st.pa{visibility:hidden}
+.pl.on .st.pa{visibility:visible}
+.pl .st.arm{z-index:2}
+.pl .pdisc{position:absolute;z-index:1;aspect-ratio:1;border-radius:50%;overflow:hidden;transform:translate(-50%,-50%);visibility:hidden}
+.pl .pdisc.show{visibility:visible}
+.pl .pdisc span{position:absolute;inset:0;display:block;border-radius:50%;overflow:hidden;will-change:transform}
+.pl .pdisc img{width:100%;height:100%;object-fit:cover;display:block}
+.pl .pdisc i{position:absolute;left:50%;top:50%;width:3%;height:3%;border-radius:50%;background:#111;transform:translate(-50%,-50%)}
+.pl .pb{z-index:3}
+.pl .pb{position:absolute;padding:0;border:0;border-radius:50%;background:transparent;transform:translate(-50%,-50%);transition:transform .1s,background .1s,box-shadow .1s}
+.pl .pb:active,.pl .pb.press{transform:translate(-50%,-50%) scale(.92);background:rgba(0,0,0,.18);box-shadow:inset 0 2px 5px rgba(0,0,0,.4)}
+.pl .pb:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
+.pl .pb:disabled{cursor:default}
+.plcap{margin:4px 0 0;max-width:clamp(220px,22vw,290px);font-size:12px;line-height:1.3;text-align:center;opacity:.75;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.plfly{position:fixed;left:0;top:0;z-index:60;overflow:hidden;pointer-events:none;transform-origin:0 0}
+.plfly img{width:100%;height:100%;object-fit:cover;display:block}
+.tl2 li.now button{font-weight:600}
+@media (max-width:700px){.ahd.hasp{grid-template-columns:1fr}.plw{grid-column:1;grid-row:10;align-items:flex-start;margin-top:14px}.plcap{text-align:left}}
 /* Listening Room: a calm overlay for listening to one whole album. No doorways, no trail steps, no level change.
    Alignment numbers live in LR_SET at the top of the script. */
 .lr-open{margin-top:8px;width:fit-content}
@@ -366,6 +391,26 @@ var LR_SET={
   stylusLandsAt:92,                /* where the needle lands, % of the record radius from the centre */
   view:{x:280,y:55,w:760,h:595}    /* part of the turntable image the player box is fitted to, px (the rest is white margin) */
 };
+/* ================= MINI PLAYER (album and song pages): ALIGNMENT SETTINGS (nudge these) =================
+   Percentages of the player image (assets/buttons/player-*-cutout.png, 900 × 411 px): x = % of its width, y = % of its height. */
+var PL_SET={
+  matX:20.8, matY:41.1,       /* spindle of the little turntable (187, 169 px): the cover circle spins here */
+  discSize:26.0,              /* cover circle diameter, % of the image width (≈234 px: the whole black mat; the arm is drawn on top) */
+  pauseRadius:7.0,            /* how much of the pause picture shows around the middle button, % of the image width */
+  prevX:49.2, playX:63.0, nextX:76.7, buttonY:41.4,   /* centres of the back, play/pause and forward buttons */
+  buttonSize:11.6,            /* button diameter, % of the image width (≈104 px) */
+  rpmSeconds:1.8              /* one turn of the cover circle, in seconds (33⅓ rpm) */
+};
+/* AUDIO HOOKS for the mini player: not connected yet. Put the sample / full-song audio code inside these. */
+function playTrack(album,trackNumber,track){
+  /* TODO audio: play track `trackNumber` (1-based) of `album` ({title, artist, year, ...}); `track` is [title, length] */
+}
+function pauseTrack(){
+  /* TODO audio: pause whatever playTrack started */
+}
+/* Player state survives moving between song pages of the same album, so the record keeps spinning */
+var PLAYER={alb:null,n:1,playing:false,ang:0,raf:0,last:0,vel:0,el:null};
+
 /* ================= LISTENING ROOM: SLEEVE WHEEL SETTINGS ================= */
 var LR_WHEEL={
   spacing:.6,        /* how far apart neighbouring sleeves sit on the curve (radians per sleeve) */
@@ -1568,7 +1613,281 @@ genres:{n:"Blues",c:[{n:"Electric blues"},{n:"Memphis blues"},{n:"Rhythm and blu
 bio:["B.B. King grew up in the Mississippi Delta and taught himself guitar. In Memphis he worked as a singer and disc jockey at the radio station WDIA, where he was called the “Beale Street Blues Boy”, later shortened to B. B.","“3 O’Clock Blues” became his first R&B number one in 1952, and he became one of the biggest R&B names of the 1950s, touring almost without a break. Live at the Regal, recorded in November 1964, is hailed as one of the greatest blues albums.","In the late 1960s he reached rock audiences, opening for the Rolling Stones in 1969, and “The Thrill Is Gone” won a Grammy in 1970. He joined the Rock and Roll Hall of Fame in 1987, received the Presidential Medal of Freedom in 2006, and died in Las Vegas in 2015."],
 trivia:["In 1956 he played 342 shows.","His guitar Lucille is named after the woman at the centre of a fight that started a fire in Twist, Arkansas.","His first guitar cost $15, taken out of his wages over two months.","Gibson launched a B.B. King Lucille model guitar in 1980.","In 1997 he gave a Lucille guitar to Pope John Paul II after a concert at the Vatican."],
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/B.B._King">Wikipedia: B.B. King</a>, available under CC BY-SA 4.0.'
+},
+/* ---- Album artists on Home with no photo yet. Facts checked against each artist's Wikipedia article (named in its footer). ---- */
+/* Electronic */
+"boards-of-canada":{
+name:"Boards of Canada",real:"Brothers Mike Sandison and Marcus Eoin",
+facts:[["Formed","1986, Cullen, Moray, Scotland"],["Active","1986–present"],["Members","Mike Sandison, Marcus Eoin"],["Former member","Chris Horne (left 1996)"],["Labels","Warp, Skam, Music70"]],
+genres:{n:"Electronic",c:[{n:"IDM"},{n:"Downtempo"},{n:"Folktronica"}]},
+bio:["Boards of Canada began in 1986, when Marcus Eoin joined his brother Mike Sandison’s band in Scotland. After Chris Horne left in 1996 they continued as a duo, and early records such as Twoism and Hi Scores came out on their own label and on Skam.","Music Has the Right to Children (1998), released by Warp and Skam, made their name. Geogaddi (2002), which they later linked to the September 11 attacks, and The Campfire Headphase (2005) followed.","After a seven-year gap, Tomorrow’s Harvest (2013) was announced through a trail of cryptic codes on Record Store Day records, radio and TV. In 2026 they returned again with Inferno."],
+trivia:["They took their name from the National Film Board of Canada, whose documentaries they watched as children.","They kept quiet about being brothers until 2005, to avoid comparisons with the sibling duo Orbital.","The cover of Music Has the Right to Children is a family photo taken near Banff, with every face removed.","Geogaddi was picked from about 64 finished songs and 400 fragments.","In 2025 their track “Olson” was programmed to play on a 1960s PDP-1 computer at the Computer History Museum."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Boards_of_Canada">Wikipedia: Boards of Canada</a>, available under CC BY-SA 4.0.'
+},
+"burial":{
+name:"Burial",real:"William Emmanuel Bevan",
+facts:[["From","South London, England"],["Active","2001–present"],["First signing","The first artist on Kode9’s Hyperdub (2005)"],["Works in","Sound Forge, a simple audio editor"],["Labels","Hyperdub, XL"]],
+genres:{n:"Electronic",c:[{n:"Dubstep"},{n:"UK garage"},{n:"Ambient"}]},
+bio:["Burial is the alias of William Bevan, a producer from South London. In 2005 he became the first artist signed to Kode9’s label Hyperdub, which released his South London Boroughs EP.","His self-titled debut (2006) was The Wire’s album of the year, and Untrue (2007) was nominated for the 2008 Mercury Prize. For years he stayed anonymous; in August 2008 he confirmed who he was by posting a photo of himself online.","Since then he has mostly released EPs, such as Kindred and Rival Dealer, later gathered on Tunes 2011–2019, and worked with Four Tet, Thom Yorke and Massive Attack. In 2024 he scored Andrea Arnold’s film Bird."],
+trivia:["He builds tracks in Sound Forge rather than a sequencer: “Once I change something, I can never un-change it.”","He has said drums timed too perfectly “sound rubbish”.","While he was anonymous, tabloids guessed he might be Aphex Twin or Fatboy Slim.","Adam Curtis often uses his music in documentaries."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Burial_(musician)">Wikipedia: Burial (musician)</a>, available under CC BY-SA 4.0.'
+},
+"dj-shadow":{
+name:"DJ Shadow",real:"Joshua Paul Davis",
+facts:[["Born","29 June 1972, San Jose, California"],["Grew up","Davis, California"],["Active","1989–present"],["Co-founded","Solesides (1993), later Quannum"],["Labels","Mo’ Wax, Solesides, MCA, Universal, Mass Appeal"]],
+genres:{n:"Electronic",c:[{n:"Trip hop"},{n:"Turntablism"}]},
+bio:["DJ Shadow is Josh Davis, who grew up in Davis, California, and DJed on the UC Davis station KDVS. In 1993 he co-founded the label Solesides with Blackalicious and Lyrics Born.","His debut album, Endtroducing….. (1996), was built almost entirely from samples of old records and was widely acclaimed. He also produced UNKLE’s debut Psyence Fiction (1998).","Later albums include The Private Press (2002), The Outsider (2006), The Mountain Will Fall (2016), Our Pathetic Age (2019) and Action Adventure (2023)."],
+trivia:["Endtroducing….. was made with an Akai MPC60, two turntables and a borrowed Pro Tools setup.","Guinness named it the first completely sampled album in 2001.","He owns more than 60,000 records, most of them kept in storage units.","From 2016 to 2019 he held a yearly “storage sale” of his duplicate records."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/DJ_Shadow">Wikipedia: DJ Shadow</a>, available under CC BY-SA 4.0.'
+},
+/* Metal */
+"megadeth":{
+name:"Megadeth",real:"Founded by Dave Mustaine and David Ellefson",
+facts:[["Formed","1983, Los Angeles, California"],["Active","1983–2002, 2004–present"],["Classic members","Dave Mustaine, David Ellefson, Marty Friedman, Nick Menza"],["One of","The “Big Four” of thrash"],["Labels","Combat, Capitol, Sanctuary, Roadrunner and more"]],
+genres:{n:"Metal",c:[{n:"Thrash metal"},{n:"Speed metal"},{n:"Heavy metal"}]},
+bio:["Dave Mustaine formed Megadeth in Los Angeles in 1983, after being fired from Metallica before their debut album, with bassist David Ellefson. With Metallica, Slayer and Anthrax they became one of the “Big Four” of thrash.","Peace Sells… but Who’s Buying? (1986) was their first major-label album. Rust in Peace (1990), with guitarist Marty Friedman and drummer Nick Menza, is often called genre-defining, and Countdown to Extinction (1992) was their biggest seller.","Mustaine broke up the band in 2002 after a nerve injury left him unable to play guitar, then re-formed it in 2004. Megadeth won their first Grammy in 2017, and their self-titled final album (2026) became their first US number one."],
+trivia:["Mustaine took the name from a politician’s pamphlet about the “arsenal of megadeath”.","Slayer’s Kerry King played five shows with them in 1984.","They reportedly spent their whole $8,000 recording budget for the debut on drugs, alcohol and food.","In 1994 they launched “Megadeth, Arizona”, considered the first official artist website."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Megadeth">Wikipedia: Megadeth</a>, available under CC BY-SA 4.0.'
+},
+"pantera":{
+name:"Pantera",real:"Founded by Dimebag Darrell and Vinnie Paul",
+facts:[["Formed","1981, Arlington, Texas"],["Active","1981–2003, 2022–present"],["Classic line-up","Phil Anselmo, Dimebag Darrell, Rex Brown, Vinnie Paul"],["Pioneered","Groove metal"],["Labels","Metal Magic, Atco, East West, Elektra"]],
+genres:{n:"Metal",c:[{n:"Groove metal"},{n:"Thrash metal"}]},
+bio:["Pantera was formed in Arlington, Texas, in 1981 by brothers Dimebag Darrell (guitar) and Vinnie Paul (drums). With singer Terry Glaze they made three glam metal albums in the mid-1980s; Phil Anselmo took over vocals in 1986.","Cowboys from Hell (1990) is credited with creating groove metal. Vulgar Display of Power (1992) made them bigger still, and Far Beyond Driven (1994) went straight to number one in the US.","The brothers ended the band in 2003. Dimebag was killed during a concert in 2004, and Vinnie Paul died in 2018. In 2022 Anselmo and bassist Rex Brown revived Pantera with Zakk Wylde and Charlie Benante."],
+trivia:["They were called Gemini and Eternity before naming themselves after the De Tomaso Pantera sports car.","Anselmo was hired on the spot at his 1986 audition, aged 18.","Major labels reportedly turned them down 28 times before Atco signed them.","The Stanley Cup the Dallas Stars won in 1999 was damaged at a party at Vinnie Paul’s house."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Pantera">Wikipedia: Pantera</a>, available under CC BY-SA 4.0.'
+},
+"slayer":{
+name:"Slayer",real:"Tom Araya, Kerry King, Jeff Hanneman and Dave Lombardo",
+facts:[["Formed","1981, Huntington Park, California"],["Active","1981–2019, 2024–present"],["Founders","Tom Araya, Kerry King, Jeff Hanneman, Dave Lombardo"],["Later members","Paul Bostaph, Gary Holt"],["Labels","Metal Blade, Def Jam, American, Nuclear Blast"]],
+genres:{n:"Metal",c:[{n:"Thrash metal"}]},
+bio:["Slayer was formed in Huntington Park, California, in 1981 by Tom Araya, Kerry King, Jeff Hanneman and Dave Lombardo. Brian Slagel signed them to Metal Blade in 1983, and they became one of the “Big Four” of thrash.","Reign in Blood (1986), produced by Rick Rubin for Def Jam, is one of the most influential thrash albums. Columbia at first refused to distribute it over the song “Angel of Death”.","Hanneman died in 2013, and Gary Holt took his place. Slayer won two Grammys, in 2007 and 2008, ended their final world tour in 2019, and returned for a few festival shows in 2024."],
+trivia:["Lombardo, who is left-handed, designed the band’s slanted logo by imagining carving it with a knife.","Reign in Blood reached number 94 in the US with almost no radio play.","Kerry King briefly played in Megadeth in 1984, which started a long feud.","In 2004 Lombardo filled in for Metallica’s Lars Ulrich at Download Festival."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Slayer">Wikipedia: Slayer</a>, available under CC BY-SA 4.0.'
+},
+/* Jazz */
+"miles-davis":{
+name:"Miles Davis",real:"Miles Dewey Davis III",
+facts:[["Born","26 May 1926, Alton, Illinois"],["Died","28 September 1991, Santa Monica, California, aged 65"],["Instrument","Trumpet"],["Active","1944–1975, 1980–1991"],["Labels","Capitol, Prestige, Columbia, Warner Bros."]],
+genres:{n:"Jazz",c:[{n:"Bebop"},{n:"Cool jazz"},{n:"Modal jazz"},{n:"Jazz fusion"}]},
+bio:["Miles Davis left Juilliard in the mid-1940s to play in Charlie Parker’s bebop group. His Birth of the Cool sessions of 1949–50 helped shape cool jazz, and after a well-received set at Newport in 1955 he signed to Columbia and formed his first great quintet, with John Coltrane.","Kind of Blue (1959) became one of the most popular jazz albums ever, selling more than five million copies in the US. In the 1960s his second quintet, with Wayne Shorter, Herbie Hancock, Ron Carter and Tony Williams, helped invent post-bop.","From In a Silent Way he went electric, and Bitches Brew (1970) helped launch jazz fusion. After a five-year break from 1975 he returned with albums such as Tutu. He joined the Rock and Roll Hall of Fame in 2006."],
+trivia:["His mother wanted him to play the violin.","Arguing with doctors too soon after a 1955 throat operation left him with his famous raspy voice.","About 600,000 people saw him at the 1970 Isle of Wight Festival, his biggest audience.","In 2009 the US House of Representatives honoured Kind of Blue as a national treasure.","Pianist Wynton Kelly plays on only one track of Kind of Blue; Bill Evans played the rest."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Miles_Davis">Wikipedia: Miles Davis</a>, available under CC BY-SA 4.0.'
+},
+"john-coltrane":{
+name:"John Coltrane",real:"John William Coltrane",
+facts:[["Born","23 September 1926, Hamlet, North Carolina"],["Died","17 July 1967, Huntington, New York, aged 40"],["Instruments","Tenor and soprano saxophone"],["Classic Quartet","McCoy Tyner, Jimmy Garrison, Elvin Jones"],["Labels","Prestige, Blue Note, Atlantic, Impulse!"]],
+genres:{n:"Jazz",c:[{n:"Hard bop"},{n:"Modal jazz"},{n:"Spiritual jazz"},{n:"Free jazz"}]},
+bio:["John Coltrane served in the US Navy in 1945–46, playing in a navy band at Pearl Harbor. From 1955 to 1957 he was in Miles Davis’s first great quintet, and in 1957 he worked with Thelonious Monk; critic Ira Gitler called his dense, rapid style “sheets of sound”.","Blue Train (1958) was his only album as a leader for Blue Note. Giant Steps (1960) introduced the chord sequence now called “Coltrane changes”, and in the early 1960s he formed his Classic Quartet with McCoy Tyner, Jimmy Garrison and Elvin Jones.","A Love Supreme (1965), a four-part spiritual suite, became his best-selling album. His last work moved toward free jazz before he died of liver cancer in 1967. He received a special Pulitzer citation in 2007."],
+trivia:["He joined the Navy on 6 August 1945, the day the first atomic bomb was dropped.","Bandmate Jimmy Heath said he practised “25 hours a day”.","A 1963 session lost when the master tape was thrown away was released in 2018 from a copy kept by his wife.","In 1966 he said he hoped to become “a saint”; the African Orthodox Church later canonised him."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/John_Coltrane">Wikipedia: John Coltrane</a>, available under CC BY-SA 4.0.'
+},
+"charles-mingus":{
+name:"Charles Mingus",real:"Charles Mingus Jr.",
+facts:[["Born","22 April 1922, Nogales, Arizona"],["Raised","Watts, Los Angeles"],["Died","5 January 1979, Cuernavaca, Mexico, aged 56"],["Instruments","Double bass, piano"],["Labels","Debut, Atlantic, Columbia, Candid, Impulse! and more"]],
+genres:{n:"Jazz",c:[{n:"Hard bop"},{n:"Post-bop"},{n:"Third stream"}]},
+bio:["Charles Mingus grew up in Watts, Los Angeles. He toured with Louis Armstrong in 1943 and played in Lionel Hampton’s band in the late 1940s, and in 1952 he co-founded Debut Records with drummer Max Roach.","Pithecanthropus Erectus (1956) was his breakthrough as a bandleader and composer. Mingus Ah Um (1959) became one of his best-known albums, and The Black Saint and the Sinner Lady (1963) is praised as one of the great feats of jazz orchestration.","He published his autobiography, Beneath the Underdog, in 1971. In the mid-1970s ALS ended his bass playing, and he was working with Joni Mitchell on the album Mingus when he died in 1979."],
+trivia:["His huge work Epitaph runs 4,235 bars and about two hours; it was first performed in 1989.","In 1954 he sold a mail-order guide to toilet-training your cat.","Duke Ellington fired him in 1953, one of the few musicians Ellington personally dismissed.","He reportedly smashed a $20,000 bass at the Five Spot Café in reply to hecklers."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Charles_Mingus">Wikipedia: Charles Mingus</a>, available under CC BY-SA 4.0.'
+},
+"dave-brubeck-quartet":{
+name:"Dave Brubeck Quartet",real:"Dave Brubeck, Paul Desmond, Eugene Wright and Joe Morello",
+facts:[["Formed","1951, San Francisco"],["Classic line-up","Dave Brubeck, Paul Desmond, Eugene Wright, Joe Morello (1958–1967)"],["Biggest hit","“Take Five”, written by Paul Desmond"],["First","Jazz album to sell a million copies (Time Out)"],["Labels","Fantasy, Columbia, Atlantic and more"]],
+genres:{n:"Jazz",c:[{n:"Cool jazz"},{n:"West Coast jazz"}]},
+bio:["Pianist Dave Brubeck formed the quartet in 1951 with alto saxophonist Paul Desmond, playing a residency at San Francisco’s Black Hawk club. Albums such as Jazz at Oberlin and Jazz Goes to College came from their tours of colleges.","Drummer Joe Morello joined in 1956 and bassist Eugene Wright became a permanent member in 1959. In 1958 the US State Department sent the group on a tour of Europe and Asia.","Time Out (1959), built on unusual time signatures, was the first jazz album to sell a million copies, and Desmond’s “Take Five” in 5/4 became the best-selling jazz single ever. The classic quartet ended in 1967."],
+trivia:["Brubeck was nearly expelled from college because he couldn’t read music.","In 1960 he cancelled a 25-date tour of the American South after 22 colleges refused to let Eugene Wright, who was Black, perform.","When Time magazine put Brubeck on its cover before Duke Ellington, he told Ellington, “It should have been you.”","An asteroid, 5079 Brubeck, is named after him."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Dave_Brubeck_Quartet">Wikipedia: Dave Brubeck Quartet</a>, available under CC BY-SA 4.0.'
+},
+"herbie-hancock":{
+name:"Herbie Hancock",real:"Herbert Jeffrey Hancock",
+facts:[["Born","12 April 1940, Chicago, Illinois"],["Active","1961–present"],["Instruments","Piano, keyboards, synthesizer"],["Band","Miles Davis Quintet (from 1963)"],["Labels","Blue Note, Columbia, Warner Bros., Verve"]],
+genres:{n:"Jazz",c:[{n:"Post-bop"},{n:"Jazz fusion"},{n:"Jazz-funk"}]},
+bio:["Herbie Hancock was a child prodigy who played a Mozart piano concerto with the Chicago Symphony Orchestra at 11. His Blue Note debut, Takin’ Off (1962), included “Watermelon Man”, and in 1963 he joined Miles Davis’s quintet.","Maiden Voyage (1965) gave jazz another standard. His Mwandishi albums of the early 1970s mixed electronic and acoustic instruments, and Head Hunters (1973) crossed over to a pop audience.","“Rockit” (1983) was a pop hit, often cited as the first jazz hip-hop song. He won an Oscar for the score of Round Midnight, and River: The Joni Letters won the 2008 Grammy for Album of the Year. He has won 14 Grammys."],
+trivia:["His parents named him after the singer Herb Jeffries.","At 23 he bought a 1963 AC Shelby Cobra for $6,000; he still owns it.","Miles Davis let him go from the band saying he had come back late from his honeymoon in Brazil.","He received the Kennedy Center Honors in 2013."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Herbie_Hancock">Wikipedia: Herbie Hancock</a>, available under CC BY-SA 4.0.'
+},
+/* Reggae */
+"burning-spear":{
+name:"Burning Spear",real:"Winston Rodney",
+facts:[["Born","1 March 1945, Saint Ann’s Bay, Jamaica"],["Active","1969–present"],["Grammys","Best Reggae Album, 2000 and 2009"],["Honour","Order of Distinction, Jamaica (2007)"],["Labels","Studio One, Island, Heartbeat, Burning Music"]],
+genres:{n:"Reggae",c:[{n:"Roots reggae"},{n:"Dub"}]},
+bio:["Winston Rodney grew up in Saint Ann, Jamaica, like Bob Marley, who in 1969 suggested he try Coxsone Dodd’s Studio One. His first single there was “Door Peep”.","Working with Jack Ruby’s Hi-Power sound system, he recorded Marcus Garvey (1975), which led to a deal with Island Records. His songs draw on Rastafari and on Marcus Garvey’s Pan-African ideas. From 1976 he used the name Burning Spear on his own, and his 1977 London show was released as Live!","He set up his own label, Burning Music, and won the Grammy for Best Reggae Album in 2000 and 2009. Jamaica made him an Officer of the Order of Distinction in 2007."],
+trivia:["His stage name comes from Jomo Kenyatta, Kenya’s first president after independence.","Island remixed and sped up tracks from Marcus Garvey, which angered him and led him to start his own label.","He performed “Jah No Dead” in the 1978 film Rockers.","Some sources give his birth year as 1948."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Burning_Spear">Wikipedia: Burning Spear</a>, available under CC BY-SA 4.0.'
+},
+"the-congos":{
+name:"The Congos",real:"Cedric Myton, Roydel “Ashanti” Johnson and Watty Burnett",
+facts:[["Formed","Mid-1970s, Jamaica"],["Voices","Cedric Myton (falsetto), Roydel Johnson (tenor), Watty Burnett (baritone)"],["Producer","Lee “Scratch” Perry"],["Best known for","Heart of the Congos (1977)"],["Labels","Black Ark, Go-Feet, Blood and Fire and more"]],
+genres:{n:"Reggae",c:[{n:"Roots reggae"},{n:"Dub"}]},
+bio:["The Congos began as a duo of Cedric Myton and Roydel Johnson, who recorded “At the Feast” for Lee “Scratch” Perry. During sessions at Perry’s Black Ark studio, Watty Burnett joined to make them a trio.","Heart of the Congos (1977), recorded with Perry, is their best-known work. Perry was in a dispute with Island Records when it was finished, so it came out only on his own Black Ark label, which limited its reach abroad; it was reissued in 1980.","Myton kept the name going into the mid-1980s, and the group re-formed in the 1990s. In 2009 the three reunited with Perry for Back in the Black Ark."],
+trivia:["Perry reportedly treated the three singers as extra instruments in the mix.","Gregory Isaacs and members of the Heptones sang backing vocals on Heart of the Congos.","Critics called it “the most consistently brilliant album of Scratch’s entire career”.","Back in the Black Ark wasn’t recorded at the Black Ark, but in Portmore and Kingston."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/The_Congos">Wikipedia: The Congos</a>, available under CC BY-SA 4.0.'
+},
+"black-uhuru":{
+name:"Black Uhuru",real:"Led by Derrick “Duckie” Simpson",
+facts:[["Formed","1972, Waterhouse, Kingston, Jamaica"],["Active","1972–present"],["Classic line-up","Duckie Simpson, Michael Rose, Puma Jones, with Sly and Robbie"],["First","Winners of the first Best Reggae Album Grammy (1985)"],["Labels","Taxi, Island, RAS and more"]],
+genres:{n:"Reggae",c:[{n:"Dub"}]},
+bio:["Black Uhuru began in Kingston in 1972 as Uhuru, Swahili for “freedom”. Their debut album Love Crisis (1977) was produced by Prince Jammy, and in 1978 Puma Jones joined and the group took its best-known name.","With Michael Rose singing and Sly and Robbie as rhythm section and producers, they signed to Island in 1980. Red (1981) reached number 28 in the UK, and Anthem (1984) won the first-ever Grammy for Best Reggae Album in 1985.","Rose left in 1984, and Puma Jones died in 1990. Duckie Simpson has kept the group going, releasing As the World Turns in 2018."],
+trivia:["Their first release was a cover of the Impressions’ “Romancing to the Folk Song”.","Keith Richards played guitar on their single “Shine Eye Gal”.","Rolling Stone ranked Red 23rd among the 100 greatest albums of the 1980s.","Las Vegas declared 31 August 2012 “Black Uhuru Day”."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Black_Uhuru">Wikipedia: Black Uhuru</a>, available under CC BY-SA 4.0.'
+},
+/* Pop */
+"taylor-swift":{
+name:"Taylor Swift",real:"Taylor Alison Swift",
+facts:[["Born","13 December 1989, West Reading, Pennsylvania"],["Raised","Pennsylvania, then near Nashville, Tennessee"],["Active","2003–present"],["Grammys","14, including four for Album of the Year"],["Labels","Big Machine, Republic"]],
+genres:{n:"Pop",c:[{n:"Country"},{n:"Folk"}]},
+bio:["Taylor Swift moved to the Nashville area as a teenager to pursue country music, signed with Big Machine in 2005, and released her self-titled debut in 2006. Fearless (2008) won the Grammy for Album of the Year.","With 1989 (2014) she moved from country to pop. After a dispute over the master recordings of her early albums, she began re-recording them as “Taylor’s Version” albums in 2021. Folklore and Evermore, surprise-released in 2020, turned towards indie folk.","Midnights (2022) gave her a record fourth Album of the Year. The Eras Tour (2023–2024) became the highest-grossing concert tour ever, at about $2 billion, and The Tortured Poets Department (2024) sold 2.6 million US units in its first week. Time named her Person of the Year in 2023."],
+trivia:["She is named after the singer James Taylor.","At 14 she became the youngest songwriter ever signed by Sony/ATV Tree publishing.","Every Nashville label she approached at 11 turned her down.","With “Shake It Off” and “Blank Space” she became the first woman to replace herself at number one in the US.","The Eras Tour was the first tour to gross $1 billion."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Taylor_Swift">Wikipedia: Taylor Swift</a>, available under CC BY-SA 4.0.'
+},
+"prince":{
+name:"Prince",real:"Prince Rogers Nelson",
+facts:[["Born","7 June 1958, Minneapolis, Minnesota"],["Died","21 April 2016, Paisley Park, Chanhassen, Minnesota, aged 57"],["Active","1975–2016"],["Instruments","Vocals, guitar, keyboards, bass, drums"],["Labels","Warner Bros., Paisley Park, NPG and more"]],
+genres:{n:"Pop",c:[{n:"Minneapolis sound"},{n:"Funk"},{n:"R&B"},{n:"Rock"}]},
+bio:["Prince signed with Warner Bros. in 1977 while still a teenager. On his debut, For You (1978), he wrote, produced and played almost every instrument, and his mix of funk, rock, pop and R&B became known as the Minneapolis sound. 1999 (1982) sold more than four million copies.","Purple Rain (1984) was a film and a soundtrack at once: the film, the album and “When Doves Cry” were all number one in the US at the same time, and it won an Oscar for Best Original Song Score. Sign o’ the Times (1987) is widely considered his greatest work.","In 1993, during a dispute with Warner Bros., he changed his name to an unpronounceable symbol. He played the Super Bowl halftime show in 2007, sold more than 100 million records, joined the Rock and Roll Hall of Fame in 2004, and died at his Paisley Park home in 2016."],
+trivia:["He was named after his father’s stage name, Prince Rogers, but as a child preferred to be called “Skipper”.","He was the first person to hold the US number-one film, album and single at once.","Andy Warhol painted twelve portraits of him in different colours.","About 500,000 copies of The Black Album were pressed before he recalled it; surviving copies sell for over $10,000."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Prince_(musician)">Wikipedia: Prince (musician)</a>, available under CC BY-SA 4.0.'
+},
+"amy-winehouse":{
+name:"Amy Winehouse",real:"Amy Jade Winehouse",
+facts:[["Born","14 September 1983, Enfield, London"],["Died","23 July 2011, Camden, London, aged 27"],["Active","2003–2011"],["Producers","Salaam Remi, Mark Ronson"],["Labels","Island, Universal Republic, Lioness"]],
+genres:{n:"Pop",c:[{n:"Soul"},{n:"R&B"},{n:"Jazz"}]},
+bio:["Amy Winehouse went to the Sylvia Young Theatre School in London. Her debut album Frank (2003), produced mostly by Salaam Remi, mixed jazz and soul, and its single “Stronger Than Me” won an Ivor Novello Award.","Back to Black (2006), made with Remi and Mark Ronson, was an international success. At the 2008 Grammys she won five awards, including Record and Song of the Year for “Rehab”.","In 2009 she started her own label, Lioness Records. She died in 2011, aged 27, and the Amy Winehouse Foundation was set up in her name."],
+trivia:["Her five Grammys in one night tied the record for a female artist and made her the first British woman to win five.","Her grandmother Cynthia once dated the jazz saxophonist Ronnie Scott.","Ronnie Spector, whose look she echoed, once mistook a newspaper photo of Winehouse for herself.","She won three Ivor Novello Awards, for “Stronger Than Me”, “Rehab” and “Love Is a Losing Game”."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Amy_Winehouse">Wikipedia: Amy Winehouse</a>, available under CC BY-SA 4.0.'
+},
+"katy-perry":{
+name:"Katy Perry",real:"Katheryn Elizabeth Hudson",
+facts:[["Born","25 October 1984, Santa Barbara, California"],["Active","2001–present"],["Record","Five US number ones from one album, Teenage Dream"],["TV","American Idol judge, 2018–2024"],["Labels","Red Hill, Columbia, Capitol"]],
+genres:{n:"Pop",c:[{n:"Rock"},{n:"Disco"}]},
+bio:["Katy Perry first released a gospel album, Katy Hudson, in 2001; it sold poorly, and Columbia later dropped her. Signed to Capitol, she broke through with “I Kissed a Girl”, which spent seven weeks at number one in the US in 2008.","Teenage Dream (2010) produced five US number-one singles, a record for an album by a woman, and Prism (2013) added “Roar” and “Dark Horse”. Her 2015 Super Bowl halftime show drew 118.5 million US viewers.","She was a judge on American Idol from 2018 to 2024 and released Witness, Smile and 143. In 2025 she flew into space on Blue Origin’s NS-31."],
+trivia:["Her gospel debut reportedly sold about 200 copies before its label closed.","She took her mother’s maiden name, Perry, to avoid being confused with the actress Kate Hudson.","Madonna called “Ur So Gay” her favourite song in 2008.","Growing up, deviled eggs had to be called “angeled eggs” at home."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Katy_Perry">Wikipedia: Katy Perry</a>, available under CC BY-SA 4.0.'
+},
+"dua-lipa":{
+name:"Dua Lipa",real:"Dua Lipa",
+facts:[["Born","22 August 1995, London, England"],["Family","Kosovo Albanian parents from Pristina"],["Active","2013–present"],["Awards","Seven Brit Awards, three Grammys"],["Label","Warner"]],
+genres:{n:"Pop",c:[{n:"Disco"},{n:"House"}]},
+bio:["Dua Lipa was born in London to Kosovo Albanian parents; her father sang in the Kosovar rock band Oda. She was working as a cocktail waitress when she signed with a management company in 2013.","Her self-titled debut (2017) gave her a first UK number one, “New Rules”, and in 2018 she won two Brit Awards; “One Kiss” with Calvin Harris was the UK’s best-selling song that year. In 2019 she won the Grammy for Best New Artist.","Future Nostalgia (2020) was her first UK number-one album and won the Grammy for Best Pop Vocal Album; “Levitating” topped the US year-end chart for 2021. She sang “Dance the Night” for the film Barbie (2023), and Radical Optimism (2024) went to number one in the UK."],
+trivia:["A primary-school choir teacher told her she couldn’t sing.","“Dua” means “love” in Albanian; her grandmother suggested the name.","The number of babies named Dua in England and Wales doubled between 2017 and 2019.","She played Mermaid Barbie in her acting debut."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Dua_Lipa">Wikipedia: Dua Lipa</a>, available under CC BY-SA 4.0.'
+},
+/* Rock */
+"pink-floyd":{
+name:"Pink Floyd",real:"Syd Barrett, Roger Waters, Richard Wright, Nick Mason and David Gilmour",
+facts:[["Formed","1965, London, England"],["Founders","Syd Barrett, Roger Waters, Richard Wright, Nick Mason"],["Joined 1967","David Gilmour"],["Sales","More than 250 million records"],["Labels","EMI, Harvest, Capitol, Columbia"]],
+genres:{n:"Rock",c:[{n:"Progressive rock"},{n:"Psychedelic rock"},{n:"Art rock"}]},
+bio:["Pink Floyd was formed in London in 1965 by Syd Barrett, Roger Waters, Richard Wright and Nick Mason. Their debut, The Piper at the Gates of Dawn, came out in 1967. David Gilmour joined that year, and Barrett left in 1968 as his mental health declined.","The Dark Side of the Moon (1973) went to number one in the US and stayed on the Billboard chart for more than 14 years. Wish You Were Here (1975), Animals (1977) and The Wall (1979), which spent 15 weeks at number one in the US, followed.","Waters left in 1985, and Gilmour led the band on two more albums. All four classic members reunited once, for Live 8 in 2005. Barrett died in 2006 and Wright in 2008. The band joined the Rock and Roll Hall of Fame in 1996."],
+trivia:["The name joins the first names of two bluesmen, Pink Anderson and Floyd Council.","Their first single, “Arnold Layne”, was banned by some radio stations but still reached number 20 in the UK.","The “dark side of the moon” in the title refers to madness, not astronomy.","Barrett turned up unannounced during the Wish You Were Here sessions, and at first nobody recognised him.","The Wall tour lost about $600,000; Wright, by then a paid musician, was the only one who made money."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Pink_Floyd">Wikipedia: Pink Floyd</a>, available under CC BY-SA 4.0.'
+},
+"sex-pistols":{
+name:"Sex Pistols",real:"Johnny Rotten, Steve Jones, Paul Cook, Glen Matlock and Sid Vicious",
+facts:[["Formed","1975, London, England"],["Main run","1975–1978, with later reunions"],["Members","Johnny Rotten, Steve Jones, Paul Cook, Glen Matlock, Sid Vicious"],["Manager","Malcolm McLaren"],["Labels","EMI, A&M, Virgin"]],
+genres:{n:"Rock",c:[{n:"Punk rock"}]},
+bio:["The Sex Pistols formed in London in 1975, managed by Malcolm McLaren. Swearing live on Bill Grundy’s TV show in December 1976 made them a national scandal, and both EMI and A&M dropped them.","“God Save the Queen” (1977), released during the Queen’s Silver Jubilee, was banned by the BBC and called the most heavily censored record in British history. Never Mind the Bollocks, Here’s the Sex Pistols went to number one in the UK in October 1977.","Johnny Rotten announced the break-up on stage at their last US show in January 1978, and Sid Vicious died in 1979. The others reunited for tours from 1996. They were inducted into the Rock and Roll Hall of Fame in 2006 but refused to attend."],
+trivia:["Steve Jones nicknamed John Lydon “Johnny Rotten” because of his teeth.","Only about seven of the twenty or so shows on the 1976 Anarchy Tour went ahead.","A court case over the word “bollocks” in the album title was thrown out after an expert explained it was an old word for a small ball.","The film The Great Rock ’n’ Roll Swindle produced more top-ten singles than Never Mind the Bollocks."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Sex_Pistols">Wikipedia: Sex Pistols</a>, available under CC BY-SA 4.0.'
+},
+"the-strokes":{
+name:"The Strokes",real:"Julian Casablancas, Nick Valensi, Albert Hammond Jr., Nikolai Fraiture and Fabrizio Moretti",
+facts:[["Formed","1998, New York City"],["Active","1998–present"],["Members","Julian Casablancas, Nick Valensi, Albert Hammond Jr., Nikolai Fraiture, Fabrizio Moretti"],["Grammy","Best Rock Album, The New Abnormal (2021)"],["Labels","Rough Trade, RCA, Cult"]],
+genres:{n:"Rock",c:[{n:"Indie rock"},{n:"Garage rock"},{n:"Post-punk revival"}]},
+bio:["Julian Casablancas, Nick Valensi and Fabrizio Moretti began playing together at Dwight School in Manhattan, and the Strokes played their first show in September 1999. The Modern Age EP started a bidding war among labels.","Is This It (2001) was widely acclaimed and helped lead the garage rock revival. Room on Fire (2003) and First Impressions of Earth (2006) sold well before the band took a break from about 2007.","They returned with Angles (2011) and Comedown Machine (2013). The New Abnormal (2020), produced by Rick Rubin, won the Grammy for Best Rock Album, and Reality Awaits followed in 2026."],
+trivia:["Casablancas and Albert Hammond Jr. had met at a boarding school in Switzerland.","NME gave away “Last Nite” as a free MP3 a week before The Modern Age came out.","After 11 September 2001, the US edition of Is This It got a new cover and dropped “New York City Cops”.","In 2010 they played a secret London show as “Venison” to 487 people."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/The_Strokes">Wikipedia: The Strokes</a>, available under CC BY-SA 4.0.'
+},
+/* Hip-hop */
+"public-enemy":{
+name:"Public Enemy",real:"Chuck D and Flavor Flav, with the Bomb Squad",
+facts:[["Formed","1985, Long Island, New York"],["Active","1985–present"],["Key members","Chuck D, Flavor Flav, Terminator X, Professor Griff"],["Producers","The Bomb Squad"],["Labels","Def Jam, Columbia, PIAS"]],
+genres:{n:"Hip-hop",c:[{n:"Political hip-hop"},{n:"East Coast hip-hop"}]},
+bio:["Public Enemy was formed on Long Island in 1985 by Chuck D and Flavor Flav, with production by the Bomb Squad. Their debut, Yo! Bum Rush the Show, came out on Def Jam in 1987.","It Takes a Nation of Millions to Hold Us Back (1988) was the first hip-hop album voted album of the year in The Village Voice’s critics’ poll. “Fight the Power” became the theme of Spike Lee’s film Do the Right Thing, and Fear of a Black Planet (1990) was later added to the US National Recording Registry.","The group joined the Rock and Roll Hall of Fame in 2013 and received a Grammy Lifetime Achievement Award."],
+trivia:["Chuck D’s early tape Public Enemy #1 was partly made to answer a local MC who wanted to battle him.","They opened for the Beastie Boys on the Licensed to Ill tour.","Fear of a Black Planet was reportedly produced in about four weeks.","The Bomb Squad also produced much of Bell Biv DeVoe’s Poison."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Public_Enemy">Wikipedia: Public Enemy</a>, available under CC BY-SA 4.0.'
+},
+"a-tribe-called-quest":{
+name:"A Tribe Called Quest",real:"Q-Tip, Phife Dawg, Ali Shaheed Muhammad and Jarobi White",
+facts:[["Formed","1985, Queens, New York"],["Members","Q-Tip, Phife Dawg, Ali Shaheed Muhammad, Jarobi White"],["Collective","Native Tongues"],["Hall of Fame","Rock and Roll Hall of Fame, 2024"],["Labels","Jive, Epic"]],
+genres:{n:"Hip-hop",c:[{n:"Jazz rap"},{n:"Alternative hip-hop"}]},
+bio:["A Tribe Called Quest formed in Queens in 1985 and were founding members of the Native Tongues collective. Their debut, People’s Instinctive Travels and the Paths of Rhythm (1990), was the first album to get five mics from The Source.","The Low End Theory (1991) and Midnight Marauders (1993) followed. Beats, Rhymes and Life (1996) was their first US number one, and they called The Love Movement (1998) their final album.","They reunited in 2006. Phife Dawg died in March 2016, months before We Got It from Here… Thank You 4 Your Service went to number one. They played their last concert in 2017 and joined the Rock and Roll Hall of Fame in 2024."],
+trivia:["The Jungle Brothers, who went to the same high school as Q-Tip, came up with the group’s name.","“Electric Relaxation” became the opening theme of the sitcom The Wayans Bros.","Questlove took his name from the group, his favourite act.","Midnight Marauders went platinum in 14 months, their fastest-selling album."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/A_Tribe_Called_Quest">Wikipedia: A Tribe Called Quest</a>, available under CC BY-SA 4.0.'
+},
+"de-la-soul":{
+name:"De La Soul",real:"Posdnuos, Trugoy the Dove and Maseo",
+facts:[["Formed","1988, Amityville, Long Island, New York"],["Members","Posdnuos, Maseo; Trugoy the Dove (died 2023)"],["Producer","Prince Paul (early albums)"],["Collective","Native Tongues"],["Labels","Tommy Boy, Sanctuary, Mass Appeal and more"]],
+genres:{n:"Hip-hop",c:[{n:"Jazz rap"},{n:"Alternative hip-hop"}]},
+bio:["De La Soul formed on Long Island in 1988. Their debut, 3 Feet High and Rising (1989), produced with Prince Paul, is their biggest success, and “Me Myself and I” was a hit.","De La Soul Is Dead (1991) was darker and later became a cult classic. They won their first Grammy in 2006 for “Feel Good Inc.” with Gorillaz.","For years their early albums were missing from streaming services because of sample clearances. Trugoy the Dove died in 2023, and that March their first six albums finally arrived on streaming."],
+trivia:["Their names are wordplay: Trugoy is “yogurt” backwards, and Posdnuos is “sound sop” backwards.","The Turtles sued them over a sample of “You Showed Me”.","Their catalogue reached streaming on 3 March 2023, the 34th anniversary of 3 Feet High and Rising.","Only 500 copies of the 1994 promo EP Clear Lake Audiotorium were pressed."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/De_La_Soul">Wikipedia: De La Soul</a>, available under CC BY-SA 4.0.'
+},
+"nas":{
+name:"Nas",real:"Nasir bin Olu Dara Jones",
+facts:[["Born","14 September 1973, Brooklyn, New York"],["Active","1989–present"],["Debut album","Illmatic (1994)"],["Grammy","Best Rap Album, King’s Disease (2021)"],["Labels","Columbia, Def Jam, Mass Appeal and more"]],
+genres:{n:"Hip-hop",c:[{n:"East Coast hip-hop"},{n:"Boom bap"}]},
+bio:["Nas made his recording debut in 1991 on Main Source’s “Live at the Barbeque” and signed with Columbia in 1992. His debut album, Illmatic (1994), is now in the US National Recording Registry.","It Was Written (1996) went to number one in the US. His long feud with Jay-Z peaked with “Ether” on Stillmatic (2001), seen as a career revival, and in 2006 he signed to Def Jam, then run by Jay-Z.","King’s Disease (2020), the first of a series produced by Hit-Boy, won him his first Grammy. In 2025 he released Light-Years with DJ Premier. He also co-founded Mass Appeal Records."],
+trivia:["He met producer Large Professor at 16 in a studio where Rakim and Kool G Rap were recording.","His daughter Destiny was credited as an executive producer of Stillmatic so she could receive royalties.","A Hot 97 listener poll on his battle with Jay-Z went 58% to 42% in Nas’s favour.","An early investment paid him about $40 million when Amazon bought Ring in 2018."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Nas">Wikipedia: Nas</a>, available under CC BY-SA 4.0.'
+},
+"dr-dre":{
+name:"Dr. Dre",real:"Andre Romell Young",
+facts:[["Born","18 February 1965, Compton, California"],["Active","1984–present"],["Groups","World Class Wreckin’ Cru, N.W.A"],["Labels founded","Death Row (co-founder), Aftermath"],["Labels","Ruthless, Death Row, Aftermath, Interscope"]],
+genres:{n:"Hip-hop",c:[{n:"West Coast hip-hop"},{n:"G-funk"}]},
+bio:["Dr. Dre started with the World Class Wreckin’ Cru in 1984 and in 1987 formed N.W.A with Eazy-E and Ice Cube. Their album Straight Outta Compton (1989) is credited with popularising gangsta rap.","He left N.W.A in 1991 and co-founded Death Row Records. His solo album The Chronic (1992) made him one of the best-selling artists of 1993 and won him a Grammy. In 1996 he founded Aftermath, which signed Eminem in 1998 and 50 Cent in 2002, and later Kendrick Lamar.","His second album, 2001 (1999), went to number two in the US, and Compton followed in 2015. Apple bought his Beats company for $3.4 billion in 2014, and his 2022 Super Bowl halftime show won an Emmy."],
+trivia:["His name comes from “Dr. J”, the nickname of his favourite basketball player, Julius Erving.","Snoop Dogg’s Doggystyle, which he produced, was the first debut album to enter the US chart at number one.","Eminem’s The Marshall Mathers LP, made with Dre, sold 1.76 million copies in its first week.","In 2013 he and Jimmy Iovine gave $70 million to the University of Southern California."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Dr._Dre">Wikipedia: Dr. Dre</a>, available under CC BY-SA 4.0.'
+},
+"wu-tang-clan":{
+name:"Wu-Tang Clan",real:"RZA, GZA, Method Man, Raekwon, Ghostface Killah, Inspectah Deck, U-God, Masta Killa, Ol’ Dirty Bastard and Cappadonna",
+facts:[["Formed","1992, Staten Island, New York"],["Leader and producer","RZA"],["Members","RZA, GZA, Method Man, Raekwon, Ghostface Killah, Inspectah Deck, U-God, Masta Killa, Cappadonna"],["Late member","Ol’ Dirty Bastard (died 2004)"],["Labels","Loud, RCA, Asylum, Warner Bros. and more"]],
+genres:{n:"Hip-hop",c:[{n:"East Coast hip-hop"},{n:"Hardcore hip-hop"}]},
+bio:["Wu-Tang Clan came together in Staten Island in 1992, led by producer RZA. Their debut, Enter the Wu-Tang (36 Chambers) (1993), was released by Loud/RCA under a deal that let each member sign solo contracts with other labels, which led to a wave of solo albums from 1994 to 1996.","Wu-Tang Forever (1997) went to number one in the US and was nominated for a Grammy. Ol’ Dirty Bastard died in 2004.","Later albums include The W, 8 Diagrams and A Better Tomorrow (2014). In 2015 they made a single copy of Once Upon a Time in Shaolin. Their final tour ended in Philadelphia in July 2025."],
+trivia:["The only copy of Once Upon a Time in Shaolin sold for $2 million, the most ever paid for a work of music.","The US government later sold it again for about $4 million.","In 2023 they became the first hip-hop act to hold a Las Vegas residency.","RZA says he keeps samples to about 20–25% of a record."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Wu-Tang_Clan">Wikipedia: Wu-Tang Clan</a>, available under CC BY-SA 4.0.'
+},
+"kendrick-lamar":{
+name:"Kendrick Lamar",real:"Kendrick Lamar Duckworth",
+facts:[["Born","17 June 1987, Compton, California"],["Active","2003–present"],["Pulitzer Prize","Music, 2018, for DAMN."],["Grammys","27, the most for any rapper"],["Labels","Top Dawg, Aftermath, Interscope, pgLang"]],
+genres:{n:"Hip-hop",c:[{n:"West Coast hip-hop"},{n:"Conscious hip-hop"},{n:"Jazz rap"}]},
+bio:["Kendrick Lamar rapped as K.Dot in high school and signed with Top Dawg Entertainment in 2005. After his debut Section.80 (2011), good kid, m.A.A.d city (2012), his first major-label album, was widely acclaimed.","To Pimp a Butterfly (2015) was his first US number one. DAMN. (2017) won the 2018 Pulitzer Prize for Music, and he curated the Black Panther soundtrack. In 2020 he co-founded the creative company pgLang.","In 2024 his song “Not Like Us” and the album GNX came out of a feud with Drake; “Not Like Us” won five Grammys, including Record of the Year. He headlined the Super Bowl halftime show in 2025."],
+trivia:["He is named after Eddie Kendricks of the Temptations.","He was the first musician outside classical and jazz to win the Pulitzer Prize for Music.","He once worked as a security guard at Top Dawg’s studio.","His 2025 Super Bowl show drew 133.5 million viewers, the most-watched halftime show ever."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Kendrick_Lamar">Wikipedia: Kendrick Lamar</a>, available under CC BY-SA 4.0.'
+},
+/* Blues */
+"junior-wells":{
+name:"Junior Wells",real:"Amos Wells Blakemore Jr.",
+facts:[["Born","9 December 1934, Memphis, Tennessee"],["Died","15 January 1998, Chicago, Illinois"],["Instrument","Harmonica, vocals"],["Partner","Buddy Guy"],["Labels","States, Chief, Delmark and more"]],
+genres:{n:"Blues",c:[{n:"Chicago blues"}]},
+bio:["Junior Wells learned harmonica as a child from his cousin Junior Parker and Sonny Boy Williamson II, and moved to Chicago with his mother in 1948. In 1952 he replaced Little Walter in Muddy Waters’s band.","On Chief Records he cut his signature song, “Messin’ with the Kid”. Hoodoo Man Blues (1965), made for Delmark with Buddy Guy on guitar, is called one of the classic blues albums of the 1960s, and the two later worked together on several projects.","Touring with the Rolling Stones in the 1970s brought him to rock audiences. He died in Chicago in 1998."],
+trivia:["He bought his first harmonica for $2.00 with money from working on a soda truck.","His 1960 single “Little by Little” reached number 23 on the US R&B chart.","He recorded an instructional harmonica video in 1992 that J. Geils called “the greatest piece of Americana”.","Some sources say he was born in West Memphis, Arkansas."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Junior_Wells">Wikipedia: Junior Wells</a>, available under CC BY-SA 4.0.'
+},
+"john-mayall":{
+name:"John Mayall",real:"John Brumwell Mayall",
+facts:[["Born","29 November 1933, Macclesfield, England"],["Died","22 July 2024, California, aged 90"],["Band","John Mayall & the Bluesbreakers"],["Instruments","Vocals, keyboards, guitar, harmonica"],["Labels","Decca, Polydor, ABC, Eagle and more"]],
+genres:{n:"Blues",c:[{n:"British blues"},{n:"Blues rock"}]},
+bio:["John Mayall led John Mayall & the Bluesbreakers, who played London’s Marquee Club from late 1963. Blues Breakers with Eric Clapton (1966) was his breakthrough, reaching number 6 in the UK.","Many later stars passed through the Bluesbreakers, among them Peter Green, John McVie, Mick Fleetwood and Mick Taylor all passed through. The Turning Point (1969) was recorded live at the Fillmore East.","He was made an OBE in 2005, joined the Rock and Roll Hall of Fame in 2024, and died that year aged 90."],
+trivia:["“Clapton is God” graffiti appeared in London while Clapton was in his band.","Mick Fleetwood was a Bluesbreaker for only a few weeks before Fleetwood Mac formed.","Mick Taylor joined at 18; Andy Fraser joined at 15 and left within six weeks to start Free.","A 1979 brush fire destroyed his Laurel Canyon house and 25 years of diaries."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/John_Mayall">Wikipedia: John Mayall</a>, available under CC BY-SA 4.0.'
+},
+"albert-king":{
+name:"Albert King",real:"Born Albert Nelson",
+facts:[["Born","25 April 1923, Indianola, Mississippi"],["Died","21 December 1992, Memphis, Tennessee"],["Guitar","A Flying V he called “Lucy”"],["Nickname","The Velvet Bulldozer"],["Labels","Bobbin, King, Stax, Atlantic"]],
+genres:{n:"Blues",c:[{n:"Electric blues"},{n:"Rhythm and blues"}]},
+bio:["Albert King was left-handed and played right-handed guitars turned upside down, which shaped his sound. In 1953 he took the name Albert King and was billed as B.B. King’s brother, though they were probably not related.","At Stax Records he recorded with Booker T. & the MG’s, and Born Under a Bad Sign (1967) became his best-known album; Cream and Jimi Hendrix covered its title track. His 1968 shows at the Fillmore in San Francisco produced several live albums.","Stevie Ray Vaughan named him a major influence, and Eric Clapton said he inspired Cream’s Disraeli Gears. King joined the Blues Hall of Fame in 1983 and, after his death, the Rock and Roll Hall of Fame in 2013."],
+trivia:["He was called the Velvet Bulldozer partly because he once drove a bulldozer for a living.","He named his guitar Lucy after B.B. King’s Lucille.","He briefly played drums in Jimmy Reed’s band.","In 1970 he joined the Doors on stage in Vancouver; the show was released in 2010."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Albert_King">Wikipedia: Albert King</a>, available under CC BY-SA 4.0.'
+},
+"stevie-ray-vaughan":{
+name:"Stevie Ray Vaughan",real:"Stephen Ray Vaughan",
+facts:[["Born","3 October 1954, Dallas, Texas"],["Died","27 August 1990, East Troy, Wisconsin, aged 35"],["Band","Double Trouble"],["Guitar","Fender Stratocaster"],["Labels","Epic"]],
+genres:{n:"Blues",c:[{n:"Texas blues"},{n:"Blues rock"}]},
+bio:["Stevie Ray Vaughan left high school in 1972 and moved to Austin, where in 1978 he formed Double Trouble with bassist Tommy Shannon and drummer Chris Layton.","His set at the 1982 Montreux Jazz Festival caught David Bowie’s attention, and Vaughan played guitar on Bowie’s Let’s Dance. Epic signed Double Trouble in March 1983, and Texas Flood came out that June, followed by Couldn’t Stand the Weather (1984).","After rehab in 1986 he returned to touring, and In Step (1989) won his first Grammy and gave him his only number-one hit, “Crossfire”. He died in a helicopter crash after a show at Alpine Valley in 1990, and joined the Rock and Roll Hall of Fame in 2015."],
+trivia:["He walked away from Bowie’s Serious Moonlight Tour days before it opened, after a dispute over his fee.","His road manager persuaded him to use his middle name and perform as “Stevie Ray”.","His favourite guitar, “Lenny”, sold at a 2004 charity auction for $623,500.","His father died on 27 August 1986, exactly four years before he did."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Stevie_Ray_Vaughan">Wikipedia: Stevie Ray Vaughan</a>, available under CC BY-SA 4.0.'
 }
+
 };
 var AV='<svg class="av" viewBox="0 0 100 120" aria-hidden="true"><circle cx="50" cy="26" r="20"/><path d="M8 118c0-42 14-58 42-58s42 16 42 58z"/></svg>';
 function artistLink(n){return '<button class="lnk" type="button" '+(AR[slug(n)]?'data-go="'+esc(n)+'"':'data-msg="The artist page for '+esc(n)+' is not built yet."')+'>'+esc(n)+'</button>'}
@@ -1870,12 +2189,105 @@ function route(){
   if(page.view==="album")ap.innerHTML=albumHTML(ALB[page.id]);
   if(page.view==="artist")ap.innerHTML=artistHTML(page.id);
   if(page.view==="label")ap.innerHTML=labelHTML(page.id);
-  if(page.view==="song"){ap.innerHTML=songHTML(page);window.scrollTo(0,0);floatCover(X[page.alb].cover,page.alb,ALB[page.alb].title)}
+  if(page.view==="song"){ap.innerHTML=songHTML(page);playerMount(page);window.scrollTo(0,0);floatCover(X[page.alb].cover,page.alb,ALB[page.alb].title)}
+  if(page.view!=="song")playerMount(page);
   document.title=(page.view!=="home"?page.name+" · ":"")+"MuDis";
   document.getElementById("ntWhere").textContent="Notes attach to the page you’re on ("+page.name+"), so they’re waiting when you come back.";
   nts.value="";try{nts.value=localStorage.getItem(noteKey())||""}catch(e){}
   closeAll();window.scrollTo(0,0);if(page.view==="home")prog();
 }
+/* ---- Mini player on album and song pages (settings: PL_SET; audio hooks: playTrack / pauseTrack) ---- */
+function playerMount(page){
+  var pg=document.getElementById("album"),alb=page.view==="album"?page.id:page.view==="song"?page.alb:null,x=alb&&X[alb];
+  PLAYER.el=null;
+  if(!x||!x.tracks||!x.tracks.length){playerStop();PLAYER.alb=null;return}
+  if(PLAYER.alb!==alb){playerStop();PLAYER.alb=alb;PLAYER.n=1}
+  if(page.view==="song"&&PLAYER.n!==page.n){PLAYER.n=page.n;if(PLAYER.playing)playTrack(ALB[alb],PLAYER.n,x.tracks[PLAYER.n-1])}
+  var hd=pg.querySelector(".ahd");if(!hd)return;
+  var S=PL_SET,a=ALB[alb],cv=coverOf(alb),w=document.createElement("div");
+  /* only the middle button of the pause picture shows: a soft-edged round window over it */
+  var rx=S.pauseRadius,ry=S.pauseRadius*900/411,g="radial-gradient(ellipse "+rx+"% "+ry+"% at "+S.playX+"% "+S.buttonY+"%,#000 82%,transparent 100%)",
+      mask="-webkit-mask-image:"+g+";mask-image:"+g;
+  function btn(k,bx,l){return '<button type="button" class="pb" data-pl="'+k+'" aria-label="'+l+'"'+(k==="play"?' aria-pressed="false"':'')+' style="left:'+bx+'%;top:'+S.buttonY+'%;width:'+S.buttonSize+'%;height:'+(S.buttonSize*900/411)+'%"></button>'}
+  w.className="plw";
+  w.innerHTML='<div class="pl" role="group" aria-label="Player for '+esc(a.title)+'">'+
+    '<img class="st py" src="assets/buttons/player-play-cutout.png" alt="">'+
+    '<img class="st pa" src="assets/buttons/player-pause-cutout.png" alt="" style="'+mask+'">'+
+    '<div class="pdisc'+(PLAYER.on?' show':'')+'" style="left:'+S.matX+'%;top:'+S.matY+'%;width:'+S.discSize+'%;'+gray(2,8)+'"><span style="transform:rotate('+PLAYER.ang.toFixed(1)+'deg)">'+(cv?'<img src="'+esc(cv)+'" alt="" onerror="this.remove()">':'')+'</span><i></i></div>'+
+    '<img class="st arm" src="assets/buttons/player-arm-layer.png" alt="">'+
+    btn("prev",S.prevX,"Previous track")+btn("play",S.playX,"Play")+btn("next",S.nextX,"Next track")+
+    '</div><p class="plcap" aria-live="polite"></p>';
+  hd.classList.add("hasp");hd.insertBefore(w,hd.firstChild);
+  PLAYER.el=w.querySelector(".pl");
+  playerShow();
+  if(PLAYER.playing)spinRun();
+}
+/* Caption, button labels, which track is highlighted, and the play/pause picture */
+function playerShow(){
+  if(!PLAYER.el)return;
+  var x=X[PLAYER.alb],N=x.tracks.length,t=x.tracks[PLAYER.n-1],w=PLAYER.el.parentNode,p=w.querySelector('[data-pl="play"]');
+  w.querySelector(".plcap").textContent=(PLAYER.playing?"Playing · ":PLAYER.on?"Paused · ":"")+"Track "+PLAYER.n+" of "+N+" · "+t[0];
+  w.querySelector('[data-pl="prev"]').disabled=PLAYER.n<=1;
+  w.querySelector('[data-pl="next"]').disabled=PLAYER.n>=N;
+  p.setAttribute("aria-pressed",PLAYER.playing?"true":"false");
+  p.setAttribute("aria-label",(PLAYER.playing?"Pause":"Play")+" track "+PLAYER.n+", "+t[0]);
+  PLAYER.el.classList.toggle("on",PLAYER.playing);
+  document.querySelectorAll("#album .tl2 li").forEach(function(li,i){li.classList.toggle("now",PLAYER.on&&i===PLAYER.n-1)});
+}
+/* The little cover circle turns at 33⅓ rpm, easing up on play and down on pause (transform only) */
+function spinRun(){if(rm||PLAYER.raf)return;PLAYER.last=performance.now();PLAYER.raf=requestAnimationFrame(spinTick)}
+function spinTick(t){
+  var dt=Math.min(.1,(t-PLAYER.last)/1000),target=PLAYER.playing?360/PL_SET.rpmSeconds:0;PLAYER.last=t;
+  PLAYER.vel+=(target-PLAYER.vel)*(1-Math.exp(-dt*3));
+  if(!PLAYER.playing&&PLAYER.vel<3)PLAYER.vel=0;
+  PLAYER.ang=(PLAYER.ang+PLAYER.vel*dt)%360;
+  var s=PLAYER.el&&PLAYER.el.querySelector(".pdisc span");if(s)s.style.transform="rotate("+PLAYER.ang.toFixed(1)+"deg)";
+  if(!PLAYER.playing&&PLAYER.vel===0){PLAYER.raf=0;return}
+  PLAYER.raf=requestAnimationFrame(spinTick);
+}
+function playerStop(){
+  if(PLAYER.playing){PLAYER.playing=false;pauseTrack()}
+  PLAYER.on=false;cancelAnimationFrame(PLAYER.raf);PLAYER.raf=0;PLAYER.vel=0;PLAYER.ang=0;
+}
+/* Play: a copy of the page's cover (the big square on album pages, the drifting circle on song pages)
+   shrinks into a circle and lands on the little turntable's mat. The page's own cover stays where it is. */
+function flyToMat(d,done){
+  var src=document.querySelector("#album .aspread .acover")||document.querySelector(".floater");
+  if(rm||!src){done();return}
+  var s=src.getBoundingClientRect(),t=d.getBoundingClientRect(),cv=coverOf(PLAYER.alb),f=document.createElement("div");
+  if(!s.width||!t.width){done();return}
+  f.className="plfly";f.style.cssText+=";width:"+s.width+"px;height:"+s.height+"px;"+gray(2,8);
+  if(cv)f.innerHTML='<img src="'+esc(cv)+'" alt="">';
+  document.body.appendChild(f);
+  var r0=getComputedStyle(src).borderRadius==="50%"||src.classList.contains("floater")?"50%":"0%";
+  var a=f.animate([
+    {transform:"translate("+s.left+"px,"+s.top+"px) scale(1)",borderRadius:r0},
+    {transform:"translate("+t.left+"px,"+t.top+"px) scale("+(t.width/s.width)+")",borderRadius:"50%"}],
+    {duration:900,easing:"cubic-bezier(.5,0,.2,1)",fill:"forwards"});
+  var fin=false;function end(){if(fin)return;fin=true;f.remove();done()}
+  a.finished.then(end,end);setTimeout(end,1300);
+}
+function playerToggle(){
+  if(!PLAYER.el)return;
+  var x=X[PLAYER.alb],d=PLAYER.el.querySelector(".pdisc");
+  if(!PLAYER.playing){
+    var first=!PLAYER.on;PLAYER.playing=true;PLAYER.on=true;playerShow();
+    playTrack(ALB[PLAYER.alb],PLAYER.n,x.tracks[PLAYER.n-1]);
+    if(first)flyToMat(d,function(){d.classList.add("show");spinRun()});else{d.classList.add("show");spinRun()}
+  }else{PLAYER.playing=false;playerShow();pauseTrack();spinRun()}
+}
+/* Back / forward: on an album page they step through the track list; on a song page they open the previous / next song */
+function playerStep(dir){
+  var x=X[PLAYER.alb],n=PLAYER.n+dir;if(!x||n<1||n>x.tracks.length)return;
+  if(cur&&cur.view==="song"){go(PLAYER.alb+"/"+n);return}
+  PLAYER.n=n;playerShow();
+  if(PLAYER.playing)playTrack(ALB[PLAYER.alb],n,x.tracks[n-1]);
+}
+document.getElementById("album").addEventListener("click",function(e){
+  var b=e.target.closest("[data-pl]");if(!b||b.disabled)return;
+  b.classList.add("press");setTimeout(function(){b.classList.remove("press")},120);
+  if(b.dataset.pl==="play")playerToggle();else playerStep(b.dataset.pl==="next"?1:-1);
+});
 function go(id){var h=id==="home"?"home":id.indexOf("/")>0?id:slug(id);if(location.hash.slice(1)===h)route();else location.hash=h}
 nts.addEventListener("input",function(){try{localStorage.setItem(noteKey(),nts.value)}catch(e){}});
 window.addEventListener("hashchange",route);
