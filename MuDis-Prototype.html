@@ -1,5 +1,6 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>MuDis Prototype</title>
+<script>/* THEME TEST: olive is on when ?theme=olive or when chosen with the Test theme button (remembered in this browser) */(function(){var t=null,m=location.search.match(/[?&]theme=(olive|grey)/);try{t=m?m[1]:localStorage.getItem("mudis-theme");if(m)localStorage.setItem("mudis-theme",t)}catch(e){t=m?m[1]:null}if(t==="olive")document.documentElement.classList.add("olive")})()</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
 /* Layout: one shell (search, MuDis, Trail, Note it) that swaps between the genre-column home (L00) and a genre page (L01). Colour darkens with trail depth, as in the original two files. Single look by choice: greys only. */
@@ -341,6 +342,33 @@ html:not([data-view="home"]) .lr-open{display:none}
   .lr-stage{width:100%}
 }
 @media (max-width:900px){:root{--gut:18px}.top{grid-template-columns:1fr 1fr}.brand{grid-column:1/-1;grid-row:2}.bar{flex-wrap:wrap}.grid,.artists{grid-template-columns:repeat(2,1fr)}.hist{min-width:900px}}
+/* ================= THEME TEST: OLIVE + NEUMORPHIC (switch with the "Test theme" button, or ?theme=olive / ?theme=grey) =================
+   Only applies when <html> has class "olive"; the grey theme above is untouched.
+   Per level: --bg page colour, --sh-d / --sh-l the dark and light neumorphic shadows, --sunk the carved-in groove colour,
+   --edge the soft doorway border, --acc the orange used for doorway arrows (darker on light levels, lighter on dark ones). */
+:root.olive{--bg:#fff;--sh-d:#d6d9cb;--sh-l:#ffffff;--sunk:#f1f2ea;--edge:rgba(17,17,17,.5);--acc:#c65f0e}
+:root.olive[data-level="1"]{--bg:#e5e7d9;--sh-d:#c3c6b0;--sh-l:#ffffff;--sunk:#dcdfcd}
+:root.olive[data-level="2"]{--bg:#c7cbac;--sh-d:#a7ab8c;--sh-l:#e7ebcc;--sunk:#bec2a1}
+:root.olive[data-level="3"]{--bg:#656941;--fg:#f3f3f1;--line:rgba(243,243,241,.3);--sh-d:#4c4f31;--sh-l:#7e8351;--sunk:#5d6139;--edge:rgba(243,243,241,.5);--acc:#f7a35c}
+:root.olive[data-level="4"]{--bg:#353722;--fg:#f3f3f1;--line:rgba(243,243,241,.3);--sh-d:#24261a;--sh-l:#46492d;--sunk:#2f311d;--edge:rgba(243,243,241,.5);--acc:#f7a35c}
+:root.olive[data-level="5"]{--bg:#121309;--fg:#f3f3f1;--line:rgba(243,243,241,.3);--sh-d:#050603;--sh-l:#25271a;--sunk:#0d0e07;--edge:rgba(243,243,241,.5);--acc:#f7a35c}
+/* Deeper doorways: raised off the page, solid edge, ↘ arrow; they press in on hover */
+:root.olive .chip,:root.olive .dl button{position:relative;border:1px solid var(--edge);background:var(--bg);color:var(--fg);box-shadow:6px 6px 12px var(--sh-d),-6px -6px 12px var(--sh-l);transition:box-shadow .18s,transform .18s}
+:root.olive .chip:not(.side):hover,:root.olive .dl button:not(.side):hover,:root.olive .chip:not(.side):focus-visible,:root.olive .dl button:not(.side):focus-visible{background:var(--bg);color:var(--fg);box-shadow:inset 5px 5px 10px var(--sh-d),inset -5px -5px 10px var(--sh-l)}
+:root.olive .chip:not(.side)::after,:root.olive .dl button:not(.side)::after{content:"↘";color:var(--acc);font-size:17px;line-height:1}
+/* Sideways doorways: carved into the page, dashed edge, → arrow; they slide along on hover */
+:root.olive .chip.side,:root.olive .dl button.side{border:1px dashed var(--edge);background:var(--sunk);box-shadow:inset 4px 4px 9px var(--sh-d),inset -4px -4px 9px var(--sh-l)}
+:root.olive .chip.side:hover,:root.olive .dl button.side:hover,:root.olive .chip.side:focus-visible,:root.olive .dl button.side:focus-visible{background:var(--sunk);color:var(--fg);transform:translateX(6px)}
+:root.olive .chip.side::after,:root.olive .dl button.side::after{content:"→";color:var(--acc);font-size:17px;line-height:1}
+/* genre chips are stacked text, so their arrow sits at the right edge */
+:root.olive .chip::after{position:absolute;right:20px;top:50%;transform:translateY(-50%)}
+/* Header pills and round buttons: soft raised, press in on hover; the search box is carved in like a field */
+:root.olive .pill:not(.search),:root.olive .ib{border-color:transparent;background:var(--bg);box-shadow:4px 4px 8px var(--sh-d),-4px -4px 8px var(--sh-l);transition:box-shadow .18s}
+:root.olive .pill:not(.search):hover,:root.olive .ib:hover,:root.olive .pill[aria-expanded="true"]{background:var(--bg);color:var(--fg);box-shadow:inset 3px 3px 6px var(--sh-d),inset -3px -3px 6px var(--sh-l)}
+:root.olive .search{border-color:transparent;background:var(--sunk);box-shadow:inset 3px 3px 6px var(--sh-d),inset -3px -3px 6px var(--sh-l)}
+@media (prefers-reduced-motion:reduce){:root.olive .chip.side:hover,:root.olive .dl button.side:hover{transform:none}}
+/* the switch itself (test only: delete this rule and the #themeTest button to remove it) */
+#themeTest{position:fixed;right:16px;bottom:16px;z-index:140;height:30px;padding:0 14px;border:1px solid var(--fg);border-radius:99px;background:var(--bg);color:var(--fg);font-size:12px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -379,6 +407,11 @@ html:not([data-view="home"]) .lr-open{display:none}
 <div class="wrap" id="map" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <audio id="pvAudio" preload="none" hidden></audio>
+<!-- THEME TEST switch: delete this button, its #themeTest CSS rule and the THEME TEST script in <head> to remove the test -->
+<button type="button" id="themeTest" aria-pressed="false">Test theme: Grey</button>
+<script>(function(){var b=document.getElementById("themeTest"),r=document.documentElement;
+function show(){var o=r.classList.contains("olive");b.textContent="Test theme: "+(o?"Olive":"Grey");b.setAttribute("aria-pressed",o?"true":"false");b.title="Switch to "+(o?"grey":"olive")}
+b.addEventListener("click",function(){var o=r.classList.toggle("olive");try{localStorage.setItem("mudis-theme",o?"olive":"grey")}catch(e){}show()});show()})()</script>
 <!-- Listening Room: opens over Home from the "Listening Room" pill -->
 <div class="lr" id="lr" role="dialog" aria-modal="true" aria-labelledby="lrTitle" hidden>
   <div class="lr-panel">
