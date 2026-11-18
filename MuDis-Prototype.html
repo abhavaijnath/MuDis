@@ -380,6 +380,7 @@ html:not([data-view="home"]) .lr-open{display:none}
       </div>
       <p class="lr-now" id="lrNow" aria-live="polite"></p>
       <p class="lr-time" id="lrTime"></p>
+      <audio id="lrAudio" preload="none" hidden></audio>
       <button class="pill lr-aotd" id="lrAotd" type="button">Play the album of the day</button>
     </div>
   </div>
@@ -404,6 +405,18 @@ var LR_SET={
   stylusLandsAt:92,                /* where the needle lands, % of the record radius from the centre */
   view:{x:280,y:55,w:760,h:595}    /* part of the turntable image the player box is fitted to, px (the rest is white margin) */
 };
+/* ================= LISTENING ROOM: AUDIO =================
+   Albums with real audio, keyed by album slug. Each album is ONE audio file holding the whole album.
+   Track start times are not typed in: they are calculated by adding up the track lengths in the album data, starting at 0
+   (see lrTracks below, which gives every track a `start` field). They are estimates; check them by listening.
+   offsets: nudge a track's start, in seconds, by track number (1-based). Negative = earlier, positive = later. */
+var LR_AUDIO={
+  "random-access-memories":{
+    src:"assets/audio/Daft-Punk-Random-Access-Memories.mp3",
+    offsets:{ /* e.g. 3:-1.5, 8:2 */ }
+  }
+};
+
 /* ================= MINI PLAYER (album and song pages): ALIGNMENT SETTINGS (nudge these) =================
    Percentages of the player image (assets/buttons/player-*-cutout.png, 900 × 411 px): x = % of its width, y = % of its height. */
 var PL_SET={
@@ -2409,13 +2422,52 @@ var seenIntro=false;try{seenIntro=sessionStorage.getItem("mudis-intro")==="1";se
 if(cur.view==="home"&&!rm&&!seenIntro)intro();
 
 /* ================= LISTENING ROOM =================
-   AUDIO HOOKS: not connected yet. Start and Stop call these two functions; put the audio code inside them later. */
+   AUDIO: one hidden <audio id="lrAudio"> plays the whole-album file listed in LR_AUDIO (settings at the top of the script).
+   Start calls startPlayback (play), Stop calls stopPlayback (pause). Albums without an entry in LR_AUDIO show "Audio not added yet". */
+var LRA={el:null,key:null,tracks:[],total:0,missing:false,onTick:null};
+/* The album's track list with a calculated `start` (seconds) on every track: the sum of the earlier tracks' lengths,
+   starting at 0, plus that track's optional offset from LR_AUDIO. These are estimates to check by listening. */
+function lrTracks(key){
+  var x=X[key],cfg=LR_AUDIO[key]||{},off=cfg.offsets||{},sum=0;
+  return (x&&x.tracks||[]).map(function(t,i){
+    var m=String(t[1]).split(":").map(Number),len=m.length===3?m[0]*3600+m[1]*60+m[2]:m[0]*60+(m[1]||0),
+        o=+off[i+1]||0,tr={n:i+1,title:t[0],len:len,start:Math.max(0,sum+o)};
+    sum+=len;return tr;
+  });
+}
+function lrHasAudio(key){return !!LR_AUDIO[key]}
+/* Which track is playing at time `sec`: the last track whose start is at or before it */
+function lrTrackAt(sec){var i=0;LRA.tracks.forEach(function(t,j){if(sec>=t.start)i=j});return LRA.tracks[i]}
+/* Called when a record is put on the platter: point the audio element at that album's file (or nothing) */
+function lrPrepare(key){
+  var el=LRA.el;if(!el)return;
+  el.pause();LRA.key=key;LRA.missing=false;
+  if(!lrHasAudio(key)){el.removeAttribute("src");el.load();LRA.tracks=[];LRA.total=0;return}
+  LRA.tracks=lrTracks(key);LRA.total=LRA.tracks.reduce(function(s,t){return s+t.len},0);
+  var src=LR_AUDIO[key].src;
+  if(el.getAttribute("src")!==src){el.setAttribute("src",src);el.preload="metadata";el.load()}else el.currentTime=0;
+}
 function startPlayback(album){
-  /* TODO audio: start playing `album` ({title, artist, year, ...} from ALB) */
+  var el=LRA.el,key=slug(album.title);
+  if(!el||!lrHasAudio(key)||LRA.missing)return;
+  if(LRA.key!==key)lrPrepare(key);
+  var p=el.play();if(p&&p.catch)p.catch(function(){});
 }
-function stopPlayback(){
-  /* TODO audio: stop or pause whatever startPlayback started */
-}
+function stopPlayback(){if(LRA.el)LRA.el.pause()}
+(function(){
+  var el=document.getElementById("lrAudio");if(!el)return;LRA.el=el;
+  function tick(){if(LRA.onTick)LRA.onTick()}
+  el.addEventListener("timeupdate",tick);
+  el.addEventListener("loadedmetadata",function(){
+    var d=el.duration;
+    if(isFinite(d)&&LRA.total&&Math.abs(d-LRA.total)>5)
+      console.warn("MuDis Listening Room: the audio file for "+LRA.key+" is "+d.toFixed(1)+" s long, but its track lengths add up to "+LRA.total+" s ("+(d-LRA.total).toFixed(1)+" s difference). Calculated track start times may drift; adjust LR_AUDIO offsets after listening.");
+    tick();
+  });
+  /* missing or unreadable file: say so quietly and keep everything else working */
+  el.addEventListener("error",function(){if(el.getAttribute("src")){LRA.missing=true;tick()}});
+  el.addEventListener("ended",tick);
+})();
 
 (function(){
   var S=LR_SET,I=LR_IMG,$=function(id){return document.getElementById(id)};
@@ -2429,7 +2481,13 @@ function stopPlayback(){
   var pool=Object.keys(ALB).filter(function(k){return ALB[k].genre==="Electronic"&&ALB[k].kind==="Album"}).sort();
   function dayNum(){var d=new Date();return Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5)}
   function seeded(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-  function todays(){var r=seeded(dayNum()),p=pool.slice();for(var i=p.length-1;i>0;i--){var j=Math.floor(r()*(i+1)),t=p[i];p[i]=p[j];p[j]=t}return p.slice(0,6)}
+  function todays(){
+    var r=seeded(dayNum()),p=pool.slice();for(var i=p.length-1;i>0;i--){var j=Math.floor(r()*(i+1)),t=p[i];p[i]=p[j];p[j]=t}
+    var six=p.slice(0,6);
+    /* albums with real audio are always on the wheel: each one missing today replaces a date-picked sleeve from the end (never the album of the day) */
+    Object.keys(LR_AUDIO).filter(function(k){return pool.indexOf(k)>-1&&six.indexOf(k)<0}).forEach(function(k,n){if(six.length-1-n>0)six[six.length-1-n]=k});
+    return six;
+  }
   function lengthOf(k){
     var x=X[k],s=0;if(!x||!x.tracks)return 0;
     x.tracks.forEach(function(t){var m=String(t[1]||"").split(":").map(Number);s+=m.length===3?m[0]*3600+m[1]*60+m[2]:m.length===2?m[0]*60+m[1]:0});
@@ -2503,14 +2561,27 @@ function stopPlayback(){
   function spinReset(){cancelAnimationFrame(spin.raf);spin.raf=0;spin.vel=0;spin.ang=0;dsk.style.transform=""}
 
   /* ---- Lines under the turntable ---- */
+  /* Albums with audio: the track at the audio's current time, and position / album length.
+     Albums without audio (or a missing file): the album line, time listened, and a quiet "Audio not added yet". */
+  function audioLive(){return cur&&lrHasAudio(cur)&&LRA.key===cur&&!LRA.missing}
   function showTime(){
     if(!cur){time.textContent="";return}
-    var len=lengthOf(cur);time.textContent="Time listened "+fmt(listened)+(len?" of "+fmt(len):"");
+    if(audioLive()){
+      var d=LRA.el.duration,len=isFinite(d)&&d>0?d:LRA.total;
+      time.textContent=fmt(LRA.el.currentTime||0)+" / "+fmt(len);return;
+    }
+    var len2=lengthOf(cur);time.textContent="Time listened "+fmt(listened)+(len2?" of "+fmt(len2):"")+" · Audio not added yet";
   }
+  var lastTrack=null;
   function showNow(){
-    if(!cur){now.textContent="Pick a sleeve to start listening.";time.textContent="";return}
-    var a=ALB[cur];now.textContent="Now playing: "+a.title+", "+a.artist+", "+a.year;showTime();
+    if(!cur){now.textContent="Pick a sleeve to start listening.";time.textContent="";lastTrack=null;return}
+    if(audioLive()&&LRA.tracks.length){
+      var t=lrTrackAt(LRA.el.currentTime||0);
+      if(t!==lastTrack){lastTrack=t;now.textContent="Now playing: "+t.title}
+    }else{lastTrack=null;var a=ALB[cur];now.textContent="Now playing: "+a.title+", "+a.artist+", "+a.year}
+    showTime();
   }
+  LRA.onTick=function(){if(isOpen)showNow()};
   function counting(){if(playing){var n=performance.now();listened+=(n-lastTick)/1000;lastTick=n;showTime()}}
 
   /* ---- Sleeve wheel ----
@@ -2601,7 +2672,7 @@ function stopPlayback(){
     spinReset();
     return wait(300).then(function(){
       if(my!==run)return;
-      cur=k;listened=0;showNow();rec.classList.add("on");
+      cur=k;listened=0;lrPrepare(k);showNow();rec.classList.add("on");
       if(rm)return;
       var p=fromSleeve(k);
       return move(rec,[
