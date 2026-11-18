@@ -252,7 +252,7 @@ html.intro .rail{overflow:visible}
 .ahd.hasp>*:not(.plw){grid-column:1}
 .plw{grid-column:2;grid-row:1/span 3;display:flex;flex-direction:column;align-items:center;margin-top:-6px}
 /* Layers, bottom to top: the device (play picture), the pause picture cut to the middle button only, the cover circle, the arm, the buttons */
-.pl{position:relative;width:clamp(220px,22vw,290px);aspect-ratio:900/411;filter:drop-shadow(0 8px 12px rgba(0,0,0,.28)) drop-shadow(0 2px 3px rgba(0,0,0,.2))}
+.pl{position:relative;width:clamp(260px,calc(22vw + 40px),330px);aspect-ratio:900/411;filter:drop-shadow(0 8px 12px rgba(0,0,0,.28)) drop-shadow(0 2px 3px rgba(0,0,0,.2))}
 .pl .st{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;user-select:none}
 .pl .st.pa{visibility:hidden}
 .pl.on .st.pa{visibility:visible}
@@ -267,13 +267,13 @@ html.intro .rail{overflow:visible}
 .pl .pb:active,.pl .pb.press{transform:translate(-50%,-50%) scale(.92);background:rgba(0,0,0,.18);box-shadow:inset 0 2px 5px rgba(0,0,0,.4)}
 .pl .pb:focus-visible{outline:2px solid var(--fg);outline-offset:2px}
 .pl .pb:disabled{cursor:default}
-.plcap{margin:4px 0 0;max-width:clamp(220px,22vw,290px);font-size:12px;line-height:1.3;text-align:center;opacity:.75;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.plnote{margin:2px 0 0;max-width:clamp(220px,22vw,290px);min-height:16px;font-size:12px;line-height:1.3;text-align:center;opacity:.75}
+.plcap{margin:4px 0 0;max-width:clamp(260px,calc(22vw + 40px),330px);font-size:12px;line-height:1.3;text-align:center;opacity:.75;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.plnote{margin:2px 0 0;max-width:clamp(260px,calc(22vw + 40px),330px);min-height:16px;font-size:12px;line-height:1.3;text-align:center;opacity:.75}
 .plnote a{color:inherit}
 @media (max-width:700px){.plnote{text-align:left}}
 .plfly{position:fixed;left:0;top:0;z-index:60;overflow:hidden;pointer-events:none;transform-origin:0 0}
 .plfly img{width:100%;height:100%;object-fit:cover;display:block}
-.tl2 li.now button{font-weight:600}
+.tl2 li.now button{font-weight:600;color:#f07a1e}
 @media (max-width:700px){.ahd.hasp{grid-template-columns:1fr}.plw{grid-column:1;grid-row:10;align-items:flex-start;margin-top:14px}.plcap{text-align:left}}
 /* Listening Room: a calm overlay for listening to one whole album. No doorways, no trail steps, no level change.
    Alignment numbers live in LR_SET at the top of the script. */
