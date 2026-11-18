@@ -1,15 +1,18 @@
 <!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>MuDis Prototype</title>
-<script>/* THEME TEST: olive is on when ?theme=olive or when chosen with the Test theme button (remembered in this browser) */(function(){var t=null,m=location.search.match(/[?&]theme=(olive|grey)/);try{t=m?m[1]:localStorage.getItem("mudis-theme");if(m)localStorage.setItem("mudis-theme",t)}catch(e){t=m?m[1]:null}if(t==="olive")document.documentElement.classList.add("olive")})()</script>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
 /* Layout: one shell (search, MuDis, Trail, Note it) that swaps between the genre-column home (L00) and a genre page (L01). Colour darkens with trail depth, as in the original two files. Single look by choice: greys only. */
-:root{--bg:#fff;--fg:#111;--gut:36px;--line:rgba(17,17,17,.3);color-scheme:light}
-:root[data-level="1"]{--bg:#dcdcda;--line:rgba(17,17,17,.3)}
-:root[data-level="2"]{--bg:#a8a8a6}
-:root[data-level="3"]{--bg:#6a6a69;--fg:#f3f3f1;--line:rgba(243,243,241,.3)}
-:root[data-level="4"]{--bg:#2c2c2b;--fg:#f3f3f1;--line:rgba(243,243,241,.3)}
-:root[data-level="5"]{--bg:#0b0b0b;--fg:#f3f3f1;--line:rgba(243,243,241,.3)}
+/* Depth colours (olive): L00 white, darkening with each step down the trail. Per level:
+   --bg page, --fg text, --line hairlines; --sh-d / --sh-l the dark and light soft shadows;
+   --deep the Deeper door colour (a shade darker: going deeper darkens the site), --side the Sideways door colour (a shade lighter);
+   --edge the soft door border; --acc the orange door arrows (darker on light levels, lighter on dark ones). */
+:root{--bg:#fff;--fg:#111;--gut:36px;--line:rgba(17,17,17,.3);--sh-d:#d6d9cb;--sh-l:#ffffff;--deep:#ecede4;--side:#ffffff;--sunk:#f1f2ea;--edge:rgba(17,17,17,.5);--acc:#c65f0e;color-scheme:light}
+:root[data-level="1"]{--bg:#e5e7d9;--sh-d:#c3c6b0;--sh-l:#ffffff;--deep:#d3d6c3;--side:#f1f2e9;--sunk:#dcdfcd}
+:root[data-level="2"]{--bg:#c7cbac;--sh-d:#a7ab8c;--sh-l:#e7ebcc;--deep:#b4b997;--side:#d6d9c0;--sunk:#bec2a1}
+:root[data-level="3"]{--bg:#656941;--fg:#f3f3f1;--line:rgba(243,243,241,.3);--sh-d:#4c4f31;--sh-l:#7e8351;--deep:#555937;--side:#767a50;--sunk:#5d6139;--edge:rgba(243,243,241,.5);--acc:#f7a35c}
+:root[data-level="4"]{--bg:#353722;--fg:#f3f3f1;--line:rgba(243,243,241,.3);--sh-d:#24261a;--sh-l:#46492d;--deep:#2a2c1a;--side:#44472d;--sunk:#2f311d;--edge:rgba(243,243,241,.5);--acc:#f7a35c}
+:root[data-level="5"]{--bg:#121309;--fg:#f3f3f1;--line:rgba(243,243,241,.3);--sh-d:#050603;--sh-l:#25271a;--deep:#0a0b05;--side:#202217;--sunk:#0d0e07;--edge:rgba(243,243,241,.5);--acc:#f7a35c}
 *,*::before,*::after{box-sizing:border-box}
 body{margin:0;min-height:calc(100vh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;background:var(--bg);color:var(--fg);font-family:"Nimbus Sans","Nimbus Sans L",Helvetica,"Helvetica Neue",Arial,sans-serif;line-height:1.5;transition:background .9s ease,color .9s ease}
 button,input,textarea{font:inherit;color:inherit}
@@ -23,7 +26,7 @@ html:not([data-view="home"]) .top{max-width:1180px;margin:0 auto}
 .search input{flex:1;min-width:0;border:0;background:transparent;outline:0;font-size:13px}
 .search input::placeholder{color:var(--fg);opacity:.6}
 .search:focus-within{outline:2px solid var(--fg);outline-offset:3px}
-.right{justify-self:end;display:grid;gap:8px;width:136px}
+.right{justify-self:end;display:grid;gap:8px;justify-items:end}
 /* Top-left: search on the landing page only; everywhere else a back arrow and a home button take its place */
 .left{min-width:0}
 .navb{display:flex;gap:8px}
@@ -38,7 +41,7 @@ html:not([data-view="home"]) .brand a{font-size:20px;letter-spacing:-.04em;paddi
 html:not([data-view="home"]) .brand p{display:none}
 .ptype{display:none;margin-top:3px;font-size:14px;font-weight:600;line-height:1.2}
 html:not([data-view="home"]) .ptype{display:block}
-.panel{position:absolute;right:max(var(--gut),env(safe-area-inset-right,0px));top:104px;width:min(310px,calc(100% - 2 * var(--gut)));padding:16px;background:var(--bg);border:1px solid var(--fg);z-index:80;display:none;font-size:13.5px;line-height:1.4}
+.panel{position:absolute;right:max(var(--gut),env(safe-area-inset-right,0px));top:142px;width:min(310px,calc(100% - 2 * var(--gut)));padding:16px;background:var(--bg);border:1px solid var(--fg);z-index:80;display:none;font-size:13.5px;line-height:1.4}
 .panel.open{display:block}
 .panel h2{margin:0 0 6px;font-size:15px;font-weight:600}
 .panel p{margin:0 0 12px}
@@ -74,9 +77,10 @@ html:not([data-view="home"]) .ptype{display:block}
 .mfoot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px;margin-top:26px;padding-top:18px;border-top:1px solid var(--line);font-size:12.5px;letter-spacing:.12em;text-transform:uppercase}
 .mfoot span:first-child{opacity:.75}
 .macts{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin:44px 0 70px}
-.macts button{height:46px;padding:0 26px;border:1px solid var(--fg);border-radius:99px;background:none;font-size:14px;letter-spacing:.08em;text-transform:uppercase}
-.macts button:hover{background:color-mix(in srgb,var(--fg) 12%,transparent)}
-.macts button.main{background:var(--fg);color:var(--bg)}
+/* Trail page actions: long keyboard keys (64px so the labels fit); "Share map" is the main action, shown in bold */
+.macts .key{height:64px}
+.macts .key .kc{font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+.macts .key.main .kc{font-weight:700}
 @media (max-width:700px){.mstats{gap:12px}.mhint{display:none}}
 textarea{width:100%;height:130px;resize:vertical;padding:8px;border:1px solid var(--fg);background:transparent;font-size:14px}
 /* "Note it": the writing area is a yellow sticky note; its border still follows the level colour */
@@ -123,6 +127,14 @@ textarea{width:100%;height:130px;resize:vertical;padding:8px;border:1px solid va
 .key:active .kd,.key.press .kd{visibility:visible}
 .key:active,.key.press{filter:drop-shadow(0 2px 3px rgba(0,0,0,.28)) drop-shadow(0 1px 1px rgba(0,0,0,.25))}
 .key:focus-visible{outline:2px solid var(--fg);outline-offset:3px;border-radius:12px}
+/* Header keys: Back and Home (short keys with an icon), Trail and Note it (long keys with their label).
+   The icon or label sits on the key's top face; Trail and Note it stay pressed in while their panel is open. */
+.key .kc{position:absolute;left:0;right:0;top:0;bottom:17%;display:flex;align-items:center;justify-content:center;gap:10px;color:#111;font-size:13px;line-height:1;white-space:nowrap;pointer-events:none}
+.key.hk .kc svg{display:block}
+.key[aria-expanded="true"] .ku{visibility:hidden}
+.key[aria-expanded="true"] .kd{visibility:visible}
+.key[aria-expanded="true"]{filter:drop-shadow(0 2px 3px rgba(0,0,0,.28)) drop-shadow(0 1px 1px rgba(0,0,0,.25))}
+.key:active .kc,.key.press .kc,.key[aria-expanded="true"] .kc{transform:translateY(1px)}
 .credit{opacity:.75;text-align:right}
 .wrap{max-width:1180px;width:100%;margin:0 auto;padding:0 max(var(--gut),env(safe-area-inset-right,0px)) 0 max(var(--gut),env(safe-area-inset-left,0px));flex:1}
 h1{margin:34px 0 8px -6px;font-weight:500;font-size:clamp(52px,13vw,176px);letter-spacing:-.055em;line-height:.9;overflow-wrap:anywhere}
@@ -297,7 +309,7 @@ html:not([data-view="home"]) .lr-open{display:none}
 .lr{position:fixed;inset:0;z-index:150;background:rgba(255,255,255,.9);color:#111;opacity:0;transition:opacity .35s ease}
 .lr.on{opacity:1}
 .lr[hidden]{display:none}
-.lr-panel{position:absolute;inset:16px;border-radius:28px;background:#dcdcda;isolation:isolate;display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:24px;padding:20px 40px;overflow:hidden}
+.lr-panel{position:absolute;inset:16px;border-radius:28px;background:#1f4a35 url("assets/listening-room/room-tiles.jpg") center/cover;--fg:#f3f3f1;color:#f3f3f1;isolation:isolate;display:grid;grid-template-columns:minmax(220px,1fr) auto;gap:24px;padding:20px 40px;overflow:hidden}
 .lr-h{position:absolute;left:28px;top:22px;z-index:25;margin:0;font-size:13px;font-weight:500}
 .lr-close{position:absolute;right:20px;top:16px;z-index:30}
 /* Sleeve wheel: sleeves sit on a curve that bends away to the left. The one in the middle is full size and fully opaque;
@@ -316,8 +328,8 @@ html:not([data-view="home"]) .lr-open{display:none}
 .lr-stage{position:relative;flex:none;width:min(calc(100vw - 32px - 80px - 24px - 220px),calc((100vh - 32px - 40px - 92px) * 760 / 595));aspect-ratio:760/595}
 .lr-frame{position:absolute}
 .lr-tt{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;user-select:none}
-/* room colour #dcdcda; the turntable is a cut-out with its own soft shadow, so it keeps its cream colour on any background */
-.lr-shh{position:absolute;right:28px;bottom:20px;z-index:25;margin:0;font-family:Helvetica,"Nimbus Sans",Arial,sans-serif;font-weight:700;font-size:15px;color:#000;pointer-events:none}
+/* room background: the green tiles (assets/listening-room/room-tiles.jpg), with light text; the turntable is a cut-out with its own soft shadow, so it keeps its cream colour on any background */
+.lr-shh{position:absolute;right:28px;bottom:20px;z-index:25;margin:0;font-family:Helvetica,"Nimbus Sans",Arial,sans-serif;font-weight:700;font-size:15px;color:#f3f3f1;pointer-events:none}
 .lr-arm{position:absolute;z-index:18;height:auto;max-width:none;pointer-events:none;user-select:none;transition:transform .9s cubic-bezier(.45,0,.25,1)}
 .lr-rec{position:absolute;z-index:15;border-radius:50%;box-shadow:5px 9px 16px rgba(0,0,0,.35);visibility:hidden;will-change:transform}
 .lr-rec.on{visibility:visible}
@@ -342,33 +354,24 @@ html:not([data-view="home"]) .lr-open{display:none}
   .lr-stage{width:100%}
 }
 @media (max-width:900px){:root{--gut:18px}.top{grid-template-columns:1fr 1fr}.brand{grid-column:1/-1;grid-row:2}.bar{flex-wrap:wrap}.grid,.artists{grid-template-columns:repeat(2,1fr)}.hist{min-width:900px}}
-/* ================= THEME TEST: OLIVE + NEUMORPHIC (switch with the "Test theme" button, or ?theme=olive / ?theme=grey) =================
-   Only applies when <html> has class "olive"; the grey theme above is untouched.
-   Per level: --bg page colour, --sh-d / --sh-l the dark and light neumorphic shadows, --sunk the carved-in groove colour,
-   --edge the soft doorway border, --acc the orange used for doorway arrows (darker on light levels, lighter on dark ones). */
-:root.olive{--bg:#fff;--sh-d:#d6d9cb;--sh-l:#ffffff;--sunk:#f1f2ea;--edge:rgba(17,17,17,.5);--acc:#c65f0e}
-:root.olive[data-level="1"]{--bg:#e5e7d9;--sh-d:#c3c6b0;--sh-l:#ffffff;--sunk:#dcdfcd}
-:root.olive[data-level="2"]{--bg:#c7cbac;--sh-d:#a7ab8c;--sh-l:#e7ebcc;--sunk:#bec2a1}
-:root.olive[data-level="3"]{--bg:#656941;--fg:#f3f3f1;--line:rgba(243,243,241,.3);--sh-d:#4c4f31;--sh-l:#7e8351;--sunk:#5d6139;--edge:rgba(243,243,241,.5);--acc:#f7a35c}
-:root.olive[data-level="4"]{--bg:#353722;--fg:#f3f3f1;--line:rgba(243,243,241,.3);--sh-d:#24261a;--sh-l:#46492d;--sunk:#2f311d;--edge:rgba(243,243,241,.5);--acc:#f7a35c}
-:root.olive[data-level="5"]{--bg:#121309;--fg:#f3f3f1;--line:rgba(243,243,241,.3);--sh-d:#050603;--sh-l:#25271a;--sunk:#0d0e07;--edge:rgba(243,243,241,.5);--acc:#f7a35c}
-/* Deeper doorways: raised off the page, solid edge, ↘ arrow; they press in on hover */
-:root.olive .chip,:root.olive .dl button{position:relative;border:1px solid var(--edge);background:var(--bg);color:var(--fg);box-shadow:6px 6px 12px var(--sh-d),-6px -6px 12px var(--sh-l);transition:box-shadow .18s,transform .18s}
-:root.olive .chip:not(.side):hover,:root.olive .dl button:not(.side):hover,:root.olive .chip:not(.side):focus-visible,:root.olive .dl button:not(.side):focus-visible{background:var(--bg);color:var(--fg);box-shadow:inset 5px 5px 10px var(--sh-d),inset -5px -5px 10px var(--sh-l)}
-:root.olive .chip:not(.side)::after,:root.olive .dl button:not(.side)::after{content:"↘";color:var(--acc);font-size:17px;line-height:1}
-/* Sideways doorways: carved into the page, dashed edge, → arrow; they slide along on hover */
-:root.olive .chip.side,:root.olive .dl button.side{border:1px dashed var(--edge);background:var(--sunk);box-shadow:inset 4px 4px 9px var(--sh-d),inset -4px -4px 9px var(--sh-l)}
-:root.olive .chip.side:hover,:root.olive .dl button.side:hover,:root.olive .chip.side:focus-visible,:root.olive .dl button.side:focus-visible{background:var(--sunk);color:var(--fg);transform:translateX(6px)}
-:root.olive .chip.side::after,:root.olive .dl button.side::after{content:"→";color:var(--acc);font-size:17px;line-height:1}
+/* ================= DOORWAYS (soft, neumorphic) =================
+   Deeper: raised off the page, a shade DARKER than the page (going deeper darkens the site), solid edge, orange arrow pointing down.
+   Sideways: carved into the page, a shade LIGHTER than the page, dashed edge, orange arrow pointing right.
+   Both arrows are the same size: one 24px box drawn from an SVG mask, coloured with --acc. */
+.chip,.dl button{position:relative;border:1px solid var(--edge);color:var(--fg);transition:box-shadow .18s,transform .18s,background .18s}
+.chip:not(.side),.dl button:not(.side){background:var(--deep);box-shadow:6px 6px 12px var(--sh-d),-6px -6px 12px var(--sh-l)}
+.chip:not(.side):hover,.dl button:not(.side):hover,.chip:not(.side):focus-visible,.dl button:not(.side):focus-visible{background:var(--deep);color:var(--fg);box-shadow:inset 5px 5px 10px var(--sh-d),inset -5px -5px 10px var(--sh-l)}
+.chip.side,.dl button.side{border:1px dashed var(--edge);background:var(--side);box-shadow:inset 4px 4px 9px var(--sh-d),inset -4px -4px 9px var(--sh-l)}
+.chip.side:hover,.dl button.side:hover,.chip.side:focus-visible,.dl button.side:focus-visible{background:var(--side);color:var(--fg);transform:translateX(6px)}
+.chip::after,.dl button::after{content:"";flex:none;width:24px;height:24px;background:var(--acc);
+  -webkit-mask:var(--arrow) center/contain no-repeat;mask:var(--arrow) center/contain no-repeat}
+.chip:not(.side),.dl button:not(.side){--arrow:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.5v17M5 13.5l7 7 7-7'/%3E%3C/svg%3E")}
+.chip.side,.dl button.side{--arrow:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 12h17M13.5 5l7 7-7 7'/%3E%3C/svg%3E")}
 /* genre chips are stacked text, so their arrow sits at the right edge */
-:root.olive .chip::after{position:absolute;right:20px;top:50%;transform:translateY(-50%)}
-/* Header pills and round buttons: soft raised, press in on hover; the search box is carved in like a field */
-:root.olive .pill:not(.search),:root.olive .ib{border-color:transparent;background:var(--bg);box-shadow:4px 4px 8px var(--sh-d),-4px -4px 8px var(--sh-l);transition:box-shadow .18s}
-:root.olive .pill:not(.search):hover,:root.olive .ib:hover,:root.olive .pill[aria-expanded="true"]{background:var(--bg);color:var(--fg);box-shadow:inset 3px 3px 6px var(--sh-d),inset -3px -3px 6px var(--sh-l)}
-:root.olive .search{border-color:transparent;background:var(--sunk);box-shadow:inset 3px 3px 6px var(--sh-d),inset -3px -3px 6px var(--sh-l)}
-@media (prefers-reduced-motion:reduce){:root.olive .chip.side:hover,:root.olive .dl button.side:hover{transform:none}}
-/* the switch itself (test only: delete this rule and the #themeTest button to remove it) */
-#themeTest{position:fixed;right:16px;bottom:16px;z-index:140;height:30px;padding:0 14px;border:1px solid var(--fg);border-radius:99px;background:var(--bg);color:var(--fg);font-size:12px}
+.chip::after{position:absolute;right:18px;top:50%;transform:translateY(-50%)}
+/* the search box is carved in like a field */
+.search{border-color:transparent;background:var(--sunk);box-shadow:inset 3px 3px 6px var(--sh-d),inset -3px -3px 6px var(--sh-l)}
+@media (prefers-reduced-motion:reduce){.chip.side:hover,.dl button.side:hover{transform:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -377,14 +380,14 @@ html:not([data-view="home"]) .lr-open{display:none}
     <label class="pill search"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="6.5" cy="6.5" r="4.7"/><path d="M10 10l4.5 4.5"/></svg><input id="q" type="search" placeholder="Search genre, artist, album" aria-label="Search genre, artist or album"></label>
     <button class="lr-open" id="lrOpen" type="button" aria-haspopup="dialog" aria-label="Listening Room"><span class="tk"><img class="tku" src="assets/listening-room/ticket-empty-up.png" alt=""><img class="tkd" src="assets/listening-room/ticket-empty-down.png" alt=""><span class="tk-txt" aria-hidden="true"><span>Listening</span><span>Room</span></span><img class="tk-masc" src="assets/listening-room/mascot-spin.webp" alt=""></span></button>
     <nav class="navb" aria-label="Page navigation">
-      <button class="ib" id="backBtn" type="button" aria-label="Back to the previous page" title="Back"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 8H2.5M7 3.5L2.5 8 7 12.5"/></svg></button>
-      <button class="ib" id="homeBtn" type="button" aria-label="Home, all genres" title="Home"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 7.5L8 2.5l5.5 5M4 6.5v7h8v-7"/></svg></button>
+      <button class="key hk" id="backBtn" type="button" aria-label="Back to the previous page" title="Back"><img class="ku" src="assets/buttons/key-back-up.png" alt=""><img class="kd" src="assets/buttons/key-back-down.png" alt=""><span class="kc"><svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 8H2.5M7 3.5L2.5 8 7 12.5"/></svg></span></button>
+      <button class="key hk" id="homeBtn" type="button" aria-label="Home, all genres" title="Home"><img class="ku" src="assets/buttons/key-home-up.png" alt=""><img class="kd" src="assets/buttons/key-home-down.png" alt=""><span class="kc"><svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 7.5L8 2.5l5.5 5M4 6.5v7h8v-7"/></svg></span></button>
     </nav>
   </div>
   <div class="brand"><a href="#home" id="brandLink">MuDis</a><span class="ptype" id="ptype"></span><p>Pick a genre. Follow the trail down.</p></div>
   <div class="right">
-    <button class="pill" id="pmBtn" type="button" aria-expanded="false" aria-controls="map"><span id="pmTxt">Trail</span><span id="lvl">L 00</span></button>
-    <button class="pill" id="ntBtn" type="button" aria-expanded="false" aria-controls="nt"><span>Note it</span></button>
+    <button class="key kl" id="pmBtn" type="button" aria-expanded="false" aria-controls="map"><img class="ku" src="assets/buttons/key-long-up.png" alt=""><img class="kd" src="assets/buttons/key-long-down.png" alt=""><span class="kc"><span id="pmTxt">Trail</span><span id="lvl">L 00</span></span></button>
+    <button class="key kl" id="ntBtn" type="button" aria-expanded="false" aria-controls="nt"><img class="ku" src="assets/buttons/key-long-up.png" alt=""><img class="kd" src="assets/buttons/key-long-down.png" alt=""><span class="kc"><span>Note it</span></span></button>
   </div>
   <div class="panel" id="nt">
     <h2>Notes</h2>
@@ -407,11 +410,6 @@ html:not([data-view="home"]) .lr-open{display:none}
 <div class="wrap" id="map" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <audio id="pvAudio" preload="none" hidden></audio>
-<!-- THEME TEST switch: delete this button, its #themeTest CSS rule and the THEME TEST script in <head> to remove the test -->
-<button type="button" id="themeTest" aria-pressed="false">Test theme: Grey</button>
-<script>(function(){var b=document.getElementById("themeTest"),r=document.documentElement;
-function show(){var o=r.classList.contains("olive");b.textContent="Test theme: "+(o?"Olive":"Grey");b.setAttribute("aria-pressed",o?"true":"false");b.title="Switch to "+(o?"grey":"olive")}
-b.addEventListener("click",function(){var o=r.classList.toggle("olive");try{localStorage.setItem("mudis-theme",o?"olive":"grey")}catch(e){}show()});show()})()</script>
 <!-- Listening Room: opens over Home from the "Listening Room" pill -->
 <div class="lr" id="lr" role="dialog" aria-modal="true" aria-labelledby="lrTitle" hidden>
   <div class="lr-panel">
@@ -638,6 +636,10 @@ rail.addEventListener("wheel",function(e){
   rail.scrollLeft+=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?rail.clientWidth:1);e.preventDefault();
 },{passive:false});
 function keyPress(b){b.classList.add("press");setTimeout(function(){b.classList.remove("press")},140)}
+/* header keys (Back, Home, Trail, Note it) also show their pressed picture when used from the keyboard */
+document.querySelectorAll(".key.hk,.key.kl").forEach(function(b){b.addEventListener("click",function(){keyPress(b)})});
+/* the Trail page's action keys are created each time the page opens, so they're caught here */
+document.addEventListener("click",function(e){var b=e.target.closest&&e.target.closest(".macts .key");if(b)keyPress(b)});
 document.getElementById("prev").onclick=function(){keyPress(this);rail.scrollBy({left:-rail.clientWidth*.6,behavior:"smooth"})};
 document.getElementById("next").onclick=function(){keyPress(this);rail.scrollBy({left:rail.clientWidth*.6,behavior:"smooth"})};
 var rm=matchMedia("(prefers-reduced-motion:reduce)").matches;
@@ -2187,7 +2189,7 @@ function mapHTML(){
   +'<p class="mhint">Drag to pan · Ctrl or ⌘ + scroll to zoom · Click a page to open it</p>'
   +'<div class="mzoom"><button type="button" data-z="out" aria-label="Zoom out">−</button><output id="mzv">100%</output><button type="button" data-z="in" aria-label="Zoom in">+</button><hr><button type="button" data-z="fit">Fit</button><button type="button" data-z="you">You</button></div></div>'
   +'<div class="mfoot"><span>Your trail</span><span>'+trail.map(function(p){return esc(p.name)}).join(" → ")+'</span></div>'
-  +'<div class="macts"><button type="button" class="main" id="mShare">Share map</button><button type="button" id="mDig">Keep digging</button><button type="button" id="mReset">Start over</button></div>';
+  +'<div class="macts">'+[["mShare","Share map"," main"],["mDig","Keep digging",""],["mReset","Start over",""]].map(function(b){return '<button type="button" class="key kl mk'+b[2]+'" id="'+b[0]+'"><img class="ku" src="assets/buttons/key-long-up.png" alt=""><img class="kd" src="assets/buttons/key-long-down.png" alt=""><span class="kc">'+b[1]+'</span></button>'}).join("")+'</div>';
 }
 function mapSet(){
   var w=document.getElementById("mworld");if(!w)return;
