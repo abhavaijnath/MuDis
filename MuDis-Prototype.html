@@ -245,6 +245,7 @@ html.intro .col.clone{visibility:hidden}
 .apic img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .lpic{align-items:center}
 .lpic span{font-size:clamp(40px,7vw,96px);font-weight:500;letter-spacing:-.05em;color:#111}
+.copic span{font-size:clamp(28px,4vw,52px);text-align:center;line-height:1.05}
 .facts{display:grid;grid-template-columns:auto minmax(0,1fr);gap:10px 22px;margin:0;font-size:17px;line-height:1.35}
 .facts dt{opacity:.7}
 .facts dd{margin:0}
@@ -1574,6 +1575,14 @@ bio:["Giorgio Moroder was born in 1940 in Urtijëi, South Tyrol, and grew up spe
 trivia:["His 1969 tune “Doo-Bee-Doo-Bee-Doo” played for years in silent sketches on The Benny Hill Show.","His song “Tears” is the basis of DJ Shadow’s “Organ Donor” on Endtroducing.....","He co-designed a supercar, the Cizeta-Moroder V16T.","In 1984 he restored and re-edited the 1927 silent film Metropolis with a new pop soundtrack, splitting film critics down the middle.","Visiting a Hollywood club named after him in 2013, he said it was the first time he had seen people dance to his music, because he had always been in the studio.","He wrote “Un’estate italiana”, the official song of the 1990 FIFA World Cup.","He donated his 13 platinum discs for Flashdance to the museum in his hometown."],
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Giorgio_Moroder">Wikipedia: Giorgio Moroder</a>, available under CC BY-SA 4.0. Photo: Andy Witchger, <a href="https://commons.wikimedia.org/wiki/File:Giorgio_Moroder_-_First_Avenue_Minneapolis_-_The_Current_(44776142702).jpg">Wikimedia Commons</a>, CC BY 2.0.'
 },
+"nile-rodgers":{
+name:"Nile Rodgers",real:"Nile Gregory Rodgers Jr.",pic:"assets/artists-or-bands/nile-rodgers.jpg",
+facts:[["Born","19 September 1952, New York City"],["Active","1970–present"],["Band","Chic, co-founded with Bernard Edwards"],["Instrument","Guitar; his 1960 Fender Stratocaster is known as “The Hitmaker”"],["Hall of Fame","Rock and Roll Hall of Fame, 2017"]],
+genres:{n:"Electronic",c:[{n:"Disco"},{n:"Funk"}]},
+bio:["Nile Rodgers grew up in New York and played guitar in the Sesame Street touring band and the Apollo Theater house band before meeting bassist Bernard Edwards. Together they formed Chic, whose disco hits “Le Freak” and “Good Times” came out in 1978 and 1979.","Rodgers and Edwards also wrote and produced for other artists, including Sister Sledge’s “We Are Family” and Diana Ross’s “Upside Down” and “I’m Coming Out”. In the 1980s Rodgers produced David Bowie’s Let’s Dance, Madonna’s Like a Virgin and records for Duran Duran, becoming one of the most in-demand producers of the decade.","After Edwards died in 1996, Rodgers kept Chic touring. He played guitar on Daft Punk’s Random Access Memories in 2013, and “Get Lucky” won him Grammys for Record of the Year and Best Pop Duo/Group Performance. He joined the Rock and Roll Hall of Fame in 2017."],
+trivia:["“Le Freak” began as a chant of frustration after he and Edwards were turned away from Studio 54 on New Year’s Eve 1977.","The bass line of “Good Times” was used on “Rapper’s Delight”, one of the first hip-hop hits.","He calls his rhythm guitar style “chucking”.","His 2011 memoir is called Le Freak."],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Nile_Rodgers">Wikipedia: Nile Rodgers</a>, available under CC BY-SA 4.0.'
+},
 "daft-punk":{
 name:"Daft Punk",real:"Thomas Bangalter and Guy-Manuel de Homem-Christo",pic:"assets/artists-or-bands/daft-punk.jpg",
 facts:[["Formed","1993, Paris, France"],["Active","1993–2021"],["Members","Thomas Bangalter, Guy-Manuel de Homem-Christo"],["Earlier band","Darlin’"],["Labels","Soma, Virgin, Columbia, Daft Life and more"]],
@@ -2022,7 +2031,7 @@ function treeNode(t,d){
   var hit=names.filter(function(g){return g.toLowerCase()===t.n.toLowerCase()})[0];
   return '<li><span class="gn"><button class="tag" type="button" '+(hit?'data-go="'+esc(hit)+'"':'data-msg="'+esc(t.n)+' has no page in this prototype yet."')+'>'+esc(t.n)+'</button><small>'+GLV[Math.min(d,2)]+'</small></span>'+(t.c?'<ul>'+t.c.map(function(c){return treeNode(c,d+1)}).join("")+'</ul>':'')+'</li>';
 }
-function genreTree(t){return '<h2 class="sec">Genres</h2><ul class="gtree" aria-label="Genre hierarchy">'+treeNode(t,0)+'</ul>'}
+function genreTree(t){return '<h2 class="sec">Genres</h2><ul class="gtree" aria-label="Genre hierarchy">'+[].concat(t).map(function(r){return treeNode(r,0)}).join("")+'</ul>'}
 function coverDiv(a,x){var cv=coverOf(slug(a.title));return '<div class="acover" role="img" aria-label="Cover art for '+esc(a.title)+'" style="'+gray(2,8)+'"><span>Cover art from Spotify</span>'+(cv?'<img src="'+esc(cv)+'" alt="" onerror="this.remove()">':'')+'</div>'}
 function goDoor(d){return '<button type="button" class="'+(d.side?'side':'')+'" data-go="'+esc(d.go)+'"><span><b>'+esc(d.t)+'</b><small>'+esc(d.s)+'</small></span><i>'+(d.side?'Sideways':'Deeper')+'</i></button>'}
 function albumHTML(a){
@@ -2036,7 +2045,7 @@ function albumHTML(a){
     h+='</div><aside>';
     h+=genreTree(x.genres);
     h+='<h2 class="sec">Artist</h2>'+artistDoor(a.artist,"Behind the album");
-    if(x.collabs.length)h+='<h2 class="sec">Collaborations</h2>'+doors(x.collabs,false,"Artist pages are not built yet.","Deeper");
+    if(x.collabs.length)h+='<h2 class="sec">Collaborations</h2>'+x.collabs.map(function(d){var c=collabOf(k,d[0]);return c?'<div class="dl">'+goDoor({t:d[0],s:d[1],go:c})+'</div>':doors([d],false,"Collaboration pages are not built yet.","Deeper")}).join("");
     if(x.echo.length)h+='<h2 class="sec">Echoes in later music</h2>'+doors(x.echo,true,"Pages for songs on other albums are not built yet.","Sideways");
     h+='</aside></div>';
   }else{
@@ -2071,6 +2080,8 @@ function artistHTML(id){
   var names_=[id].concat((r.alias||[]).map(slug));
   var al=Object.keys(ALB).filter(function(k){return names_.indexOf(slug(ALB[k].artist))>-1});
   if(al.length)h+='<h2 class="sec">Albums in MuDis</h2><div class="dl">'+al.map(function(k){return goDoor({t:ALB[k].title,s:ALB[k].kind+" · "+ALB[k].year,go:k})}).join("")+'</div>';
+  var co=Object.keys(CO).filter(function(c){return slug(CO[c].who)===id||slug(CO[c].with)===id});
+  if(co.length)h+='<h2 class="sec">Collaborations</h2><div class="dl">'+co.map(function(c){return goDoor({t:CO[c].who+" × "+CO[c].with,s:"On "+ALB[CO[c].alb].title,go:c,side:true})}).join("")+'</div>';
   h+='</aside></div><footer class="foot">'+r.src+'</footer>';
   return h;
 }
@@ -2082,18 +2093,57 @@ genres:{n:"Electronic",c:[{n:"Ambient"},{n:"Techno",c:[{n:"Ambient techno"}]}]},
 about:["Apollo is the ambient-music division of R&S Records, a Belgian dance label known mostly for techno.","R&S was founded in Ghent in 1983 by Renaat Vandepapeliere and Sabine Maes; the name comes from their initials. The original label stopped in 2000, and R&S and Apollo were relaunched together in 2009.","Apollo released Aphex Twin’s debut album, Selected Ambient Works 85–92, in 1992. Other artists on the label include Biosphere, Locust (Mark Van Hoen), Sun Electric, Manna and Thomas Fehlmann."],
 artists:["Aphex Twin|Debut album on Apollo","Biosphere|Microgravity, Patashnik","Locust|Weathered Well, Natural Composite, Truth Is Born of Arguments, Morning Light","Sun Electric|30.7.94 Live, Present, Via Nostra","Thomas Fehlmann|Good Fridge, OneToThree"],
 releases:[["Selected Ambient Works 85–92","Aphex Twin"],["Volume 1 – File Under Ambient","Apollo compilation"],["Microgravity","Biosphere"],["The Irresistible Force","The Irresistible Force"],["Visions of the Past","Robert Leiner"],["The Conversation","Cabaret Voltaire"],["Moving Through Here","John Beltran"],["Ki–Oku","DJ Krush & Toshinori Kondo"]],
+parent:["R&S Records","Ghent, Belgium · founded 1983"],
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Apollo_Records_(Belgium)">Wikipedia: Apollo Records (Belgium)</a> and <a href="https://en.wikipedia.org/wiki/R%26S_Records">Wikipedia: R&amp;S Records</a>, available under CC BY-SA 4.0.'
+},
+/* Columbia: built for Random Access Memories. Facts from Wikipedia: Columbia Records. */
+"columbia":{
+name:"Columbia",full:"Columbia Records",pic:"assets/record-label-assets/columbia-records-black.jpg",
+facts:[["Founded","1889, Washington, D.C."],["Headquarters","New York City"],["Parent company","Sony Music Entertainment"],["Known for","Oldest surviving brand name in recorded sound"],["First","Introduced the 33⅓ rpm long-playing record (LP) in 1948"]],
+genres:[{n:"Jazz",c:[{n:"Cool jazz"},{n:"Jazz fusion"}]},{n:"Rock",c:[{n:"Folk rock"}]},{n:"Electronic",c:[{n:"Disco"}]},{n:"Hip-hop"},{n:"Blues"}],
+about:["Columbia started in 1889 as the Columbia Phonograph Company in Washington, D.C., selling phonographs and the cylinders they played. It is the oldest brand name in recorded sound that is still in use, and it was one of the first companies to make records as well as the machines to play them.","CBS bought the label in 1938. Ten years later Columbia launched the 33⅓ rpm long-playing record, the LP, which let a whole album fit on one disc and changed how music was sold. In 1988 Sony bought CBS Records, and Columbia is now one of Sony Music’s main labels.","Its roster runs from Bessie Smith and Billie Holiday through Miles Davis, Bob Dylan, Johnny Cash, Simon & Garfunkel and Bruce Springsteen to Beyoncé and Adele. Daft Punk left Virgin for Columbia to release Random Access Memories in 2013."],
+artists:["Daft Punk|Random Access Memories, 2013","Miles Davis|Kind of Blue, Bitches Brew","Bob Dylan|Highway 61 Revisited","Dave Brubeck Quartet|Time Out","Charles Mingus|Mingus Ah Um","Herbie Hancock|Head Hunters","Nas|Illmatic","Judas Priest|Painkiller","Robert Johnson|King of the Delta Blues Singers"],
+releases:[["Random Access Memories","Daft Punk · 2013"],["Kind of Blue","Miles Davis · 1959"],["Time Out","Dave Brubeck Quartet · 1959"],["Mingus Ah Um","Charles Mingus · 1959"],["King of the Delta Blues Singers","Robert Johnson · 1961"],["Highway 61 Revisited","Bob Dylan · 1965"],["Bitches Brew","Miles Davis · 1970"],["Head Hunters","Herbie Hancock · 1973"],["Painkiller","Judas Priest · 1990"],["Illmatic","Nas · 1994"]],
+parent:["Sony Music Entertainment","Owner since 1988, when Sony bought CBS Records"],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Columbia_Records">Wikipedia: Columbia Records</a>, available under CC BY-SA 4.0. Logo from Columbia Records.'
 }};
 function labelHTML(id){
   var b=LB[id],h='<div class="ahd"><h1 class="atitle">'+esc(b.name)+'</h1><p class="aby">'+esc(b.full)+' · record label</p></div>';
-  h+='<div class="aspread"><div class="apic lpic" role="img" aria-label="'+esc(b.full)+' logo placeholder"><span>'+esc(b.name)+'</span></div><dl class="facts">'+b.facts.map(function(f){return '<dt>'+esc(f[0])+'</dt><dd>'+esc(f[1])+'</dd>'}).join("")+'</dl></div>';
+  h+='<div class="aspread"><div class="apic lpic" role="img" aria-label="'+esc(b.full)+' logo'+(b.pic?'':' placeholder')+'"><span>'+esc(b.name)+'</span>'+(b.pic?'<img src="'+esc(b.pic)+'" alt="" onerror="this.remove()">':'')+'</div><dl class="facts">'+b.facts.map(function(f){return '<dt>'+esc(f[0])+'</dt><dd>'+esc(f[1])+'</dd>'}).join("")+'</dl></div>';
   h+='<div class="acols"><div>';
   h+='<h2 class="sec">About the label</h2><div class="prose">'+b.about.map(function(p){return '<p>'+esc(p)+'</p>'}).join("")+'</div>';
   h+='<h2 class="sec">Selected releases</h2><div class="dl">'+b.releases.map(function(r){var k=slug(r[0]);return ALB[k]?goDoor({t:r[0],s:r[1],go:k,side:true}):'<button type="button" class="side" data-msg="The page for '+esc(r[0])+' is not built yet."><span><b>'+esc(r[0])+'</b><small>'+esc(r[1])+'</small></span><i>Sideways</i></button>'}).join("")+'</div>';
   h+='</div><aside>'+genreTree(b.genres);
   h+='<h2 class="sec">Artists on the label</h2>'+b.artists.map(function(a){var p=a.split("|");return artistDoor(p[0],p[1])}).join("");
-  h+='<h2 class="sec">Parent label</h2>'+doors([["R&S Records","Ghent, Belgium · founded 1983"]],false,"The page for R&S Records is not built yet.","Deeper");
+  if(b.parent)h+='<h2 class="sec">'+(id==="columbia"?"Parent company":"Parent label")+'</h2>'+doors([b.parent],false,"The page for "+b.parent[0]+" is not built yet.","Deeper");
   h+='</aside></div><footer class="foot">'+b.src+'</footer>';
+  return h;
+}
+/* Collaboration pages: one guest on one album. Built for Random Access Memories only.
+   Image: drop the file at the "pic" path below; until then the frame shows the two names. */
+var CO={"nile-rodgers-x-daft-punk":{
+alb:"random-access-memories",who:"Nile Rodgers",with:"Daft Punk",
+pic:"assets/collabs/nile-rodgers-x-daft-punk.jpg",
+facts:[["Who","Nile Rodgers, guitarist, songwriter and producer; co-founder of Chic"],["On the album","Rhythm guitar"],["Songs","3 of 13"],["Co-wrote","“Lose Yourself to Dance” and “Get Lucky”"],["Grammys","Record of the Year and Best Pop Duo/Group Performance, 2014, for “Get Lucky”"]],
+genres:{n:"Electronic",c:[{n:"Disco"},{n:"Funk"}]},
+story:["Nile Rodgers co-founded Chic in the 1970s and wrote and produced disco hits such as “Le Freak” and “Good Times”, then produced records like David Bowie’s Let’s Dance and Madonna’s Like a Virgin. His clipped, rhythmic guitar is one of the sounds of the late-1970s dance music that Daft Punk set out to honour on Random Access Memories.","The duo wanted live players instead of samples, and they wanted Rodgers to play the way he had on his own records. He played rhythm guitar on three songs, “Give Life Back to Music”, “Lose Yourself to Dance” and “Get Lucky”, the last two with Pharrell Williams singing.","“Get Lucky” came out in April 2013 as the album’s lead single, after short teasers on Saturday Night Live and at Coachella. It reached number one in the UK and many other countries and number two in the US. At the 2014 Grammys it won Record of the Year, and Daft Punk, Rodgers and Pharrell performed it on the night with Stevie Wonder."],
+songs:[[1,"Rodgers on guitar with Paul Jackson Jr."],[6,"Guitar; Pharrell Williams sings"],[8,"Guitar; Pharrell Williams sings; lead single"]],
+others:[["Pharrell Williams","Sang on “Lose Yourself to Dance” and “Get Lucky”"],["Paul Jackson Jr.","Second guitar on “Give Life Back to Music”"]],
+src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Random_Access_Memories">Wikipedia: Random Access Memories</a>, <a href="https://en.wikipedia.org/wiki/Get_Lucky_(Daft_Punk_song)">Wikipedia: Get Lucky</a> and <a href="https://en.wikipedia.org/wiki/Nile_Rodgers">Wikipedia: Nile Rodgers</a>, available under CC BY-SA 4.0.'
+}};
+function collabOf(alb,who){return Object.keys(CO).filter(function(c){return CO[c].alb===alb&&CO[c].who===who})[0]}
+function collabHTML(id){
+  var c=CO[id],a=ALB[c.alb],x=X[c.alb];
+  var h='<div class="ahd"><h1 class="atitle">'+esc(c.who)+' × '+esc(c.with)+'</h1><p class="aby">Collaboration on <button class="lnk" type="button" data-go="'+c.alb+'">'+esc(a.title)+'</button></p></div>';
+  h+='<div class="aspread"><div class="apic lpic copic" role="img" aria-label="Photo of '+esc(c.who)+' with '+esc(c.with)+'"><span>'+esc(c.who)+'<br>× '+esc(c.with)+'</span>'+(c.pic?'<img src="'+esc(c.pic)+'" alt="" onerror="this.remove()">':'')+'</div><dl class="facts">'+c.facts.map(function(f){return '<dt>'+esc(f[0])+'</dt><dd>'+esc(f[1])+'</dd>'}).join("")+'</dl></div>';
+  h+='<div class="acols"><div>';
+  h+='<h2 class="sec">The collaboration</h2><div class="prose">'+c.story.map(function(p){return '<p>'+esc(p)+'</p>'}).join("")+'</div>';
+  h+='<h2 class="sec">Songs they made together</h2><div class="dl">'+c.songs.map(function(s){return goDoor({t:x.tracks[s[0]-1][0],s:"Track "+s[0]+" · "+s[1],go:c.alb+"/"+s[0]})}).join("")+'</div>';
+  h+='</div><aside>'+genreTree(c.genres);
+  h+='<h2 class="sec">Album</h2><div class="dl">'+goDoor({t:a.title,s:"Back to the album",go:c.alb,side:true})+'</div>';
+  h+='<h2 class="sec">Artists</h2>'+artistDoor(c.with,"Made the album")+artistDoor(c.who,"Guest guitarist");
+  if(c.others.length)h+='<h2 class="sec">Also in the room</h2>'+doors(c.others,true,"Collaboration pages for these musicians are not built yet.","Sideways");
+  h+='</aside></div><footer class="foot">'+c.src+'</footer>';
   return h;
 }
 /* Floating cover: a 200px disc that drifts slowly through empty space on the song page and bounces off every piece of text, button and the page edges. */
@@ -2179,12 +2229,14 @@ document.getElementById("homeBtn").onclick=function(){go("home")};
 function addNode(k,parent,side,p){if(!T[k])T[k]={key:k,parent:parent,side:side,page:p,d:trail.length-1,o:tOrder++}}
 function stepDeeper(p){var pk=tkeys.length?tkeys[tkeys.length-1]:null,k=pk===null?p.id:pk+">"+p.id;trail.push(p);tkeys.push(k);addNode(k,pk,false,p)}
 function stepSideways(p){var pk=tkeys[tkeys.length-1],k=pk+"~"+p.id;trail[trail.length-1]=p;tkeys[tkeys.length-1]=k;addNode(k,pk,true,p);sideways++}
-var VIEWN={home:"Home",genre:"Genre",album:"Album",song:"Song",artist:"Artist",label:"Label"};
+var VIEWN={home:"Home",genre:"Genre",album:"Album",song:"Song",artist:"Artist",label:"Label",collab:"Collaboration"};
 function nodeSub(p){
   if(p.view==="home")return "Start";
   if(p.view==="genre")return "Genre page";
   if(p.view==="album")return ALB[p.id].artist;
   if(p.view==="song")return ALB[p.alb].title;
+  if(p.view==="label")return "Record label";
+  if(p.view==="collab")return ALB[CO[p.id].alb].title;
   return "Artist page";
 }
 
@@ -2194,7 +2246,7 @@ function pathKey(){return tkeys[tkeys.length-1]}
 function headline(){
   var lvl=trail.length-1;
   if(!lvl)return 'You’re at <em>Home</em>. Pick a genre or an album to start a trail.';
-  var f=trail[1],X=f.view==="genre"?f.name:f.view==="album"?ALB[f.id].genre:f.view==="artist"?AR[f.id].genres.n:f.view==="label"?LB[f.id].genres.n:f.name;
+  var f=trail[1],X=f.view==="genre"?f.name:f.view==="album"?ALB[f.id].genre:f.view==="artist"?AR[f.id].genres.n:f.view==="label"?[].concat(LB[f.id].genres)[0].n:f.view==="collab"?ALB[CO[f.id].alb].genre:f.name;
   var n=lvl-(f.view==="genre"?1:0);
   if(!n)return 'You’re at the top of <em>'+esc(X)+'</em>. Every page you open from here goes on your map.';
   return 'You’re '+n+' level'+(n>1?'s':'')+' below <em>'+esc(X)+'</em>, somewhere around <em>'+esc(cur.name)+'</em>.';
@@ -2293,7 +2345,7 @@ function noteKey(){return "mudis-notes:"+cur.id}
 function route(){
   var s=decodeURIComponent(location.hash.slice(1)),g=names.filter(function(n){return slug(n)===s})[0];
   var m=s.match(/^(.+)\/(\d+)$/),sx=m&&X[m[1]],tn=m?+m[2]:0;
-  var page=g?{id:slug(g),view:"genre",name:g}:sx&&tn>=1&&tn<=sx.tracks.length?{id:s,view:"song",name:sx.tracks[tn-1][0],alb:m[1],n:tn}:ALB[s]?{id:s,view:"album",name:ALB[s].title}:AR[s]?{id:s,view:"artist",name:AR[s].name}:LB[s]?{id:s,view:"label",name:LB[s].name}:{id:"home",view:"home",name:"Home"};
+  var page=g?{id:slug(g),view:"genre",name:g}:sx&&tn>=1&&tn<=sx.tracks.length?{id:s,view:"song",name:sx.tracks[tn-1][0],alb:m[1],n:tn}:ALB[s]?{id:s,view:"album",name:ALB[s].title}:AR[s]?{id:s,view:"artist",name:AR[s].name}:LB[s]?{id:s,view:"label",name:LB[s].name}:CO[s]?{id:s,view:"collab",name:CO[s].who+" × "+CO[s].with}:{id:"home",view:"home",name:"Home"};
   var side=pendingSide;pendingSide=false;
   if(!trail.length)stepDeeper({id:"home",view:"home",name:"Home"});
   if(trail.length===1&&page.view==="song")stepDeeper({id:page.alb,view:"album",name:ALB[page.alb].title});
@@ -2313,6 +2365,7 @@ function route(){
   if(page.view==="album")ap.innerHTML=albumHTML(ALB[page.id]);
   if(page.view==="artist")ap.innerHTML=artistHTML(page.id);
   if(page.view==="label")ap.innerHTML=labelHTML(page.id);
+  if(page.view==="collab")ap.innerHTML=collabHTML(page.id);
   if(page.view==="song"){ap.innerHTML=songHTML(page);playerMount(page);window.scrollTo(0,0);floatCover(X[page.alb].cover,page.alb,ALB[page.alb].title)}
   if(page.view!=="song")playerMount(page);
   document.title=(page.view!=="home"?page.name+" · ":"")+"MuDis";
