@@ -293,6 +293,20 @@ html.intro .col.clone{visibility:hidden}
 .plfly{position:fixed;left:0;top:0;z-index:60;overflow:hidden;pointer-events:none;transform-origin:0 0}
 .plfly img{width:100%;height:100%;object-fit:cover;display:block}
 .tl2 li.now button{font-weight:600;color:#f07a1e}
+/* Top songs on an artist page: cover circles like the song page's floating disc; hover shows the title on dark grey */
+.tops{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(12px,2vw,24px);margin-top:8px;max-width:880px}
+.tdisc{position:relative;aspect-ratio:1;width:100%;max-width:200px;padding:0;border:1px solid var(--fg);border-radius:50%;overflow:hidden;cursor:pointer;box-shadow:0 10px 30px rgba(0,0,0,.25);font:inherit}
+.tdisc img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.tdisc span{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:14%;border-radius:50%;background:rgba(48,48,48,.72);color:#f3f3f1;text-align:center;line-height:1.15;opacity:0;transition:opacity .2s}
+.tdisc b{font-size:clamp(12px,1.3vw,16px);font-weight:600}
+.tdisc small{font-size:12px;opacity:.85}
+.tdisc:hover span,.tdisc:focus-visible span{opacity:1}
+.tdisc:focus-visible{outline:2px solid var(--fg);outline-offset:3px}
+.tdisc.now{box-shadow:0 0 0 3px #f07a1e,0 10px 30px rgba(0,0,0,.25)}
+.topl{margin:22px 0 0;padding-left:1.4em;max-width:68ch;font-size:15px;line-height:1.45}
+.topl li{margin:0 0 10px}
+.topl small{font-size:12px;opacity:.75}
+@media (max-width:640px){.tops{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:700px){.ahd.hasp{grid-template-columns:1fr}.plw{grid-column:1;grid-row:10;align-items:flex-start;margin-top:14px}.plcap{text-align:left}}
 /* Listening Room: a calm overlay for listening to one whole album. No doorways, no trail steps, no level change.
    Alignment numbers live in LR_SET at the top of the script. */
@@ -503,6 +517,11 @@ function playTrack(album,trackNumber,track){pvPlay(album,trackNumber)}
 function pauseTrack(){pvPause()}
 /* Player state survives moving between song pages of the same album, so the record keeps spinning */
 var PLAYER={alb:null,n:1,playing:false,ang:0,raf:0,last:0,vel:0,el:null};
+/* What the player plays: an album (key = album slug) or an artist's top songs (key = "top:" + artist slug) */
+function plTop(k){return k&&k.indexOf("top:")===0&&AR[k.slice(4)]}
+function plX(k){var r=plTop(k);return r?{tracks:r.top.map(function(s){return [s.t,""]})}:X[k]}
+function plAlb(k){var r=plTop(k);return r?{title:r.name+" top songs",artist:r.name,key:k}:ALB[k]}
+function plCover(k,n){var r=plTop(k);return r?r.top[n-1].cover||"":coverOf(k)}
 
 /* ================= LISTENING ROOM: SLEEVE WHEEL SETTINGS ================= */
 var LR_WHEEL={
@@ -1587,6 +1606,13 @@ src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Nile_Rodgers">Wiki
 name:"Daft Punk",real:"Thomas Bangalter and Guy-Manuel de Homem-Christo",pic:"assets/artists-or-bands/daft-punk.jpg",
 facts:[["Formed","1993, Paris, France"],["Active","1993–2021"],["Members","Thomas Bangalter, Guy-Manuel de Homem-Christo"],["Earlier band","Darlin’"],["Labels","Soma, Virgin, Columbia, Daft Life and more"]],
 genres:{n:"Electronic",c:[{n:"House",c:[{n:"French house"}]},{n:"Disco"}]},
+/* Top songs: circles under the biography, played by the mini player (Apple previews, looked up by artist + title).
+   "cover" is the circle's art: swap the file path to use a different image. */
+top:[
+{t:"One More Time",alb:"Discovery",year:2001,cover:"assets/covers/discovery-2001-daft-punk.jpg",about:"An exuberant, auto-tuned house anthem featuring Romanthony’s vocals that remains one of the most celebrated dance tracks in history."},
+{t:"Around the World",alb:"Homework",year:1997,cover:"assets/covers/homework.jpg",about:"A hypnotic, minimalist bassline-driven club classic that cemented their early underground and mainstream influence."},
+{t:"Harder, Better, Faster, Stronger",alb:"Discovery",year:2001,cover:"assets/covers/discovery-2001-daft-punk.jpg",about:"A robotic, vocoder-heavy funk-house staple famously reinterpreted years later by Kanye West."},
+{t:"Digital Love",alb:"Discovery",year:2001,cover:"assets/covers/discovery-2001-daft-punk.jpg",about:"A dreamy, romantic electro-pop track praised for its lush harmonies and soaring guitar solo."}],
 bio:["Daft Punk were Thomas Bangalter and Guy-Manuel de Homem-Christo, who met at school in Paris in 1987. Their first band, Darlin’, lasted about six months. A Melody Maker review dismissed its music as “a daft, punky thrash”, and the pair took their new name from it.","Their debut, Homework (1997), put them at the front of the French house movement, mixing house, funk, disco, techno and rock. From 1999 they hid behind silver and gold robot helmets, and Discovery (2001), with “One More Time” and “Harder, Better, Faster, Stronger”, became a landmark. Their 2006–2007 tour, played from a giant LED pyramid, helped bring dance music to a much wider audience in North America.","They scored Tron: Legacy in 2010, then swapped samples for live musicians on Random Access Memories (2013), which won the Grammy for Album of the Year while “Get Lucky” won Record of the Year. They split in 2021 after 28 years, announcing it with a video called “Epilogue”."],
 trivia:["They claimed their sampler exploded at 9:09 am on 9 September 1999, and that they woke up from surgery as robots.","Bangalter’s helmet was silver; Homem-Christo’s was gold.","Their only US number one came in 2016, on “Starboy” by the Weeknd.","Kanye West’s “Stronger” is built on “Harder, Better, Faster, Stronger”.","A flatworm, Baicalellia daftpunka, was named after them in 2018 because it partly resembles one of their helmets.","Japanese artist Leiji Matsumoto made Interstella 5555, an animated film set to Discovery, with them.","Bangalter said the 1974 film Phantom of the Paradise was the foundation for much of what they did artistically."],
 src:'Text adapted from <a href="https://en.wikipedia.org/wiki/Daft_Punk">Wikipedia: Daft Punk</a>, available under CC BY-SA 4.0. Photo: Sony Music Entertainment, edited by W.carter, <a href="https://commons.wikimedia.org/wiki/File:Daft_Punk_in_2013_2-_centered.jpg">Wikimedia Commons</a>, CC BY 4.0.'
@@ -2075,6 +2101,8 @@ function artistHTML(id){
   h+='<div class="aspread"><div class="apic" role="img" aria-label="Photo of '+esc(r.name)+'">'+AV+(r.pic?'<img src="'+esc(r.pic)+'" alt="" onerror="this.remove()">':'')+'</div><dl class="facts">'+r.facts.map(function(f){return '<dt>'+esc(f[0])+'</dt><dd>'+esc(f[1])+'</dd>'}).join("")+'</dl></div>';
   h+='<div class="acols"><div>';
   h+='<h2 class="sec">Biography</h2><div class="prose">'+r.bio.map(function(p){return '<p>'+esc(p)+'</p>'}).join("")+'</div>';
+  if(r.top)h+='<h2 class="sec">Top songs</h2><div class="tops">'+r.top.map(function(s,i){return '<button type="button" class="tdisc" data-top="'+(i+1)+'" aria-label="Play '+esc(s.t)+', from '+esc(s.alb)+', '+s.year+'" style="'+gray(2,8)+'">'+(s.cover?'<img src="'+esc(s.cover)+'" alt="" onerror="this.remove()">':'')+'<span><b>'+esc(s.t)+'</b><small>'+esc(s.alb)+' · '+s.year+'</small></span></button>'}).join("")+'</div>'+
+    '<ol class="topl">'+r.top.map(function(s){return '<li><b>'+esc(s.t)+'</b> <small>'+esc(s.alb)+', '+s.year+'</small><br>'+esc(s.about)+'</li>'}).join("")+'</ol>';
   h+='<h2 class="sec">Trivia</h2><ul class="trivia">'+r.trivia.map(function(t){return '<li>'+esc(t)+'</li>'}).join("")+'</ul>';
   h+='</div><aside>'+genreTree(r.genres);
   var names_=[id].concat((r.alias||[]).map(slug));
@@ -2424,6 +2452,30 @@ function pvAlbum(alb,cb){
   PV.waiting[alb]=[cb];
   /* a failed request (offline, Apple busy) is not remembered, so the next Play tries again; "not on Apple" is remembered */
   function finish(list,keep){if(keep)PV.cache[alb]=list;var w=PV.waiting[alb]||[];delete PV.waiting[alb];w.forEach(function(f){f(list)})}
+  /* an artist's top songs: one song search each, keeping the artist's own studio recording (album name preferred) */
+  var tr=plTop(alb);
+  if(tr){
+    var out=[],left=tr.top.length,failed=false,ar=pvNorm(tr.name);
+    tr.top.forEach(function(s,i){
+      pvJsonp("https://itunes.apple.com/search?term="+encodeURIComponent(tr.name+" "+s.t)+"&entity=song&limit=25&country="+PREVIEW_COUNTRY,function(d){
+        if(!d||!d.results)failed=true;
+        else{
+          var best=null,bs=-99,t=pvNorm(s.t),al=pvNorm(s.alb);
+          d.results.forEach(function(r){
+            var ra=pvNorm(r.artistName),rt=pvNorm(r.trackName),rc=String(r.collectionName||"").toLowerCase(),sc=0;
+            if(!r.previewUrl||ra.indexOf(ar)<0)return;
+            if(rt===t)sc+=6;else if(rt.indexOf(t)===0)sc+=2;else return;
+            if(pvNorm(r.collectionName)===al)sc+=4;else if(pvNorm(r.collectionName).indexOf(al)>-1)sc+=2;
+            if(/\b(live|remix|edit|version|instrumental|radio)\b/.test(String(r.trackName||"").toLowerCase()+" "+rc))sc-=3;
+            if(sc>bs){bs=sc;best=r}
+          });
+          out[i]=best;
+        }
+        if(!--left)finish(failed?null:out,!failed);
+      });
+    });
+    return;
+  }
   var a=ALB[alb],x=X[alb],c="&country="+PREVIEW_COUNTRY;
   function lookup(id){
     pvJsonp("https://itunes.apple.com/lookup?id="+id+"&entity=song"+c,function(d){
@@ -2442,7 +2494,7 @@ function pvAlbum(alb,cb){
 function pvNote(msg,link){PLAYER.note=msg||"";PLAYER.link=link||null;playerShow()}
 function pvNone(msg){PV.el.pause();if(PLAYER.playing){PLAYER.playing=false;spinRun()}pvNote(msg)}
 function pvPlay(album,n){
-  var alb=slug(album.title);
+  var alb=album.key||slug(album.title);
   /* same track, already loaded: just resume */
   if(PV.alb===alb&&PV.n===n&&PV.el.getAttribute("src")){var p0=PV.el.play();if(p0&&p0.catch)p0.catch(function(){pvNone("Preview couldn’t play")});return}
   PV.want={alb:alb,n:n};PV.el.pause();pvNote("Loading preview…");
@@ -2464,13 +2516,13 @@ if(PV.el){
 
 /* ---- Mini player on album and song pages (settings: PL_SET; audio hooks: playTrack / pauseTrack) ---- */
 function playerMount(page){
-  var pg=document.getElementById("album"),alb=page.view==="album"?page.id:page.view==="song"?page.alb:null,x=alb&&X[alb];
+  var pg=document.getElementById("album"),alb=page.view==="album"?page.id:page.view==="song"?page.alb:page.view==="artist"&&AR[page.id].top?"top:"+page.id:null,x=alb&&plX(alb);
   PLAYER.el=null;
   if(!x||!x.tracks||!x.tracks.length){playerStop();PLAYER.alb=null;return}
   if(PLAYER.alb!==alb){playerStop();PLAYER.alb=alb;PLAYER.n=1}
   if(page.view==="song"&&PLAYER.n!==page.n){PLAYER.n=page.n;if(PLAYER.playing)playTrack(ALB[alb],PLAYER.n,x.tracks[PLAYER.n-1])}
   var hd=pg.querySelector(".ahd");if(!hd)return;
-  var S=PL_SET,a=ALB[alb],cv=coverOf(alb),w=document.createElement("div");
+  var S=PL_SET,a=plAlb(alb),cv=plCover(alb,PLAYER.n),w=document.createElement("div");
   /* only the middle button of the pause picture shows: a soft-edged round window over it */
   var rx=S.pauseRadius,ry=S.pauseRadius*900/411,g="radial-gradient(ellipse "+rx+"% "+ry+"% at "+S.playX+"% "+S.buttonY+"%,#000 82%,transparent 100%)",
       mask="-webkit-mask-image:"+g+";mask-image:"+g;
@@ -2491,8 +2543,12 @@ function playerMount(page){
 /* Caption, button labels, which track is highlighted, and the play/pause picture */
 function playerShow(){
   if(!PLAYER.el)return;
-  var x=X[PLAYER.alb],N=x.tracks.length,t=x.tracks[PLAYER.n-1],w=PLAYER.el.parentNode,p=w.querySelector('[data-pl="play"]');
-  w.querySelector(".plcap").textContent=(PLAYER.playing?"Playing · ":PLAYER.on?"Paused · ":"")+"Track "+PLAYER.n+" of "+N+" · "+t[0];
+  var x=plX(PLAYER.alb),N=x.tracks.length,t=x.tracks[PLAYER.n-1],w=PLAYER.el.parentNode,p=w.querySelector('[data-pl="play"]'),top=plTop(PLAYER.alb);
+  w.querySelector(".plcap").textContent=(PLAYER.playing?"Playing · ":PLAYER.on?"Paused · ":"")+(top?"Song ":"Track ")+PLAYER.n+" of "+N+" · "+t[0];
+  /* top songs: each song has its own cover, so the disc on the mat changes with the song */
+  if(top){var sp=PLAYER.el.querySelector(".pdisc span"),cv=plCover(PLAYER.alb,PLAYER.n),im=sp.querySelector("img");
+    if(cv&&(!im||im.getAttribute("src")!==cv)){if(im)im.remove();sp.insertAdjacentHTML("beforeend",'<img src="'+esc(cv)+'" alt="" onerror="this.remove()">')}
+    document.querySelectorAll("#album .tdisc").forEach(function(b,i){b.classList.toggle("now",PLAYER.on&&i===PLAYER.n-1)})}
   w.querySelector('[data-pl="prev"]').disabled=PLAYER.n<=1;
   w.querySelector('[data-pl="next"]').disabled=PLAYER.n>=N;
   p.setAttribute("aria-pressed",PLAYER.playing?"true":"false");
@@ -2523,14 +2579,14 @@ function playerStop(){
 /* Play: a copy of the page's cover (the big square on album pages, the drifting circle on song pages)
    shrinks into a circle and lands on the little turntable's mat. The page's own cover stays where it is. */
 function flyToMat(d,done){
-  var src=document.querySelector("#album .aspread .acover")||document.querySelector(".floater");
+  var src=document.querySelector("#album .aspread .acover")||document.querySelector(".floater")||document.querySelector('#album .tdisc[data-top="'+PLAYER.n+'"]');
   if(rm||!src){done();return}
-  var s=src.getBoundingClientRect(),t=d.getBoundingClientRect(),cv=coverOf(PLAYER.alb),f=document.createElement("div");
+  var s=src.getBoundingClientRect(),t=d.getBoundingClientRect(),cv=plCover(PLAYER.alb,PLAYER.n),f=document.createElement("div");
   if(!s.width||!t.width){done();return}
   f.className="plfly";f.style.cssText+=";width:"+s.width+"px;height:"+s.height+"px;"+gray(2,8);
   if(cv)f.innerHTML='<img src="'+esc(cv)+'" alt="">';
   document.body.appendChild(f);
-  var r0=getComputedStyle(src).borderRadius==="50%"||src.classList.contains("floater")?"50%":"0%";
+  var r0=getComputedStyle(src).borderRadius==="50%"||src.classList.contains("floater")||src.classList.contains("tdisc")?"50%":"0%";
   var a=f.animate([
     {transform:"translate("+s.left+"px,"+s.top+"px) scale(1)",borderRadius:r0},
     {transform:"translate("+t.left+"px,"+t.top+"px) scale("+(t.width/s.width)+")",borderRadius:"50%"}],
@@ -2540,20 +2596,28 @@ function flyToMat(d,done){
 }
 function playerToggle(){
   if(!PLAYER.el)return;
-  var x=X[PLAYER.alb],d=PLAYER.el.querySelector(".pdisc");
+  var x=plX(PLAYER.alb),d=PLAYER.el.querySelector(".pdisc");
   if(!PLAYER.playing){
     var first=!PLAYER.on;PLAYER.playing=true;PLAYER.on=true;playerShow();
-    playTrack(ALB[PLAYER.alb],PLAYER.n,x.tracks[PLAYER.n-1]);
+    playTrack(plAlb(PLAYER.alb),PLAYER.n,x.tracks[PLAYER.n-1]);
     if(first)flyToMat(d,function(){d.classList.add("show");spinRun()});else{d.classList.add("show");spinRun()}
   }else{PLAYER.playing=false;playerShow();pauseTrack();spinRun()}
 }
 /* Back / forward: on an album page they step through the track list; on a song page they open the previous / next song */
 function playerStep(dir){
-  var x=X[PLAYER.alb],n=PLAYER.n+dir;if(!x||n<1||n>x.tracks.length)return;
+  var x=plX(PLAYER.alb),n=PLAYER.n+dir;if(!x||n<1||n>x.tracks.length)return;
   if(cur&&cur.view==="song"){go(PLAYER.alb+"/"+n);return}
   PLAYER.n=n;playerShow();
-  if(PLAYER.playing)playTrack(ALB[PLAYER.alb],n,x.tracks[n-1]);
+  if(PLAYER.playing)playTrack(plAlb(PLAYER.alb),n,x.tracks[n-1]);
 }
+/* Top-song circle: plays that song in the mini player */
+document.getElementById("album").addEventListener("click",function(e){
+  var b=e.target.closest("[data-top]");if(!b||!PLAYER.el)return;
+  var n=+b.dataset.top;
+  if(PLAYER.playing&&PLAYER.n===n)return;
+  PLAYER.n=n;
+  if(PLAYER.playing){playerShow();playTrack(plAlb(PLAYER.alb),n,plX(PLAYER.alb).tracks[n-1])}else playerToggle();
+});
 document.getElementById("album").addEventListener("click",function(e){
   var b=e.target.closest("[data-pl]");if(!b||b.disabled)return;
   b.classList.add("press");setTimeout(function(){b.classList.remove("press")},120);
